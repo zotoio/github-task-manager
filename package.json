@@ -46,6 +46,20 @@
     "semantic-release": "^8.2.0",
     "serverless": "^1.24.1"
   },
+  "engines": {
+    "node": ">=8.4.0"
+  },
+  "nyc": {
+    "require": [
+      "babel-register"
+    ],
+    "reporter": [
+      "lcov",
+      "text"
+    ],
+    "sourceMap": false,
+    "instrument": false
+  },
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
