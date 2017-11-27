@@ -2,7 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/github-task-manager.svg)](https://badge.fury.io/js/github-task-manager)
 [![Build Status](https://travis-ci.org/wyvern8/github-task-manager.svg?branch=master)](https://travis-ci.org/wyvern8/github-task-manager)
-[![Code Climate](https://codeclimate.com/github/wyvern8/github-task-manager/badges/gpa.svg)](https://codeclimate.com/github/wyvern8/github-task-manager)
+[![Code Climate](https://img.shields.io/codeclimate/maintainability/wyvern8/github-task-manager.svg)](https://codeclimate.com/github/wyvern8/github-task-manager)
 [![Test Coverage](https://codeclimate.com/github/wyvern8/github-task-manager/badges/coverage.svg)](https://codeclimate.com/github/wyvern8/github-task-manager/coverage)
 [![Greenkeeper badge](https://badges.greenkeeper.io/wyvern8/github-task-manager.svg)](https://greenkeeper.io/)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg?clear)](http://commitizen.github.io/cz-cli/)
