@@ -1,0 +1,1 @@
+module.exports = require('./dist/src/github-task-manager.js');
