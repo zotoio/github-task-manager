@@ -3,6 +3,10 @@ process.on('unhandledRejection', (reason, p) => {
     // application specific logging, throwing an error, or other logic here
 });
 
-export function placeholder() {
-    console.log('placeholder');
+export function placeholder(test) {
+    if (test) {
+        test = test + 'test';
+        console.log('placeholder');
+    }
+    return test;
 }
