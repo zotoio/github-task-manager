@@ -64,5 +64,15 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "dependencies": {
+    "app-root-path": "^2.0.1",
+    "babel-polyfill": "^6.26.0",
+    "dotenv": "^4.0.0",
+    "format-json": "^1.0.3",
+    "globule": "^1.2.0",
+    "require-dir": "^0.3.2",
+    "systemjs": "^0.20.19",
+    "webpack": "^3.8.1"
   }
 }
