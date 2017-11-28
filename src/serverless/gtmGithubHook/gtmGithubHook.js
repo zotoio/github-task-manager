@@ -92,7 +92,7 @@ function handleEvent(type, body) {
         console.log(`new pull request: "${body.pull_request.title}" "${body.action}" by ${body.pull_request.user.login}`);
 
         // add event body to SQS
-
+        console.log(process.env.SLS_PENDING_QUEUE_URL);
 
     } else {
         console.log(`unsupported event: type: '${type}' action: '${body.action}'`);

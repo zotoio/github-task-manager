@@ -68,6 +68,10 @@ package:
 functions:
   gtmGithubHook:
     handler: dist/src/serverless/gtmGithubHook/gtmGithubHook.listener
+    environment:
+      SLS_PENDING_QUEUE_URL:
+        Ref: PendingQueue
+
     package:
       include:
         - dist/src/serverless/gtmGithubHook/**
@@ -138,7 +142,6 @@ resources:
         QueueName: ${env:GTM_SQS_RESULTS_QUEUE}
         MessageRetentionPeriod: 1209600
         VisibilityTimeout: 7200
-
 
 custom:
   dotenv:
