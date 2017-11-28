@@ -89,7 +89,7 @@ function listener(event, context, callback) {
 
 function handleEvent(type, body) {
 
-    if (type === 'pull_request' && body.action && ['push', 'opened', 'synchronize'].includes(body.action)) {
+    if (type === 'pull_request' && body.action && ['opened', 'synchronize'].includes(body.action)) {
         console.log(`pull request: "${body.pull_request.title}" "${body.action}" by ${body.pull_request.user.login}`);
 
         // add event body to SQS
