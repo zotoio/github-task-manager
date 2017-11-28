@@ -1,7 +1,8 @@
 'use strict';
 
-var json = require('format-json');
+let json = require('format-json');
 let crypto = require('crypto');
+let Producer = require('sqs-producer');
 
 function listener(event, context, callback) {
 
@@ -88,11 +89,30 @@ function listener(event, context, callback) {
 
 function handleEvent(type, body) {
 
-    if (type === 'pull_request' && body.action && ['opened', 'synchronize'].includes(body.action)) {
-        console.log(`new pull request: "${body.pull_request.title}" "${body.action}" by ${body.pull_request.user.login}`);
+    if (type === 'pull_request' && body.action && ['push', 'opened', 'synchronize'].includes(body.action)) {
+        console.log(`pull request: "${body.pull_request.title}" "${body.action}" by ${body.pull_request.user.login}`);
 
         // add event body to SQS
-        console.log(process.env.SLS_PENDING_QUEUE_URL);
+        console.log('adding event to SQS: ' + process.env.SQS_PENDING_QUEUE_URL);
+
+        // create simple producer
+        let producer = Producer.create({
+            queueUrl: process.env.SQS_PENDING_QUEUE_URL,
+            region: process.env.GTM_AWS_REGION
+        });
+
+        let bodyString = JSON.stringify(body);
+        producer.send([
+            {
+                id: crypto.createHash('md5').update(bodyString).digest('hex'),
+                body: bodyString,
+                messageAttributes: {
+                    ghEventType: { DataType: 'String', StringValue: type }
+                }
+            }
+        ], function(err) {
+            if (err) console.log(err);
+        });
 
     } else {
         console.log(`unsupported event: type: '${type}' action: '${body.action}'`);
