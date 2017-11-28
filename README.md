@@ -10,12 +10,12 @@
 
 receive github hook, notify agent, receive task results, notify github
 
+-= **work in progress ** =-
+
 ## Aim
 Create an asynchronous CI agnostic mechanism for running custom test stage gates for github pull requests.
 - trigger multiple jobs in parallel and indicate pending status on pr checks
 - then add results for each back to pull request check as they complete
-
--= **work in progress** =-
 
 ## Design draft RFC
 
@@ -25,6 +25,22 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 - ci host adds results to a 'results' SQS queue, notifies SNS topic which triggers 'results' lambda
 - results lambda posts results to github pull request.
 
+## Install
+- clone this repo (TODO: or `npm install --save-dev serverless`)
+- npm install
+- setup serverless aws creds per https://github.com/serverless/serverless/blob/master/docs/providers/aws/guide/credentials.md
+- setup a .env file in the repo root
+```
+GTM_AWS_REGION=ap-southeast-2
+GTM_GITHUB_WEBHOOK_SECRET=<github hook secret>
+GTM_SQS_PENDING_QUEUE=gtmPendingQueue
+GTM_SQS_RESULTS_QUEUE=gtmResultsQueue
+```
+- run: `npm run sls-deploy` - note that this will create aws resources..
+- capture the hook url output in console and add to github pull request conf
+- run: `npm run sls-logs-hook` to tail the logs
+- create a pull request and confirm the hook is being hit
+- **IN PROGRESS**: add event body to SQS
 
 ## Contributing
 

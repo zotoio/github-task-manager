@@ -7,8 +7,10 @@
     "build": "npm run lint && rimraf dist/ && babel ./src --out-dir dist/src --copy-files && babel ./test --out-dir dist/test --copy-files && babel ./*.js --out-dir dist/ --copy-files",
     "commit": "./node_modules/.bin/git-cz",
     "lint": "node ./node_modules/.bin/eslint *.js **/*.js **/**/*.js --ignore-pattern node_modules/ --ignore-pattern dist/ --ignore-pattern coverage/ --quiet",
-    "test": "npm run build && EDGEGRID_ENV=test cross-env NODE_ENV=test nyc ./node_modules/.bin/mocha --timeout 10000 --require babel-core/register --require babel-polyfill ./dist/test/*.spec.js ./dist/test/**/*.spec.js",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
+    "test": "npm run build && cross-env NODE_ENV=test nyc ./node_modules/.bin/mocha --timeout 10000 --require babel-core/register --require babel-polyfill ./dist/test/*.spec.js ./dist/test/**/*.spec.js",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
+    "sls-deploy": "npm run build && node ./node_modules/serverless/bin/serverless deploy -v",
+    "sls-logs-hook": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubHook -t"
   },
   "repository": {
     "type": "git",
@@ -39,12 +41,16 @@
     "commitizen": "^2.9.6",
     "cross-env": "^5.1.1",
     "cz-conventional-changelog": "^2.1.0",
+    "dotenv": "^4.0.0",
     "eslint": "^4.12.0",
+    "format-json": "^1.0.3",
     "mocha": "^4.0.1",
     "nyc": "^11.3.0",
     "rimraf": "^2.6.2",
     "semantic-release": "^8.2.0",
-    "serverless": "^1.24.1"
+    "serverless": "^1.24.1",
+    "serverless-dotenv-plugin": "^1.0.1",
+    "serverless-webpack": "^4.1.0"
   },
   "engines": {
     "node": ">=8.4.0"
@@ -68,8 +74,6 @@
   "dependencies": {
     "app-root-path": "^2.0.1",
     "babel-polyfill": "^6.26.0",
-    "dotenv": "^4.0.0",
-    "format-json": "^1.0.3",
     "globule": "^1.2.0",
     "require-dir": "^0.3.2",
     "systemjs": "^0.20.19",

@@ -60,3 +60,6 @@ typings/
 .idea/
 dist/
 *.swp
+
+# Serverless directories
+.serverless/
