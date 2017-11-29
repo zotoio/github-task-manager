@@ -19,14 +19,21 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 
 ## Design draft RFC
 
-- Deploy two functions to lambda via serverless framework ('pending', 'results')
-- github hooks pointed at 'pending' lambda which adds a 'job' to a 'pending' SQS queue
-- ci host agent(s) watch SQS for new test execution jobs
-- ci host adds results to a 'results' SQS queue, notifies SNS topic which triggers 'results' lambda
-- results lambda posts results to github pull request.
+- Deploy two functions to lambda via serverless framework ('gtmGithubHook', 'gtmGithubResults')
+- github PR open hook pointed at 'gtmGithubHook' lambda which adds event to a 'PendingQueue' SQS queue
+- agent(s) watch SQS for new test execution jobs
+- agent notifies 'ResultsQueue' SQS queue that a task has started (lambda updates github PR state)
+- agent triggers CI PR build, deploy and tests (plugin for each CI type)
+- agent formats and adds test results to 'ResultsQueue' SQS queue
+- agent notifies SNS topic which triggers 'gtmGithubResults' lambda
+- 'gtmGithubResults' lambda posts results to github pull request.
+
+<a href="https://github.com/wyvern8/github-task-manager">
+  <img src="https://raw.githubusercontent.com/wyvern8/github-task-manager/master/github-task-manager.png?raw=true" alt="" title="github-task-manager flow">
+</a>
 
 ## Install
-- clone this repo (TODO: or `npm install --save-dev serverless`)
+- clone this repo (TODO: or `npm install --save-dev github-task-manager`)
 - npm install
 - setup serverless aws creds per https://github.com/serverless/serverless/blob/master/docs/providers/aws/guide/credentials.md
 - setup a .env file in the repo root
