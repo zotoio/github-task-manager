@@ -59,6 +59,11 @@ resources:
         MessageRetentionPeriod: 1209600
         VisibilityTimeout: 7200
 
+    ResultsSNSTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: ${env:GTM_SNS_RESULTS_TOPIC}
+
 custom:
   dotenv:
     path: .env
