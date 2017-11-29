@@ -10,7 +10,8 @@
     "test": "npm run build && cross-env NODE_ENV=test nyc ./node_modules/.bin/mocha --timeout 10000 --require babel-core/register --require babel-polyfill ./dist/test/*.spec.js ./dist/test/**/*.spec.js",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "sls-deploy": "npm run build && node ./node_modules/serverless/bin/serverless deploy -v",
-    "sls-logs-hook": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubHook -t"
+    "sls-logs-hook": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubHook -t",
+    "sls-logs-results": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubResults -t"
   },
   "repository": {
     "type": "git",
@@ -77,6 +78,7 @@
     "babel-polyfill": "^6.26.0",
     "globule": "^1.2.0",
     "require-dir": "^0.3.2",
+    "sqs-consumer": "^3.8.0",
     "systemjs": "^0.20.19",
     "webpack": "^3.8.1"
   }

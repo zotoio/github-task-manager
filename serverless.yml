@@ -21,6 +21,14 @@ provider:
       Resource:
         Fn::GetAtt: [ PendingQueue, Arn ]
 
+    - Effect: Allow
+      Action:
+        - sqs:ReceiveMessage
+        - sqs:DeleteMessage
+      Resource:
+        Fn::GetAtt: [ ResultsQueue, Arn ]
+
+
 package:
   individually: true
   exclude:
@@ -43,6 +51,19 @@ functions:
           method: post
           cors: true
 
+  gtmGithubResults:
+    handler: dist/src/serverless/gtmGithubResults/gtmGithubResults.handle
+    environment:
+      SQS_RESULTS_QUEUE_URL:
+        Ref: ResultsQueue
+
+    package:
+      include:
+        - dist/src/serverless/gtmGithubResults/**
+
+    events:
+      - sns: ${env:GTM_SNS_RESULTS_TOPIC}
+
 resources:
   Resources:
     PendingQueue:
@@ -58,11 +79,6 @@ resources:
         QueueName: ${env:GTM_SQS_RESULTS_QUEUE}
         MessageRetentionPeriod: 1209600
         VisibilityTimeout: 7200
-
-    ResultsSNSTopic:
-      Type: AWS::SNS::Topic
-      Properties:
-        TopicName: ${env:GTM_SNS_RESULTS_TOPIC}
 
 custom:
   dotenv:
