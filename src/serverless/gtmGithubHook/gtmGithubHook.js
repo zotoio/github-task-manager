@@ -18,44 +18,47 @@ function listener(event, context, callback) {
     const id = headers['X-GitHub-Delivery'];
     const calculatedSig = signRequestBody(token, event.body);
 
-    if (typeof token !== 'string') {
-        errMsg = 'Must provide a \'GITHUB_WEBHOOK_SECRET\' env variable';
-        return callback(null, {
-            statusCode: 401,
-            headers: {'Content-Type': 'text/plain'},
-            body: errMsg,
+    let validators = [
+        {
+            name: 'github secret',
+            check: typeof token !== 'string',
+            msg: 'Must provide a \'GITHUB_WEBHOOK_SECRET\' env variable'
+        },
+        {
+            name: 'X-Hub-Signature',
+            check: !sig,
+            msg: 'No X-Hub-Signature found on request'
+        },
+        {
+            name: 'X-Github-Event',
+            check: !githubEvent,
+            msg: 'No X-Github-Event found on request'
+        },
+        {
+            name: 'X-Github-Delivery',
+            check: !id,
+            msg: 'No X-Github-Delivery found on request'
+        },
+        {
+            name: 'X-Hub-Signature signing',
+            check: sig !== calculatedSig,
+            msg: 'X-Hub-Signature incorrect. Github webhook token doesn\'t match'
+        }
+    ];
+
+    try {
+        validators.forEach((v) => {
+            if (v.check) {
+                errMsg = v.msg;
+                throw Error;
+            }
+            console.log(v.name + ' is ok!');
         });
+    } catch(e){
+        console.log(errMsg);
     }
 
-    if (!sig) {
-        errMsg = 'No X-Hub-Signature found on request';
-        return callback(null, {
-            statusCode: 401,
-            headers: {'Content-Type': 'text/plain'},
-            body: errMsg,
-        });
-    }
-
-    if (!githubEvent) {
-        errMsg = 'No X-Github-Event found on request';
-        return callback(null, {
-            statusCode: 422,
-            headers: {'Content-Type': 'text/plain'},
-            body: errMsg,
-        });
-    }
-
-    if (!id) {
-        errMsg = 'No X-Github-Delivery found on request';
-        return callback(null, {
-            statusCode: 401,
-            headers: {'Content-Type': 'text/plain'},
-            body: errMsg,
-        });
-    }
-
-    if (sig !== calculatedSig) {
-        errMsg = 'X-Hub-Signature incorrect. Github webhook token doesn\'t match';
+    if (errMsg) {
         return callback(null, {
             statusCode: 401,
             headers: {'Content-Type': 'text/plain'},
