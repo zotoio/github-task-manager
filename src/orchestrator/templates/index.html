@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block maincontent %}
+<h1>GitHub Event Orchestrator</h1>
+<p>Systems are running normally.</p>
+
+<p>Pending Queue URL: {{ globalProperties.pendingQueue.url }}</p>
+<p>Pending Queue State: {{ globalProperties.pendingQueue.state }}</p>
+{% endblock %}

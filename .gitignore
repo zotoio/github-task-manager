@@ -63,3 +63,6 @@ dist/
 
 # Serverless directories
 .serverless/
+
+# Mac Stuff
+.DS_Store

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{{ pagetitle | default('System') }} - GitHub Event Orchestrator</title>
+</head>
+<body>
+    <nav>
+        <a class="branding">GitHub Event Orchestrator</a>
+        <a>Queue Statistics</a>
+    </nav>
+    <div class="container">
+        <div class="main">
+            {% block maincontent %}
+            <p>Content will be loaded into this div.</p>
+            {% endblock %}
+        </div>
+    </div>
+</body>
+</html>
