@@ -5,12 +5,16 @@ export class EventHandler {
         this.userCallback = userCallback;
     }
 
-    handleEvent(event) {
+    info() {
+        return 'Handler for \'' + this.eventType + '\'';
+    }
+
+    handleEvent(event, config) {
         // Do something internal before calling the user callback.
-        if (event.eventType != this.eventType)
+        if (event.ghEventType != this.eventType)
             return false;
         if (this.userCallback)
-            this.userCallback(event);
+            this.userCallback(event, config);
         return true;
     }
-} 
+}

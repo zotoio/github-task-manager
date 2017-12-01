@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block maincontent %}
+<h1>Most Recent Event</h1>
+{% if eventData %}
+
+<link rel="stylesheet" href="/static/hljs/github.css">
+<div class="event_info">
+    <h4>Event Payload</h4>
+    <div class="event_payload">{{ eventData | safe }}</div>
+
+    <h4>Tasks Triggered</h4>
+{{ tasks | default('None') }}
+{% else %}
+<h4>No Event Data</h4>
+{% endif %}
+</div>
+{% endblock %}

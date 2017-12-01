@@ -7,6 +7,7 @@ require('babel-polyfill');
 export class Utils {
 
     static samplePullRequestEvent() {
+        pullRequestData.GHEventType = 'pull_request';
         return pullRequestData;
     }
 
