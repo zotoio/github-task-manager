@@ -1,0 +1,15 @@
+version: "2"
+services:
+  node:
+    image: "node:8"
+    user: "node"
+    working_dir: /home/node/app
+    environment:
+      - NODE_ENV=development
+      - PORT=9091
+    volumes:
+      - ./:/home/node/app
+    ports:
+      - "8080:9091"
+    command: "npm run agent"
+
