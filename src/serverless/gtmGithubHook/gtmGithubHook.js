@@ -149,7 +149,7 @@ async function getFile(body) {
     let config = {
         owner: body.pull_request.head.repo.owner.login,
         repo: body.pull_request.head.repo.name,
-        path: process.env.GTM_TASK_CONFIG_FILENAME ? process.env.GTM_TASK_CONFIG_FILENAME : '.gtmTaskConfig.json',
+        path: process.env.GTM_TASK_CONFIG_FILENAME ? process.env.GTM_TASK_CONFIG_FILENAME : '.githubTaskManager',
         ref: body.pull_request.head.ref
     };
 

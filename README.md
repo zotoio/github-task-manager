@@ -57,7 +57,7 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_GITHUB_TIMEOUT | github api timeout |
 |GTM_GITHUB_PATH_PREFIX | path prefix for github enterprise |
 |GTM_GITHUB_PROXY | github api client proxy |
-|GTM_TASK_CONFIG_FILENAME | filename in repo to look for for task config |
+|GTM_TASK_CONFIG_FILENAME | filename in repo to look for for task config - default is .githubTaskManager |
 |AWS_ACCESS_KEY_ID | aws key id - for agent only, do not add to .env |
 |AWS_SECRET_ACCESS_KEY | aws secret - for agent only, do not add to .env |
 
