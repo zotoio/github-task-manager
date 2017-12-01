@@ -1,0 +1,26 @@
+{
+  "tasks": [
+    {
+      "type": "functional",
+      "executor": "jenkins",
+      "options": {
+        "tags": ["@smoke"],
+        "browsers": ["chrome"]
+      }
+    },
+    {
+      "type": "a11y",
+      "executor": "teamcity",
+      "options": {
+        "tags": ["@a11y"]
+      }
+    },
+    {
+      "type": "integration",
+      "executor": "travis",
+      "options": {
+        "tags": ["@a11y"]
+      }
+    }
+  ]
+}

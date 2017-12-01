@@ -57,6 +57,8 @@ typings/
 # dotenv environment variables file
 .env
 
+.sass-cache/
+
 .idea/
 dist/
 *.swp
