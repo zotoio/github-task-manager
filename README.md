@@ -66,6 +66,11 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 - run: `npm run sls-logs-hook` or `npm run sls-logs-results` to tail the logs
 - create a pull request and confirm the hook is being hit
 
+## Plugins
+Task executors for Jenkins, Teamcity and Travis are in progress. Custom task executors can be added by.. **todo**
+
+Executors contain the logic to run tasks against a given system type, and format the results.
+
 ## Contributing
 
 Fork this repository and work on your enhancements, then send a pull request.
