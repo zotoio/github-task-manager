@@ -1,6 +1,6 @@
 version: "2"
 services:
-  node:
+  agent:
     image: "node:8"
     user: "node"
     working_dir: /home/node/app
@@ -10,6 +10,6 @@ services:
     volumes:
       - ./:/home/node/app
     ports:
-      - "8080:9091"
+      - "9091:9091"
     command: "npm run agent"
 
