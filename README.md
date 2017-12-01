@@ -8,16 +8,15 @@
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg?clear)](http://commitizen.github.io/cz-cli/)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-receive github hook, notify agent, receive task results, notify github
-
--= **work in progress ** =-
+receive github hook, notify agent, receive task results, notify github (Unofficial)
 
 ## Aim
 Create an asynchronous CI agnostic mechanism for running custom test stage gates for github pull requests.
 - trigger multiple jobs in parallel and indicate pending status on pr checks
 - then add results for each back to pull request check as they complete
+- make extensible for other github event/task handling
 
-## Design draft RFC
+## Design
 
 - Deploy two functions to lambda via serverless framework ('gtmGithubHook', 'gtmGithubResults')
 - github PR open hook pointed at 'gtmGithubHook' lambda which adds event to a 'PendingQueue' SQS queue
@@ -36,18 +35,30 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 - clone this repo (TODO: or `npm install --save-dev github-task-manager`)
 - npm install
 - setup serverless aws creds per https://github.com/serverless/serverless/blob/master/docs/providers/aws/guide/credentials.md
-- setup a .env file in the repo root
+- setup a .env file in the repo root (copy from .envExample and modify)
 ```
-GTM_AWS_REGION=ap-southeast-2
-GTM_GITHUB_WEBHOOK_SECRET=<github hook secret>
-GTM_SQS_PENDING_QUEUE=gtmPendingQueue
-GTM_SQS_RESULTS_QUEUE=gtmResultsQueue
+| Environment variable | description |
+| -------------------- | ----------- |
+|GTM_AWS_REGION | awsregion to create resources in |
+|GTM_SQS_PENDING_QUEUE | name of SQS queue for new event |
+|GTM_SQS_RESULTS_QUEUE | name of SQS queue for results |
+|GTM_SNS_RESULTS_TOPIC | name of SQS queue for new event |
+|GTM_GITHUB_WEBHOOK_SECRET | shared secret from github webook config |
+|GTM_GITHUB_TOKEN | access token for accessing github |
+|GTM_GITHUB_TOKEN_FUNCTIONAL_TESTS | access token for individual test type.  each task type can have a different token |
+|GTM_GITHUB_HOST | api hostname can be updated for github enterprise |
+|GTM_GITHUB_DEBUG | debug mode for api calls |
+|GTM_GITHUB_TIMEOUT | github api timeout |
+|GTM_GITHUB_PATH_PREFIX | path prefix for github enterprise |
+|GTM_GITHUB_PROXY | github api client proxy |
+|GTM_TASK_CONFIG_FILENAME | filename in repo to look for for task config |
+|AWS_ACCESS_KEY_ID | aws key id - for agent only |
+|AWS_SECRET_ACCESS_KEY | aws secret - for agent only |
 ```
-- run: `npm run sls-deploy` - note that this will create aws resources..
-- capture the hook url output in console and add to github pull request conf
-- run: `npm run sls-logs-hook` to tail the logs
+- run: `npm run sls-deploy` - note that this will create aws re$ources..
+- capture the hook url output in console and add to github repo pull request conf
+- run: `npm run sls-logs-hook` or `npm run sls-logs-results` to tail the logs
 - create a pull request and confirm the hook is being hit
-- **IN PROGRESS**: add event body to SQS
 
 ## Contributing
 
