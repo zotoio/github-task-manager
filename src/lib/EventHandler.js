@@ -1,3 +1,5 @@
+'use strict';
+
 export class EventHandler {
 
     constructor(eventType, userCallback = null) {

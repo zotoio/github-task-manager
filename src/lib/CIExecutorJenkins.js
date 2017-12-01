@@ -1,3 +1,5 @@
+'use strict';
+
 export class CIExecutorJenkins {
 
     constructor(options) {

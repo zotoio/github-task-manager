@@ -1,3 +1,5 @@
+'use strict';
+
 // Required Modules
 const express = require('express');
 const expressNunjucks = require('express-nunjucks');
@@ -26,8 +28,9 @@ handlers.addHandler(new EventHandler('pull_request', function(eventData) {
         description: 'Tests from Orchestrator Passed',
         context: 'Functional-Tests'
     };
-    Utils.postResultsAndTrigger(process.env.GTM_SQS_RESULTS_QUEUE, status, process.env.GTM_SNS_RESULTS_TOPIC, 'Ping');
-    console.log('-----------------------------');
+    Utils.postResultsAndTrigger(process.env.GTM_SQS_RESULTS_QUEUE, status, process.env.GTM_SNS_RESULTS_TOPIC, 'Ping').then(function() {
+        console.log('-----------------------------');
+    });
 }));
 
 let pendingQueueHandler;

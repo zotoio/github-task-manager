@@ -1,3 +1,5 @@
+'use strict';
+
 import {CIExecutorJenkins} from './CIExecutorJenkins';
 import {CIExecutorTeamCity} from './CIExecutorTeamCity';
 

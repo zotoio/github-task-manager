@@ -1,3 +1,5 @@
+'use strict';
+
 const pullRequestData = require('./pullrequest.json');
 const AWS = require('aws-sdk');
 AWS.config.update({ region: 'ap-southeast-2' });
@@ -82,6 +84,7 @@ export class Utils {
 
     static printBanner() {
         let bannerData = [
+            '################################################## ',
             ' #####  #     # #######                            ',
             '#     # #     # #       #    # ###### #    # ##### ',
             '#       #     # #       #    # #      ##   #   #   ',
