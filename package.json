@@ -13,7 +13,7 @@
     "sls-undeploy": "serverless remove",
     "sls-logs-hook": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubHook -t",
     "sls-logs-results": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubResults -t",
-    "agent": "node dist/src/ghEventAgent/index.js",
+    "agent": "node dist/src/ghEventAgent/ghEventAgent.js",
     "agent-build": "sass src/ghEventAgent/static/main.scss:src/ghEventAgent/static/main.css && npm run build && node dist/src/ghEventAgent/ghEventAgent.js"
   },
   "repository": {
