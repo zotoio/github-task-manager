@@ -48,7 +48,7 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_AWS_REGION | awsregion to create resources in |
 |GTM_SQS_PENDING_QUEUE | name of SQS queue for new event |
 |GTM_SQS_RESULTS_QUEUE | name of SQS queue for results |
-|GTM_SNS_RESULTS_TOPIC | name of SQS queue for new event |
+|GTM_SNS_RESULTS_TOPIC | name of SNS topic for result ping |
 |GTM_GITHUB_WEBHOOK_SECRET | shared secret from github webook config |
 |GTM_GITHUB_TOKEN | access token for accessing github |
 |GTM_GITHUB_TOKEN_FUNCTIONAL_TESTS | access token for individual test type.  each task type can have a different token |
