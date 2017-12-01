@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npm run lint && rimraf dist/ && babel ./src --out-dir dist/src --copy-files && babel ./test --out-dir dist/test --copy-files && babel ./*.js --out-dir dist/ --copy-files",
     "commit": "./node_modules/.bin/git-cz",
-    "lint": "node ./node_modules/.bin/eslint *.js **/*.js **/**/*.js --ignore-pattern node_modules/ --ignore-pattern dist/ --ignore-pattern coverage/ --quiet",
+    "lint": "node ./node_modules/.bin/eslint ./src ./test --ext=.js --ignore-pattern node_modules/ --ignore-pattern dist/ --ignore-pattern coverage/ --quiet",
     "test": "npm run build && cross-env NODE_ENV=test nyc ./node_modules/.bin/mocha --timeout 10000 --require babel-core/register --require babel-polyfill ./dist/test/*.spec.js ./dist/test/**/*.spec.js",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "sls-deploy": "npm run build && node ./node_modules/serverless/bin/serverless deploy -v",
@@ -14,7 +14,12 @@
     "sls-logs-hook": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubHook -t",
     "sls-logs-results": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubResults -t",
     "agent": "node dist/src/ghEventAgent/ghEventAgent.js",
-    "agent-build": "node ./sass.js && npm run build && node dist/src/ghEventAgent/ghEventAgent.js"
+    "agent-build": "npm run build && node dist/src/ghEventAgent/sass.js",
+    "docker-build": "docker build -t github-task-manager --no-cache .",
+    "docker-local-run": "docker-compose up -d",
+    "docker-hub-run": "docker pull wyvern8/github-task-manager:latest && docker run github-task-manager",
+    "docker-local-logs": "docker-compose logs --tail=0 --follow",
+    "docker-local-bounce": "docker-compose restart && npm run docker-logs"
   },
   "repository": {
     "type": "git",

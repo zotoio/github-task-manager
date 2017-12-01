@@ -149,7 +149,7 @@ async function getFile(body) {
     let config = {
         owner: body.pull_request.head.repo.owner.login,
         repo: body.pull_request.head.repo.name,
-        path: process.env.GTM_TASK_CONFIG_FILENAME ? process.env.GTM_TASK_CONFIG_FILENAME : '.githubTaskManager',
+        path: process.env.GTM_TASK_CONFIG_FILENAME ? process.env.GTM_TASK_CONFIG_FILENAME : '.githubTaskManager.json',
         ref: body.pull_request.head.ref
     };
 
@@ -183,11 +183,11 @@ function decodeTaskConfig(fileResponse) {
 
 
 function decodeEventBody(event) {
-    return JSON.parse(decodeURIComponent(event.body.replace(/\+/g,  " ")).replace('payload={', '{'));
+    return JSON.parse(decodeURIComponent(event.body.replace(/\+/g,  ' ')).replace('payload={', '{'));
 }
 
 module.exports = {
-    "listener": listener,
-    "decodeEventBody": decodeEventBody,
-    "handleEvent": handleEvent
+    'listener': listener,
+    'decodeEventBody': decodeEventBody,
+    'handleEvent': handleEvent
 };

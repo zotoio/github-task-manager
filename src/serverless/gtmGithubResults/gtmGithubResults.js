@@ -109,5 +109,5 @@ async function updateGitHubPullRequest(message, done) {
 
 }
 module.exports = {
-    "handle": handle
+    'handle': handle
 };

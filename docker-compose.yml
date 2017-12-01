@@ -6,10 +6,16 @@ services:
     working_dir: /home/node/app
     environment:
       - NODE_ENV=development
-      - PORT=9091
-    volumes:
-      - ./:/home/node/app
+      - GTM_AGENT_PORT=${GTM_AGENT_PORT}
+      - AWS_ACCESS_KEY_ID=${GTM_AGENT_AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${GTM_AGENT_AWS_SECRET_ACCESS_KEY}
+      - GTM_AWS_REGION=${GTM_AWS_REGION}
+      - GTM_SQS_PENDING_QUEUE=${GTM_SQS_PENDING_QUEUE}
+      - GTM_SQS_RESULTS_QUEUE=${GTM_SQS_RESULTS_QUEUE}
+      - GTM_SNS_RESULTS_TOPIC=${GTM_SNS_RESULTS_TOPIC}
+    #volumes:
+    #  - ./:/home/node/app
     ports:
-      - "9091:9091"
+      - "${GTM_AGENT_PORT}:${GTM_AGENT_PORT}"
     command: "npm run agent"
 
