@@ -17,7 +17,17 @@ handlers.addHandler(new EventHandler('pull_request', function(eventData) {
     console.log('New Event: ' + eventData.ghEventType);
     console.log('Repository Name: ' + eventData.repository.name);
     console.log('Pull Request: ' + eventData.pull_request.number);
-    Utils.postResultsAndTrigger(process.env.GTM_SQS_RESULTS_QUEUE, {sample: 'sample'}, process.env.GTM_SNS_RESULTS_TOPIC, 'Ping');
+    let status = {
+        owner: eventData.repository.owner.login ? eventData.repository.owner.login : 'Default_Owner',
+        repo: eventData.repository.name ? eventData.repository.name : 'Default_Repository',
+        sha: eventData.pull_request.head.sha ? eventData.pull_request.head.sha : 'Missing SHA',
+        state: 'success',
+        target_url: 'http://neko.ac',
+        description: 'Tests from Orchestrator Passed',
+        context: 'Functional-Tests'
+    };
+    Utils.postResultsAndTrigger(process.env.GTM_SQS_RESULTS_QUEUE, status, process.env.GTM_SNS_RESULTS_TOPIC, 'Ping');
+    console.log('-----------------------------');
 }));
 
 let pendingQueueHandler;
