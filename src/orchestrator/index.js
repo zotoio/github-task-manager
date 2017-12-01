@@ -32,17 +32,6 @@ let ciToolTC = ciTool.createCIExecutor('CI_TEAMCITY');
 console.log(ciToolJenkins.info());
 console.log(ciToolTC.info());
 
-const bannerData = [
-    ' #####  #     # #######                            ',
-    '#     # #     # #       #    # ###### #    # ##### ',
-    '#       #     # #       #    # #      ##   #   #   ',
-    '#  #### ####### #####   #    # #####  # #  #   #   ',
-    '#     # #     # #       #    # #      #  # #   #   ',
-    '#     # #     # #        #  #  #      #   ##   #   ',
-    ' #####  #     # #######   ##   ###### #    #   #   ',
-    '###################################################'
-];
-
 // Configure Templates
 app.set('views', __dirname + '/templates');
 
@@ -123,10 +112,6 @@ Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function(data) 
     
     pendingQueueHandler.start();
     systemConfig.pendingQueue.state = 'Running';
-
-    bannerData.forEach(function(line) {
-        console.log(line);
-    });
 
     app.listen(process.env.PORT, function() {
         console.log('GitHub Event Orchestrator Running on Port ' + process.env.PORT);

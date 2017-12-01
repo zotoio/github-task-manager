@@ -38,4 +38,20 @@ export class Utils {
     static timeout(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
+
+    static printBanner() {
+        let bannerData = [
+            ' #####  #     # #######                            ',
+            '#     # #     # #       #    # ###### #    # ##### ',
+            '#       #     # #       #    # #      ##   #   #   ',
+            '#  #### ####### #####   #    # #####  # #  #   #   ',
+            '#     # #     # #       #    # #      #  # #   #   ',
+            '#     # #     # #        #  #  #      #   ##   #   ',
+            ' #####  #     # #######   ##   ###### #    #   #   ',
+            '###################################################'
+        ];
+        bannerData.forEach(function(line) {
+            console.log(line);
+        });
+    }
 }
