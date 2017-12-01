@@ -93,8 +93,9 @@ async function listener(event, context, callback) {
 
 async function handleEvent(type, body) {
 
+    // todo remove this restriction once accessing
     if (type === 'pull_request' && body.action && ['opened', 'synchronize'].includes(body.action)) {
-        console.log(`pull request: "${body.pull_request.title}" "${body.action}" by ${body.pull_request.user.login}`);
+        console.log(`pull request: "${body.pull_request.title}" ${body.action} by ${body.pull_request.user.login}`);
 
         // collect config from github
         let taskConfig = await getTaskConfig(body);
@@ -148,7 +149,7 @@ async function getFile(body) {
     let config = {
         owner: body.pull_request.head.repo.owner.login,
         repo: body.pull_request.head.repo.name,
-        path: process.env.GTM_TASK_CONFIG_FILENAME ? process.env.GTM_TASK_CONFIG_FILENAME : 'taskConfig.json',
+        path: process.env.GTM_TASK_CONFIG_FILENAME ? process.env.GTM_TASK_CONFIG_FILENAME : '.gtmTaskConfig.json',
         ref: body.pull_request.head.ref
     };
 
