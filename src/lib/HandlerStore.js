@@ -24,9 +24,10 @@ export class HandlerStore {
         }
         for(const handler of this.handlers) {
             //console.log(handler.info());
-            console.log(handler.handleEvent(event));
+            if (handler.handleEvent(event))
+                eventHandled = true;
         }
         console.debug(event);
         return eventHandled;
     }
-} 
+}

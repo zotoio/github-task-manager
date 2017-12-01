@@ -17,6 +17,7 @@ handlers.addHandler(new EventHandler('pull_request', function(eventData) {
     console.log('New Event: ' + eventData.ghEventType);
     console.log('Repository Name: ' + eventData.repository.name);
     console.log('Pull Request: ' + eventData.pull_request.number);
+    Utils.postResultsAndTrigger(process.env.GTM_SQS_RESULTS_QUEUE, {sample: 'sample'}, process.env.GTM_SNS_RESULTS_TOPIC, 'Ping');
 }));
 
 let pendingQueueHandler;
@@ -93,9 +94,9 @@ Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function(data) 
             systemConfig.event.current = messageBody;
             let result = handlers.handleEvent(messageBody, systemConfig);
             if(result != true)
-                console.log('Event was not Handled');
+                console.log('Event was not Handled: ' + ghEvent);
             else
-                console.log('Event Handled');
+                console.log('Event Handled: ' + ghEvent);
             done();
         }
     });
@@ -114,6 +115,7 @@ Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function(data) 
     systemConfig.pendingQueue.state = 'Running';
 
     app.listen(process.env.PORT, function() {
+        Utils.printBanner();
         console.log('GitHub Event Orchestrator Running on Port ' + process.env.PORT);
         console.log('Runmode: ' + process.env.ENVIRONMENT);
         console.log('AWS Access Key ID: ' + Utils.maskString(process.env.AWS_ACCESS_KEY_ID));
