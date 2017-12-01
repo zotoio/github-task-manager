@@ -16,6 +16,10 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 - then add results for each back to pull request check as they complete
 - make extensible for other github event/task handling
 
+<a href="https://github.com/wyvern8/github-task-manager">
+  <img src="https://raw.githubusercontent.com/wyvern8/github-task-manager/master/gtm-logo.png?raw=true" alt="" title="logo" align="right" style="width:140px">
+</a>
+
 ## Design
 
 - Deploy two functions to lambda via serverless framework ('gtmGithubHook', 'gtmGithubResults')
@@ -52,8 +56,8 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_GITHUB_PATH_PREFIX | path prefix for github enterprise |
 |GTM_GITHUB_PROXY | github api client proxy |
 |GTM_TASK_CONFIG_FILENAME | filename in repo to look for for task config |
-|AWS_ACCESS_KEY_ID | aws key id - for agent only |
-|AWS_SECRET_ACCESS_KEY | aws secret - for agent only |
+|AWS_ACCESS_KEY_ID | aws key id - for agent only, do not add to .env |
+|AWS_SECRET_ACCESS_KEY | aws secret - for agent only, do not add to .env |
 ```
 - run: `npm run sls-deploy` - note that this will create aws re$ources..
 - capture the hook url output in console and add to github repo pull request conf
