@@ -42,7 +42,7 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 - npm install
 - setup serverless aws creds per https://github.com/serverless/serverless/blob/master/docs/providers/aws/guide/credentials.md
 - setup a .env file in the repo root (copy from .envExample and modify)
-```
+
 | Environment variable | description |
 | -------------------- | ----------- |
 |GTM_AWS_REGION | awsregion to create resources in |
@@ -60,7 +60,7 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_TASK_CONFIG_FILENAME | filename in repo to look for for task config |
 |AWS_ACCESS_KEY_ID | aws key id - for agent only, do not add to .env |
 |AWS_SECRET_ACCESS_KEY | aws secret - for agent only, do not add to .env |
-```
+
 - run: `npm run sls-deploy` - note that this will create aws re$ources..
 - capture the hook url output in console and add to github repo pull request conf
 - run: `npm run sls-logs-hook` or `npm run sls-logs-results` to tail the logs
