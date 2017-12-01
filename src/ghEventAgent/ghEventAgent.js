@@ -102,7 +102,7 @@ Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function(data) 
 
     pendingQueueHandler = Consumer.create({
         queueUrl: pendingUrl,
-        region: 'ap-southeast-2',
+        region: process.env.GTM_AWS_REGION,
         messageAttributeNames: ['ghEventType'],
         handleMessage: (message, done) => {
             console.log('Received Event from Queue');
@@ -141,12 +141,12 @@ Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function(data) 
     pendingQueueHandler.start();
     systemConfig.pendingQueue.state = 'Running';
 
-    app.listen(process.env.PORT, function() {
+    app.listen(process.env.GTM_AGENT_PORT, function() {
         Utils.printBanner();
-        console.log('GitHub Event Orchestrator Running on Port ' + process.env.PORT);
+        console.log('GitHub Event Orchestrator Running on Port ' + process.env.GTM_AGENT_PORT);
         console.log('Runmode: ' + runmode);
-        console.log('AWS Access Key ID: ' + Utils.maskString(process.env.AWS_ACCESS_KEY_ID));
-        console.log('AWS Access Key: ' + Utils.maskString(process.env.AWS_SECRET_ACCESS_KEY));
+        console.log('AWS Access Key ID: ' + Utils.maskString(process.env.GTM_AGENT_AWS_ACCESS_KEY_ID));
+        console.log('AWS Access Key: ' + Utils.maskString(process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY));
         console.log('Pending Queue URL: ' + pendingUrl);
         console.debug(njk.env);
     });

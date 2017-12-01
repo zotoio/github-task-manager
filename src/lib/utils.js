@@ -1,8 +1,9 @@
 'use strict';
 
 const pullRequestData = require('./pullrequest.json');
+require('dotenv').config();
 const AWS = require('aws-sdk');
-AWS.config.update({ region: 'ap-southeast-2' });
+AWS.config.update({ region: process.env.GTM_AWS_REGION });
 var sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 var sns = new AWS.SNS({ apiVersion: '2010-03-31' });
 require('babel-polyfill');
