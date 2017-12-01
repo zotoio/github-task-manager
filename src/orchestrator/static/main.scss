@@ -1,0 +1,55 @@
+// Variables
+$nav-height: 40px;
+
+// Global Styles
+* {
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: 'Avenir Next', 'Helvetica Neue Light', helvetica, Arial, sans-serif;
+    font-weight: 300;
+}
+
+// Navigation
+nav {
+    width: 100%;
+    height: $nav-height;
+    line-height: $nav-height;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 15px;
+
+    a {
+        color: #666;
+        text-decoration: none;
+        padding: 0 10px;
+        margin-left: 6px;
+
+        &:first-child {
+            margin-left: none;
+        }
+
+        &:hover {
+            color: #999;
+            cursor: pointer;
+        }
+    }
+
+    a.branding {
+        font-size: 18px;
+    }
+}
+
+// JSON Display
+.event_payload {
+    width: 100%;
+    font-family: Courier New, Courier, monospace;
+    overflow-x: scroll;
+    overflow-y: auto;
+    white-space: pre;
+    max-height: 500px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background: #f7f7f7;
+    padding: 8px;
+}
