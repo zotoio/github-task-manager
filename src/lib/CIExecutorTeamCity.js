@@ -20,14 +20,17 @@ export class CIExecutorTeamCity {
 
     startBuildByName(buildName) {
         // Call the Job Build API
+        console.log(buildName);
     }
 
     startBuildByRepo(buildRepo, buildBranch) {
         // Use the Jenkins Folder Format in Org Scans
+        console.log(buildRepo + ', ' + buildBranch);
     }
 
     startBuildByPullRequest(buildRepo, pullRequestNumber) {
         // Use the Jenkins Folder Format for PRs
+        console.log(buildRepo + ', ' + pullRequestNumber);
     }
 
 }
