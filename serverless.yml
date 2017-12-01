@@ -21,6 +21,14 @@ provider:
       Resource:
         Fn::GetAtt: [ PendingQueue, Arn ]
 
+    - Effect: Allow
+      Action:
+        - sqs:ReceiveMessage
+        - sqs:DeleteMessage
+      Resource:
+        Fn::GetAtt: [ ResultsQueue, Arn ]
+
+
 package:
   individually: true
   exclude:
@@ -42,6 +50,19 @@ functions:
           path: gtm-github-hook
           method: post
           cors: true
+
+  gtmGithubResults:
+    handler: dist/src/serverless/gtmGithubResults/gtmGithubResults.handle
+    environment:
+      SQS_RESULTS_QUEUE_URL:
+        Ref: ResultsQueue
+
+    package:
+      include:
+        - dist/src/serverless/gtmGithubResults/**
+
+    events:
+      - sns: ${env:GTM_SNS_RESULTS_TOPIC}
 
 resources:
   Resources:
