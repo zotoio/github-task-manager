@@ -10,10 +10,11 @@
 
 receive github hook, notify agent, receive task results, notify github (Unofficial)
 
-## Aim
 <a href="https://github.com/wyvern8/github-task-manager">
   <img src="https://raw.githubusercontent.com/wyvern8/github-task-manager/master/gtm-logo.png?raw=true&1" alt="" title="logo" align="right" style="max-width:160px">
 </a>
+
+## Aim
 Create an asynchronous CI agnostic mechanism for running custom test stage gates for github pull requests.
 - trigger multiple jobs in parallel and indicate pending status on pr checks
 - then add results for each back to pull request check as they complete
