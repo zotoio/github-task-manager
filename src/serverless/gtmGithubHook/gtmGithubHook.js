@@ -3,8 +3,9 @@
 let json = require('format-json');
 let crypto = require('crypto');
 let Producer = require('sqs-producer');
+let GitHubApi = require('github');
 
-function listener(event, context, callback) {
+async function listener(event, context, callback) {
 
     function signRequestBody(key, body) {
         return `sha1=${crypto.createHmac('sha1', key).update(body, 'utf-8').digest('hex')}`;
@@ -78,7 +79,7 @@ function listener(event, context, callback) {
 
     // Do custom stuff here with github event data
     // For more on events see https://developer.github.com/v3/activity/events/types/
-    handleEvent(githubEvent, eventBody);
+    await handleEvent(githubEvent, eventBody);
 
     const response = {
         statusCode: 200,
@@ -90,10 +91,14 @@ function listener(event, context, callback) {
     return callback(null, response);
 }
 
-function handleEvent(type, body) {
+async function handleEvent(type, body) {
 
     if (type === 'pull_request' && body.action && ['opened', 'synchronize'].includes(body.action)) {
         console.log(`pull request: "${body.pull_request.title}" "${body.action}" by ${body.pull_request.user.login}`);
+
+        // collect config from github
+        let taskConfig = await getTaskConfig(body);
+        console.log(json.plain(taskConfig));
 
         // add event body to SQS
         console.log('adding event to SQS: ' + process.env.SQS_PENDING_QUEUE_URL);
@@ -110,7 +115,8 @@ function handleEvent(type, body) {
                 id: crypto.createHash('md5').update(bodyString).digest('hex'),
                 body: bodyString,
                 messageAttributes: {
-                    ghEventType: { DataType: 'String', StringValue: type }
+                    ghEventType: { DataType: 'String', StringValue: type },
+                    ghTaskConfig: { DataType: 'String', StringValue: JSON.stringify(taskConfig) }
                 }
             }
         ], function(err) {
@@ -120,6 +126,58 @@ function handleEvent(type, body) {
     } else {
         console.log(`unsupported event: type: '${type}' action: '${body.action}'`);
     }
+}
+
+async function getFile(body) {
+
+    let githubOptions = {
+        host: process.env.GTM_GITHUB_HOST ? process.env.GTM_GITHUB_HOST : 'api.github.com',
+        debug: process.env.GTM_GITHUB_DEBUG ? process.env.GTM_GITHUB_DEBUG : false,
+        timeout: process.env.GTM_GITHUB_TIMEOUT ? parseInt(process.env.GTM_GITHUB_TIMEOUT) : 5000,
+        pathPrefix: process.env.GTM_GITHUB_PATH_PREFIX ? process.env.GTM_GITHUB_PATH_PREFIX : '',
+        proxy: process.env.GTM_GITHUB_PROXY ? process.env.GTM_GITHUB_PROXY : ''
+    };
+
+    let github = new GitHubApi(githubOptions);
+
+    github.authenticate({
+        type: 'oauth',
+        token: process.env.GTM_GITHUB_TOKEN
+    });
+
+    let config = {
+        owner: body.pull_request.head.repo.owner.login,
+        repo: body.pull_request.head.repo.name,
+        path: process.env.GTM_TASK_CONFIG_FILENAME ? process.env.GTM_TASK_CONFIG_FILENAME : 'taskConfig.json',
+        ref: body.pull_request.head.ref
+    };
+
+    return new Promise(
+        (resolve, reject) => {
+            try {
+                let response = github.repos.getContent(config);
+                return resolve(response);
+
+            } catch (err) {
+                return reject(err);
+            }
+        }
+    );
+}
+
+async function getTaskConfig(body) {
+    let fileResponse = await getFile(body);
+    return decodeTaskConfig(fileResponse);
+}
+
+function decodeTaskConfig(fileResponse) {
+
+    console.log(json.plain(fileResponse));
+    let buff = new Buffer(fileResponse.data.content, 'base64');
+
+    let content = JSON.parse(buff.toString('ascii'));
+
+    return content;
 }
 
 

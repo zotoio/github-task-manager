@@ -10,6 +10,7 @@
     "test": "npm run build && cross-env NODE_ENV=test nyc ./node_modules/.bin/mocha --timeout 10000 --require babel-core/register --require babel-polyfill ./dist/test/*.spec.js ./dist/test/**/*.spec.js",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "sls-deploy": "npm run build && node ./node_modules/serverless/bin/serverless deploy -v",
+    "sls-undeploy": "serverless remove",
     "sls-logs-hook": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubHook -t",
     "sls-logs-results": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubResults -t",
     "orchestrator": "node dist/src/orchestrator/index.js",
@@ -77,6 +78,7 @@
   },
   "dependencies": {
     "app-root-path": "^2.0.1",
+    "babel-plugin-transform-runtime": "^6.23.0",
     "babel-polyfill": "^6.26.0",
     "express": "^4.16.2",
     "express-nunjucks": "^2.2.3",
