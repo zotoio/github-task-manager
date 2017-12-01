@@ -32,11 +32,18 @@ handlers.addHandler(new EventHandler('pull_request', function(eventData) {
 
 let pendingQueueHandler;
 let systemConfig = {};
+let runmode;
+try {
+    runmode = process.env.NODE_ENV;
+} catch(error) {
+    runmode = 'production';
+    console.log(error);
+}
 systemConfig.event = {};
 
 // Setting up Instances
 const app = express();
-const isDev = process.env.ENVIRONMENT === 'development';
+const isDev = runmode === 'development';
 let ciTool = new CIExecutorFactory();
 let ciToolJenkins = ciTool.createCIExecutor('CI_JENKINS');
 let ciToolTC = ciTool.createCIExecutor('CI_TEAMCITY');
@@ -127,7 +134,7 @@ Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function(data) 
     app.listen(process.env.PORT, function() {
         Utils.printBanner();
         console.log('GitHub Event Orchestrator Running on Port ' + process.env.PORT);
-        console.log('Runmode: ' + process.env.ENVIRONMENT);
+        console.log('Runmode: ' + isDev);
         console.log('AWS Access Key ID: ' + Utils.maskString(process.env.AWS_ACCESS_KEY_ID));
         console.log('AWS Access Key: ' + Utils.maskString(process.env.AWS_SECRET_ACCESS_KEY));
         console.log('Pending Queue URL: ' + pendingUrl);
