@@ -35,6 +35,8 @@ let systemConfig = {};
 let runmode;
 try {
     runmode = process.env.NODE_ENV;
+    if(runmode == undefined)
+        runmode = 'production';
 } catch(error) {
     runmode = 'production';
     console.log(error);
@@ -134,7 +136,7 @@ Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function(data) 
     app.listen(process.env.PORT, function() {
         Utils.printBanner();
         console.log('GitHub Event Orchestrator Running on Port ' + process.env.PORT);
-        console.log('Runmode: ' + isDev);
+        console.log('Runmode: ' + runmode);
         console.log('AWS Access Key ID: ' + Utils.maskString(process.env.AWS_ACCESS_KEY_ID));
         console.log('AWS Access Key: ' + Utils.maskString(process.env.AWS_SECRET_ACCESS_KEY));
         console.log('Pending Queue URL: ' + pendingUrl);
