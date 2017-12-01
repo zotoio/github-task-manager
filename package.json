@@ -17,7 +17,7 @@
     "agent-build": "npm run build && node dist/src/ghEventAgent/sass.js",
     "docker-build": "docker build -t github-task-manager --no-cache .",
     "docker-local-run": "docker-compose up -d",
-    "docker-hub-run": "docker pull wyvern8/github-task-manager:latest && docker run github-task-manager",
+    "docker-hub-run": "docker pull wyvern8/github-task-manager:latest && docker run --env-file ./.env github-task-manager",
     "docker-local-logs": "docker-compose logs --tail=0 --follow",
     "docker-local-bounce": "docker-compose restart && npm run docker-logs"
   },

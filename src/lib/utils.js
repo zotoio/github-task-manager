@@ -2,6 +2,9 @@
 
 const pullRequestData = require('./pullrequest.json');
 require('dotenv').config();
+process.env.AWS_ACCESS_KEY_ID = process.env.GTM_AGENT_AWS_ACCESS_KEY_ID;
+process.env.AWS_SECRET_ACCESS_KEY = process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY;
+
 const AWS = require('aws-sdk');
 AWS.config.update({ region: process.env.GTM_AWS_REGION });
 var sqs = new AWS.SQS({ apiVersion: '2012-11-05' });

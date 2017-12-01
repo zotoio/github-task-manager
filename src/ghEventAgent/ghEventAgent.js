@@ -12,8 +12,8 @@ import {CIExecutorFactory} from '../lib/CIExecutorFactory';
 require('dotenv').config();
 require('babel-polyfill');
 
-if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-    console.log('######### aws env AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY missing! ###########');
+if (!process.env.GTM_AGENT_AWS_ACCESS_KEY_ID || !process.env.GTM_AGENT_AWS_ACCESS_KEY_ID) {
+    console.log('######### aws env GTM_AGENT_AWS_ACCESS_KEY_ID or GTM_AGENT_AWS_ACCESS_KEY_ID missing! ###########');
     process.exit(1);
 }
 
