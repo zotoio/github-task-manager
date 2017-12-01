@@ -72,9 +72,12 @@ async function updateGitHubPullRequest(message, done) {
 
     let github = new GitHubApi(githubOptions);
 
+    let token = (process.env['GTM_GITHUB_TOKEN_' + (status.context).toUpperCase().replace('-', '_')])
+        || process.env.GTM_GITHUB_TOKEN;
+
     github.authenticate({
         type: 'oauth',
-        token: process.env.GTM_GITHUB_TOKEN
+        token: token
     });
 
     /*let review = {
