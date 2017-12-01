@@ -60,7 +60,7 @@ async function getQueue() {
 
 async function updateGitHubPullRequest(message, done) {
 
-    let status = message;
+    let status = JSON.parse(message.Body);
 
     let githubOptions = {
         host: process.env.GTM_GITHUB_HOST ? process.env.GTM_GITHUB_HOST : 'api.github.com',
