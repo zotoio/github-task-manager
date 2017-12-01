@@ -14,7 +14,7 @@
     "sls-logs-hook": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubHook -t",
     "sls-logs-results": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubResults -t",
     "agent": "node dist/src/ghEventAgent/ghEventAgent.js",
-    "agent-build": "sass src/ghEventAgent/static/main.scss:src/ghEventAgent/static/main.css && npm run build && node dist/src/ghEventAgent/ghEventAgent.js"
+    "agent-build": "node ./sass.js && npm run build && node dist/src/ghEventAgent/ghEventAgent.js"
   },
   "repository": {
     "type": "git",
@@ -36,7 +36,7 @@
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.2",
     "babel-plugin-istanbul": "^4.1.5",
-    "babel-plugin-transform-async-to-generator": "^6.24.1",
+    "babel-plugin-transform-async-to-generator": "^6.24 .1",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
@@ -49,6 +49,7 @@
     "eslint": "^4.12.0",
     "format-json": "^1.0.3",
     "mocha": "^4.0.1",
+    "node-sass": "^4.7.2",
     "nyc": "^11.3.0",
     "rimraf": "^2.6.2",
     "semantic-release": "^8.2.0",

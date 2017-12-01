@@ -58,6 +58,8 @@ typings/
 .env
 
 .sass-cache/
+main.css
+main.css.map
 
 .idea/
 dist/

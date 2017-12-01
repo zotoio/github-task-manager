@@ -12,6 +12,11 @@ import {CIExecutorFactory} from '../lib/CIExecutorFactory';
 require('dotenv').config();
 require('babel-polyfill');
 
+if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+    console.log('######### aws env AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY missing! ###########');
+    process.exit(1);
+}
+
 // Init Event Handler
 let handlers = new HandlerStore();
 handlers.addHandler(new EventHandler('pull_request', function(eventData) {
