@@ -6,6 +6,7 @@ const hljs = require('highlight.js');
 import {EventHandler} from '../lib/EventHandler';
 import {HandlerStore} from '../lib/HandlerStore';
 import {Utils} from '../lib/utils';
+import {CIExecutorFactory} from '../lib/CIExecutorFactory';
 require('dotenv').config();
 require('babel-polyfill');
 
@@ -25,6 +26,11 @@ systemConfig.event = {};
 // Setting up Instances
 const app = express();
 const isDev = process.env.ENVIRONMENT === 'development';
+let ciTool = new CIExecutorFactory();
+let ciToolJenkins = ciTool.createCIExecutor('CI_JENKINS');
+let ciToolTC = ciTool.createCIExecutor('CI_TEAMCITY');
+console.log(ciToolJenkins.info());
+console.log(ciToolTC.info());
 
 const bannerData = [
     ' #####  #     # #######                            ',
