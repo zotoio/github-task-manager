@@ -21,7 +21,8 @@
     "docker-local-logs": "docker-compose logs --tail=0 --follow",
     "docker-local-bounce": "npm run build && docker-compose restart && npm run docker-local-logs",
     "k8s-create": "chmod 755 ./k8s.sh && ./k8s.sh create",
-    "k8s-delete": "chmod 755 ./k8s.sh && ./k8s.sh delete"
+    "k8s-delete": "chmod 755 ./k8s.sh && ./k8s.sh delete",
+    "k8s-logs": "kubectl logs -f gtm-agent-pod"
   },
   "repository": {
     "type": "git",

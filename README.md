@@ -19,8 +19,6 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 - then add results for each back to pull request check as they complete
 - make extensible for other github event/task handling
 
-
-
 ## Design
 
 - Deploy two functions to lambda via serverless framework ('gtmGithubHook', 'gtmGithubResults')
@@ -55,13 +53,29 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_GITHUB_PATH_PREFIX | path prefix for github enterprise |
 |GTM_GITHUB_PROXY | github api client proxy |
 |GTM_TASK_CONFIG_FILENAME | filename in repo to look for for task config - default is .githubTaskManager |
-|AWS_ACCESS_KEY_ID | aws key id - for agent only, do not add to .env |
-|AWS_SECRET_ACCESS_KEY | aws secret - for agent only, do not add to .env |
+|GTM_AWS_ACCESS_KEY_ID | aws key id - for agent only |
+|GTM_AWS_SECRET_ACCESS_KEY | aws secret - for agent only |
 
 - run: `npm run sls-deploy` - note that this will create aws re$ources..
 - capture the hook url output in console and add to github repo pull request conf
 - run: `npm run sls-logs-hook` or `npm run sls-logs-results` to tail the logs
 - create a pull request and confirm the hook is being hit
+
+## Docker and Kubernetes agents
+You can run the latest image from docker hub: https://hub.docker.com/r/wyvern8/github-task-manager
+```
+npm run docker-hub-run
+```
+..or run using the local checkout and tail logs:
+```
+npm run docker-local-bounce
+```
+..or if you have a k8s cluster and kubectl configured:
+```
+npm run k8s-create
+npm run k8s-delete
+npm run k8s-logs
+```
 
 ## Plugins
 Task executors for Jenkins, Teamcity and Travis are in progress. Custom task executors can be added by.. **todo**
