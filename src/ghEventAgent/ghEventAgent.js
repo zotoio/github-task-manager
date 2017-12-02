@@ -143,7 +143,7 @@ Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function(data) 
 
     app.listen(process.env.GTM_AGENT_PORT, function() {
         Utils.printBanner();
-        console.log('GitHub Event Orchestrator Running on Port ' + process.env.GTM_AGENT_PORT);
+        console.log('GitHub Task Manager Agent Running on Port ' + process.env.GTM_AGENT_PORT);
         console.log('Runmode: ' + runmode);
         console.log('AWS Access Key ID: ' + Utils.maskString(process.env.GTM_AGENT_AWS_ACCESS_KEY_ID));
         console.log('AWS Access Key: ' + Utils.maskString(process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY));
