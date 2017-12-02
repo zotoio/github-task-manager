@@ -11,9 +11,7 @@
 
 receive github hook, notify agent, receive task results, notify github (Unofficial)
 
-<a href="https://github.com/wyvern8/github-task-manager">
-  <img src="https://raw.githubusercontent.com/wyvern8/github-task-manager/master/gtm-logo.png?raw=true&1" alt="" title="logo" align="right" style="max-width:160px">
-</a>
+<image align="right" height="160" width="160" src="https://storage.googleapis.com/github-bin/gtm-logo.svg">
 
 ## Aim
 Create an asynchronous CI agnostic mechanism for running custom test stage gates for github pull requests.
@@ -34,9 +32,7 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 - agent notifies SNS topic which triggers 'gtmGithubResults' lambda
 - 'gtmGithubResults' lambda posts results to github pull request.
 
-<a href="https://github.com/wyvern8/github-task-manager">
-  <img src="https://raw.githubusercontent.com/wyvern8/github-task-manager/master/github-task-manager.png?raw=true" alt="" title="github-task-manager flow">
-</a>
+[![flow](https://storage.googleapis.com/github-bin/github-task-manager.png)]()
 
 ## Install
 - clone this repo (TODO: or `npm install --save-dev github-task-manager`)
