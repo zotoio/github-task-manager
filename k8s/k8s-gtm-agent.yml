@@ -21,7 +21,7 @@ metadata:
 spec:
   containers:
     - name: gtm-agent
-      image: wyvern8/github-task-manager
+      image: wyvern8/github-task-manager:latest
       envFrom:
         - configMapRef:
             name: gtm-agent-configmap
