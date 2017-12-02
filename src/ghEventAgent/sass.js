@@ -9,5 +9,5 @@ sass.render({
 }, function(err, result) {
     if (err) throw err;
     let outputFile = file + '.css';
-    fs.writeFileSync(outputFile, result, 'utf8');
+    fs.writeFileSync(outputFile, result.css, 'utf8');
 });
