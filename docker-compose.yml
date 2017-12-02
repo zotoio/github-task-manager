@@ -13,8 +13,8 @@ services:
       - GTM_SQS_PENDING_QUEUE=${GTM_SQS_PENDING_QUEUE}
       - GTM_SQS_RESULTS_QUEUE=${GTM_SQS_RESULTS_QUEUE}
       - GTM_SNS_RESULTS_TOPIC=${GTM_SNS_RESULTS_TOPIC}
-    #volumes:
-    #  - ./:/home/node/app
+    volumes:
+      - ./:/home/node/app
     ports:
       - "${GTM_AGENT_PORT}:${GTM_AGENT_PORT}"
     command: "npm run agent"

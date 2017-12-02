@@ -16,10 +16,12 @@
     "agent": "node dist/src/ghEventAgent/ghEventAgent.js",
     "agent-build": "npm run build && node dist/src/ghEventAgent/sass.js",
     "docker-build": "docker build -t github-task-manager --no-cache .",
-    "docker-local-run": "docker-compose up -d",
+    "docker-start": "docker-compose up -d",
     "docker-hub-run": "docker pull wyvern8/github-task-manager:latest && docker run --env-file ./.env github-task-manager",
     "docker-local-logs": "docker-compose logs --tail=0 --follow",
-    "docker-local-bounce": "docker-compose restart && npm run docker-logs"
+    "docker-local-bounce": "npm run build && docker-compose restart && npm run docker-local-logs",
+    "k8s-create": "chmod 755 ./k8s.sh && ./k8s.sh create",
+    "k8s-delete": "chmod 755 ./k8s.sh && ./k8s.sh delete"
   },
   "repository": {
     "type": "git",
