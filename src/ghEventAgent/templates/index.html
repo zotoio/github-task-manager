@@ -1,9 +1,19 @@
 {% extends "base.html" %}
 
 {% block maincontent %}
-<h1>GitHub Task Manager</h1>
+<h1>GitHub Task Manager Agent</h1>
 <p>Systems are running normally.</p>
 
 <p>Pending Queue URL: {{ globalProperties.pendingQueue.url }}</p>
 <p>Pending Queue State: {{ globalProperties.pendingQueue.state }}</p>
+<div id="stream"></div>
+<script>
+    var es = new EventSource('/stream');
+    es.onmessage = function (event) {
+        var entry = document.createElement('div');
+        entry.innerHTML = event.data;
+        document.getElementById('stream').appendChild(entry);
+        console.log(event)
+    };
+</script>
 {% endblock %}

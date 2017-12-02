@@ -11,6 +11,20 @@ import {Utils} from '../lib/utils';
 import {CIExecutorFactory} from '../lib/CIExecutorFactory';
 require('dotenv').config();
 require('babel-polyfill');
+const SSE = require('express-sse');
+let sse = new SSE();
+
+(function(){
+    let oldLog = console.log;
+    console.log = function (message) {
+
+        if (sse) {
+            sse.send(message);
+        }
+
+        oldLog.apply(console, arguments);
+    };
+})();
 
 if (!process.env.GTM_AGENT_AWS_ACCESS_KEY_ID || !process.env.GTM_AGENT_AWS_ACCESS_KEY_ID) {
     console.log('######### aws env GTM_AGENT_AWS_ACCESS_KEY_ID or GTM_AGENT_AWS_ACCESS_KEY_ID missing! ###########');
@@ -92,6 +106,8 @@ app.get('/process/', (req, res) => {
         updatedEventData = null;
     res.render('event.html', {globalProperties: systemConfig, eventData: updatedEventData});
 });
+
+app.get('/stream', sse.init);
 
 app.use('/static', express.static(__dirname + '/static'));
 
