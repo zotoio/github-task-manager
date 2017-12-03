@@ -1,7 +1,9 @@
+import { default as sinon } from 'sinon';
 import { default as assert } from 'assert';
-import { describe, it } from 'mocha';
+import { before, after, describe, it } from 'mocha';
 import { default as crypto } from 'crypto';
-import { decodeEventBody, listener, handleEvent } from '../../../src/serverless/gtmGithubHook/gtmGithubHook.js';
+import { default as gtmGithubHook } from '../../../src/serverless/gtmGithubHook/gtmGithubHook.js';
+import { default as githubUtils } from '../../../src/serverless/gtmGithubUtils.js';
 
 describe('gtmGithubHook', function() {
     describe('decodeEventBody', function () {
@@ -11,7 +13,7 @@ describe('gtmGithubHook', function() {
             let event = {};
             event.body = 'payload=%7B%22action%22%3A%20%22test%22%7D';
 
-            let actual = decodeEventBody(event);
+            let actual = gtmGithubHook.decodeEventBody(event);
             assert.equal(actual.action, expected.action);
             done();
 
@@ -34,7 +36,7 @@ describe('gtmGithubHook', function() {
                 'X-GitHub-Delivery': 'test'
             };
 
-            listener(event, null, ()=>{});
+            gtmGithubHook.listener(event, null, ()=>{});
             assert.equal('1', '1'); //todo
             done();
 
@@ -46,11 +48,53 @@ describe('gtmGithubHook', function() {
             let type = 'pull_request';
             let body = {action: 'test'};
 
-            handleEvent(type, body);
+            gtmGithubHook.handleEvent(type, body);
             assert.equal(1, 1); //todo
             done();
 
         });
     });
 
+    describe('getTaskConfig', function () {
+
+        before(function(){
+            sinon.stub(githubUtils, 'getFile').callsFake( () => {
+                return Promise.resolve(
+                    {
+                        data: {
+                            content: 'eyJhYmMiOiAidGhpcyBpcyBhIHRlc3QifQo=' //base64 { abc: 'this is a test' }
+                        }
+                    });
+            });
+        });
+
+        after(function(){
+            githubUtils.getFile.restore();
+        });
+
+        it('should extract json from github file response', async function () {
+
+            let body = {
+                pull_request: {
+                    ref: 'sha123',
+                    head: {
+                        repo: {
+                            name: 'code',
+                            owner: {
+                                login: 'bob'
+                            }
+                        }
+                    }
+                }
+            };
+
+            //gtmGithubHook.setUtils(githubUtils);
+            let actual = await gtmGithubHook.getTaskConfig(body);
+            return assert.equal(actual.abc, 'this is a test');
+
+
+        });
+    });
+
 });
+

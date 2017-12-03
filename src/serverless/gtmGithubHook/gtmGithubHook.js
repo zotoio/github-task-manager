@@ -3,62 +3,13 @@
 let json = require('format-json');
 let crypto = require('crypto');
 let Producer = require('sqs-producer');
-let GitHubApi = require('github');
+let githubUtils = require('../gtmGithubUtils.js');
 
 async function listener(event, context, callback) {
 
-    function signRequestBody(key, body) {
-        return `sha1=${crypto.createHmac('sha1', key).update(body, 'utf-8').digest('hex')}`;
-    }
+    const githubEvent = event.headers['X-GitHub-Event'];
 
-    let errMsg; // eslint-disable-line
-    const token = process.env.GTM_GITHUB_WEBHOOK_SECRET;
-    const headers = event.headers;
-    const sig = headers['X-Hub-Signature'];
-    const githubEvent = headers['X-GitHub-Event'];
-    const id = headers['X-GitHub-Delivery'];
-    const calculatedSig = signRequestBody(token, event.body);
-
-    let validators = [
-        {
-            name: 'github secret',
-            check: typeof token !== 'string',
-            msg: 'Must provide a \'GITHUB_WEBHOOK_SECRET\' env variable'
-        },
-        {
-            name: 'X-Hub-Signature',
-            check: !sig,
-            msg: 'No X-Hub-Signature found on request'
-        },
-        {
-            name: 'X-Github-Event',
-            check: !githubEvent,
-            msg: 'No X-Github-Event found on request'
-        },
-        {
-            name: 'X-Github-Delivery',
-            check: !id,
-            msg: 'No X-Github-Delivery found on request'
-        },
-        {
-            name: 'X-Hub-Signature signing',
-            check: sig !== calculatedSig,
-            msg: 'X-Hub-Signature incorrect. Github webhook token doesn\'t match'
-        }
-    ];
-
-    try {
-        validators.forEach((v) => {
-            if (v.check) {
-                errMsg = v.msg;
-                throw Error;
-            }
-            console.log(v.name + ' is ok!');
-        });
-    } catch(e){
-        console.log(errMsg);
-    }
-
+    let errMsg = githubUtils.invalidHook(event);
     if (errMsg) {
         return callback(null, {
             statusCode: 401,
@@ -77,8 +28,6 @@ async function listener(event, context, callback) {
     console.log('Payload', json.plain(eventBody));
     /* eslint-enable */
 
-    // Do custom stuff here with github event data
-    // For more on events see https://developer.github.com/v3/activity/events/types/
     await handleEvent(githubEvent, eventBody);
 
     const response = {
@@ -93,7 +42,6 @@ async function listener(event, context, callback) {
 
 async function handleEvent(type, body) {
 
-    // todo remove this restriction once accessing
     if (type === 'pull_request' && body.action && ['opened', 'synchronize'].includes(body.action)) {
         console.log(`pull request: "${body.pull_request.title}" ${body.action} by ${body.pull_request.user.login}`);
 
@@ -129,58 +77,18 @@ async function handleEvent(type, body) {
     }
 }
 
-async function getFile(body) {
+async function getTaskConfig(body) {
 
-    let githubOptions = {
-        host: process.env.GTM_GITHUB_HOST ? process.env.GTM_GITHUB_HOST : 'api.github.com',
-        debug: process.env.GTM_GITHUB_DEBUG ? process.env.GTM_GITHUB_DEBUG : false,
-        timeout: process.env.GTM_GITHUB_TIMEOUT ? parseInt(process.env.GTM_GITHUB_TIMEOUT) : 5000,
-        pathPrefix: process.env.GTM_GITHUB_PATH_PREFIX ? process.env.GTM_GITHUB_PATH_PREFIX : '',
-        proxy: process.env.GTM_GITHUB_PROXY ? process.env.GTM_GITHUB_PROXY : ''
-    };
-
-    let github = new GitHubApi(githubOptions);
-
-    github.authenticate({
-        type: 'oauth',
-        token: process.env.GTM_GITHUB_TOKEN
-    });
-
-    let config = {
+    let params = {
         owner: body.pull_request.head.repo.owner.login,
         repo: body.pull_request.head.repo.name,
         path: process.env.GTM_TASK_CONFIG_FILENAME ? process.env.GTM_TASK_CONFIG_FILENAME : '.githubTaskManager.json',
         ref: body.pull_request.head.ref
     };
 
-    return new Promise(
-        (resolve, reject) => {
-            try {
-                let response = github.repos.getContent(config);
-                return resolve(response);
-
-            } catch (err) {
-                return reject(err);
-            }
-        }
-    );
+    let fileResponse = await githubUtils.getFile(params);
+    return githubUtils.decodeFileResponse(fileResponse);
 }
-
-async function getTaskConfig(body) {
-    let fileResponse = await getFile(body);
-    return decodeTaskConfig(fileResponse);
-}
-
-function decodeTaskConfig(fileResponse) {
-
-    console.log(json.plain(fileResponse));
-    let buff = new Buffer(fileResponse.data.content, 'base64');
-
-    let content = JSON.parse(buff.toString('ascii'));
-
-    return content;
-}
-
 
 function decodeEventBody(event) {
     return JSON.parse(decodeURIComponent(event.body.replace(/\+/g,  ' ')).replace('payload={', '{'));
@@ -188,6 +96,7 @@ function decodeEventBody(event) {
 
 module.exports = {
     'listener': listener,
+    'getTaskConfig': getTaskConfig,
     'decodeEventBody': decodeEventBody,
     'handleEvent': handleEvent
 };

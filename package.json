@@ -7,7 +7,7 @@
     "build": "npm run lint && rimraf dist/ && babel ./src --out-dir dist/src --copy-files && babel ./test --out-dir dist/test --copy-files && babel ./*.js --out-dir dist/ --copy-files",
     "commit": "./node_modules/.bin/git-cz",
     "lint": "node ./node_modules/.bin/eslint ./src ./test --ext=.js --ignore-pattern node_modules/ --ignore-pattern dist/ --ignore-pattern coverage/ --quiet",
-    "test": "npm run build && cross-env NODE_ENV=test nyc ./node_modules/.bin/mocha --timeout 10000 --require babel-core/register --require babel-polyfill ./dist/test/*.spec.js ./dist/test/**/*.spec.js",
+    "test": "npm run build && cross-env NODE_ENV=test nyc ./node_modules/.bin/mocha --timeout 10000 --require babel-core/register --require babel-polyfill --recursive ./dist/test",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "sls-deploy": "npm run build && node ./node_modules/serverless/bin/serverless deploy -v",
     "sls-undeploy": "serverless remove",
@@ -64,6 +64,7 @@
     "serverless": "^1.24.1",
     "serverless-dotenv-plugin": "^1.0.1",
     "serverless-webpack": "^4.1.0",
+    "sinon": "^4.1.2",
     "sqs-producer": "^1.6.2"
   },
   "engines": {
