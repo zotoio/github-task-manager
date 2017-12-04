@@ -41,7 +41,7 @@ export class CIExecutorJenkins extends CIExecutor {
         let buildNumber = await this.jenkins.job.build({ name: jobName, parameters: buildParams });
         let result = await this.waitForBuild(jobName, buildNumber);
         console.log('Build Finished: ' + result);
-        let resultBool = result === 'SUCCESS'
+        let resultBool = result === 'SUCCESS';
         return { passed: resultBool, url: 'https://neko.ac' };  // todo handle results
     }
 

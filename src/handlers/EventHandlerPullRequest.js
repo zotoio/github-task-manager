@@ -12,10 +12,10 @@ export class EventHandlerPullRequest extends EventHandler {
         console.log('Pull Request: ' + eventData.pull_request.number);
 
         // first set each pr check to pending
-        setIntialTaskState(eventData);
+        this.setIntialTaskState(eventData);
 
         // now process each task..
-        processTasks(eventData);
+        this.processTasks(eventData);
 
     }
 
@@ -33,7 +33,7 @@ export class EventHandlerPullRequest extends EventHandler {
             console.log('\n## Setting Task "' + task.type + '" to ' + initialState);
             console.log(task);
 
-            let status = Util.createStatus(
+            let status = Utils.createStatus(
                 eventData,
                 initialState,
                 task.type,
@@ -70,7 +70,7 @@ export class EventHandlerPullRequest extends EventHandler {
             });
             console.log('Build Result: ' + JSON.stringify(buildResult));
 
-            let status = Util.createStatus(
+            let status = Utils.createStatus(
                 eventData,
                 buildResult.passed ? 'success' : 'error',
                 task.type,
