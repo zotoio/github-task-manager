@@ -52,4 +52,3 @@ export class HandlerStore {
     }
 }
 
-requireDir('../handlers');

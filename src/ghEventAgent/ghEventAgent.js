@@ -5,7 +5,7 @@ const express = require('express');
 const expressNunjucks = require('express-nunjucks');
 const Consumer = require('sqs-consumer');
 const hljs = require('highlight.js');
-import { HandlerStore } from '../lib/HandlerStore';
+import { EventHandler } from '../lib/EventHandler';
 import { Utils } from '../lib/utils';
 require('dotenv').config();
 require('babel-polyfill');
@@ -62,7 +62,7 @@ app.get('/', (req, res) => {
 app.get('/event_test/', (req, res) => {
     let event = Utils.samplePullRequestEvent();
     systemConfig.event.current = event;
-    let result = HandlerStore.handleEvent(event);
+    let result = EventHandler.create('pull_request').handleEvent(event);
     if (result !== true)
         console.log('Event was not Handled');
     else
@@ -118,7 +118,7 @@ Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function (data)
             messageBody.ghEventType = ghEvent;
             messageBody.ghTaskConfig = taskConfig;
             systemConfig.event.current = messageBody;
-            let result = HandlerStore.handleEvent(messageBody);
+            let result = EventHandler.create(ghEvent).handleEvent(messageBody);
             if (result !== true)
                 console.log('Event was not Handled: ' + ghEvent);
             else

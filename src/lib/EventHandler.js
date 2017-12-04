@@ -1,6 +1,7 @@
 'use strict';
+import { SelfRegisteringSubClass } from '../lib/SelfRegisteringSubClass';
 
-export class EventHandler {
+export class EventHandler extends SelfRegisteringSubClass {
 
     constructor(eventType, userCallback = null) {
         this.eventType = eventType;
@@ -11,12 +12,6 @@ export class EventHandler {
         return 'Handles: \'' + this.eventType + '\'';
     }
 
-    handleEvent(event) {
-        // Do something internal before calling the user callback.
-        if (event.ghEventType !== this.eventType)
-            return false;
-        if (this.userCallback)
-            this.userCallback(event);
-        return true;
-    }
 }
+
+requireDir('../handlers');
