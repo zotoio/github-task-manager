@@ -37,6 +37,25 @@ export class Utils {
         return basicUrl.toString();
     }
 
+    /**
+     * 
+     * @param {object} eventData - Data from GitHub Event
+     * @param {string} state - Current Task State (pending, passed, failed)
+     * @param {string} context - Content Name to Display in GitHub
+     * @param {string} description - Short Description to Display in GitHub
+     */
+    static createStatus(eventData, state, context, description, url) {
+        return {
+            owner: eventData.repository.owner.login ? eventData.repository.owner.login : 'Default_Owner',
+            repo: eventData.repository.name ? eventData.repository.name : 'Default_Repository',
+            sha: eventData.pull_request.head.sha ? eventData.pull_request.head.sha : 'Missing SHA',
+            state: state,
+            target_url: url ? url : 'http://neko.ac', //todo
+            description: description,
+            context: context
+        };
+    }
+
     switchByVal(cases, defaultCase, key) {
         let result;
         if (key in cases) result = cases[key];

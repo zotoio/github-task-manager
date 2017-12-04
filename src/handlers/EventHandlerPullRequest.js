@@ -22,20 +22,21 @@ function setIntialTaskState(eventData) {
     eventData.ghTaskConfig.tasks.forEach(async (task)=> {
 
         let initialState = 'pending';
-        let initialDesc = 'tasks are executing..';
+        let initialDesc = 'Task Execution in Progress';
         if (!CIExecutor.isRegistered(task.executor)) {
             initialState = 'error';
-            initialDesc = 'unknown executor!';
+            initialDesc = 'Unknown Executor';
         }
 
-        console.log('\n## setting task "' + task.type + '" to ' + initialState);
+        console.log('\n## Setting Task "' + task.type + '" to ' + initialState);
         console.log(task);
 
-        let status = createStatus(
+        let status = Util.createStatus(
             eventData,
             initialState,
             task.type,
-            initialDesc
+            initialDesc,
+            '#'
         );
 
         await Utils.postResultsAndTrigger(process.env.GTM_SQS_RESULTS_QUEUE, status, process.env.GTM_SNS_RESULTS_TOPIC, 'Ping').then(function () {
@@ -65,13 +66,14 @@ function processTasks(eventData) {
             TAGS: '["@sample-run"]',
             ENVIRONMENT: 'automated-test-env'
         });
-        console.log('Build Result: ' + buildResult);
+        console.log('Build Result: ' + JSON.stringify(buildResult));
 
-        let status = createStatus(
+        let status = Util.createStatus(
             eventData,
-            buildResult ? 'success' : 'error',
+            buildResult.passed ? 'success' : 'error',
             task.type,
-            buildResult ? 'Task completed successfully' : 'Task completed with errors'
+            buildResult.passed ? 'Task Completed Successfully' : 'Task Completed with Errors',
+            buildResult.url
         );
 
         await Utils.postResultsAndTrigger(process.env.GTM_SQS_RESULTS_QUEUE, status, process.env.GTM_SNS_RESULTS_TOPIC, 'Ping').then(function () {
@@ -80,16 +82,4 @@ function processTasks(eventData) {
 
     });
 
-}
-
-function createStatus(eventData, state, context, description) {
-    return {
-        owner: eventData.repository.owner.login ? eventData.repository.owner.login : 'Default_Owner',
-        repo: eventData.repository.name ? eventData.repository.name : 'Default_Repository',
-        sha: eventData.pull_request.head.sha ? eventData.pull_request.head.sha : 'Missing SHA',
-        state: state,
-        target_url: 'http://neko.ac', //todo
-        description: description,
-        context: context
-    };
 }
