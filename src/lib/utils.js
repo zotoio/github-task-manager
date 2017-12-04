@@ -14,13 +14,31 @@ require('babel-polyfill');
 export class Utils {
 
     static samplePullRequestEvent() {
-        pullRequestData.GHEventType = 'pull_request';
+        pullRequestData.ghEventType = 'pull_request';
         return pullRequestData;
     }
 
     static maskString(plaintext, desiredLength = 12, visibleChars = 5, maskChar = '*') {
         var maskLength = Math.min(plaintext.length - visibleChars, desiredLength);
         return maskChar.repeat(maskLength) + plaintext.slice(-5);
+    }
+
+    switchByVal(cases, defaultCase, key) {
+        let result;
+        if (key in cases) result = cases[key];
+
+        // if exact key not found try splitting comma delimited and check each subkey
+        if (!result) {
+            Object.keys(cases).forEach((k) => {
+                let subKeys = k.split(',').map((i) => { return i.trim(); });
+                if (subKeys.includes(key)) {
+                    result = cases[k];
+                }
+            });
+        }
+
+        if (!result) result = defaultCase;
+        return result;
     }
 
     static async getQueueUrl(queueName) {
