@@ -8,15 +8,15 @@ export class EventHandler {
     }
 
     info() {
-        return 'Handler for \'' + this.eventType + '\'';
+        return 'Handles: \'' + this.eventType + '\'';
     }
 
-    handleEvent(event, config) {
+    handleEvent(event) {
         // Do something internal before calling the user callback.
         if (event.ghEventType != this.eventType)
             return false;
         if (this.userCallback)
-            this.userCallback(event, config);
+            this.userCallback(event);
         return true;
     }
 }

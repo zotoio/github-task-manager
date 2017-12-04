@@ -5,16 +5,15 @@ const express = require('express');
 const expressNunjucks = require('express-nunjucks');
 const Consumer = require('sqs-consumer');
 const hljs = require('highlight.js');
-import {EventHandler} from '../lib/EventHandler';
-import {HandlerStore} from '../lib/HandlerStore';
-import {Utils} from '../lib/utils';
-import {CIExecutorFactory} from '../lib/CIExecutorFactory';
+import { HandlerStore } from '../lib/HandlerStore';
+import { Utils } from '../lib/utils';
+import { CIExecutor } from '../lib/CIExecutor';
 require('dotenv').config();
 require('babel-polyfill');
 const SSE = require('express-sse');
 let sse = new SSE();
 
-(function(){
+(function () {
     let oldLog = console.log;
     console.log = function (message) {
 
@@ -26,40 +25,19 @@ let sse = new SSE();
     };
 })();
 
-if (!process.env.GTM_AGENT_AWS_ACCESS_KEY_ID || !process.env.GTM_AGENT_AWS_ACCESS_KEY_ID) {
-    console.log('######### aws env GTM_AGENT_AWS_ACCESS_KEY_ID or GTM_AGENT_AWS_ACCESS_KEY_ID missing! ###########');
+if (!process.env.GTM_AGENT_AWS_ACCESS_KEY_ID || !process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY) {
+    console.log('### ERROR ### Environment Variables GTM_AGENT_AWS_ACCESS_KEY_ID or GTM_AGENT_AWS_SECRET_ACCESS_KEY Missing!');
     process.exit(1);
 }
-
-// Init Event Handler
-let handlers = new HandlerStore();
-handlers.addHandler(new EventHandler('pull_request', function(eventData) {
-    console.log('-----------------------------');
-    console.log('New Event: ' + eventData.ghEventType);
-    console.log('Repository Name: ' + eventData.repository.name);
-    console.log('Pull Request: ' + eventData.pull_request.number);
-    let status = {
-        owner: eventData.repository.owner.login ? eventData.repository.owner.login : 'Default_Owner',
-        repo: eventData.repository.name ? eventData.repository.name : 'Default_Repository',
-        sha: eventData.pull_request.head.sha ? eventData.pull_request.head.sha : 'Missing SHA',
-        state: 'success',
-        target_url: 'http://neko.ac',
-        description: 'Tests from Orchestrator Passed',
-        context: 'Functional-Tests'
-    };
-    Utils.postResultsAndTrigger(process.env.GTM_SQS_RESULTS_QUEUE, status, process.env.GTM_SNS_RESULTS_TOPIC, 'Ping').then(function() {
-        console.log('-----------------------------');
-    });
-}));
 
 let pendingQueueHandler;
 let systemConfig = {};
 let runmode;
 try {
     runmode = process.env.NODE_ENV;
-    if(runmode == undefined)
+    if (runmode == undefined)
         runmode = 'production';
-} catch(error) {
+} catch (error) {
     runmode = 'production';
     console.log(error);
 }
@@ -68,11 +46,7 @@ systemConfig.event = {};
 // Setting up Instances
 const app = express();
 const isDev = runmode === 'development';
-let ciTool = new CIExecutorFactory();
-let ciToolJenkins = ciTool.createCIExecutor('CI_JENKINS');
-let ciToolTC = ciTool.createCIExecutor('CI_TEAMCITY');
-console.log(ciToolJenkins.info());
-console.log(ciToolTC.info());
+let ciToolJenkins = CIExecutor.create('Jenkins', { test: 'Testing Value' });
 
 // Configure Templates
 app.set('views', __dirname + '/templates');
@@ -84,18 +58,23 @@ const njk = expressNunjucks(app, {
 });
 
 app.get('/', (req, res) => {
-    res.render('index.html', {globalProperties: systemConfig});
+    res.render('index.html', { globalProperties: systemConfig });
 });
 
 app.get('/event_test/', (req, res) => {
     var event = Utils.samplePullRequestEvent();
     systemConfig.event.current = event;
-    let result = handlers.handleEvent(event, systemConfig);
-    if(result != true)
+    let result = HandlerStore.handleEvent(event);
+    if (result != true)
         console.log('Event was not Handled');
     else
         console.log('Event Handled');
     res.redirect(302, '/process/');
+});
+
+app.get('/testJenkins', (req, res) => {
+    console.log(ciToolJenkins.info());
+    res.send('Hello');
 });
 
 app.get('/process/', (req, res) => {
@@ -104,14 +83,14 @@ app.get('/process/', (req, res) => {
         updatedEventData = hljs.highlight('json', JSON.stringify(systemConfig.event.current, null, 4)).value;
     else
         updatedEventData = null;
-    res.render('event.html', {globalProperties: systemConfig, eventData: updatedEventData});
+    res.render('event.html', { globalProperties: systemConfig, eventData: updatedEventData });
 });
 
 app.get('/stream', sse.init);
 
 app.use('/static', express.static(__dirname + '/static'));
 
-Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function(data) {
+Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function (data) {
     let pendingUrl = data;
     systemConfig.pendingQueue = {};
     systemConfig.pendingQueue.url = pendingUrl;
@@ -135,8 +114,8 @@ Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function(data) 
             let messageBody = JSON.parse(message.Body);
             messageBody.ghEventType = ghEvent;
             systemConfig.event.current = messageBody;
-            let result = handlers.handleEvent(messageBody, systemConfig);
-            if(result != true)
+            let result = HandlerStore.handleEvent(messageBody);
+            if (result != true)
                 console.log('Event was not Handled: ' + ghEvent);
             else
                 console.log('Event Handled: ' + ghEvent);
@@ -153,11 +132,11 @@ Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function(data) 
         console.log('Queue Processing Stopped');
         systemConfig.pendingQueue.state = 'Stopped';
     });
-    
+
     pendingQueueHandler.start();
     systemConfig.pendingQueue.state = 'Running';
 
-    app.listen(process.env.GTM_AGENT_PORT, function() {
+    app.listen(process.env.GTM_AGENT_PORT, function () {
         Utils.printBanner();
         console.log('GitHub Task Manager Agent Running on Port ' + process.env.GTM_AGENT_PORT);
         console.log('Runmode: ' + runmode);
