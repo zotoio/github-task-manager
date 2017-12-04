@@ -34,7 +34,7 @@ let systemConfig = {};
 let runmode;
 try {
     runmode = process.env.NODE_ENV;
-    if (runmode == undefined)
+    if (runmode === undefined)
         runmode = 'production';
 } catch (error) {
     runmode = 'production';
@@ -60,10 +60,10 @@ app.get('/', (req, res) => {
 });
 
 app.get('/event_test/', (req, res) => {
-    var event = Utils.samplePullRequestEvent();
+    let event = Utils.samplePullRequestEvent();
     systemConfig.event.current = event;
     let result = HandlerStore.handleEvent(event);
-    if (result != true)
+    if (result !== true)
         console.log('Event was not Handled');
     else
         console.log('Event Handled');
@@ -97,6 +97,7 @@ Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function (data)
             console.debug(message);
             console.debug('JSON Parse');
             console.debug(JSON.parse(message.Body));
+
             let ghEvent;
             try {
                 ghEvent = message.MessageAttributes.ghEventType.StringValue;
@@ -104,6 +105,7 @@ Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function (data)
                 console.log('No Message Attribute \'ghEventType\' in Message. Defaulting to \'status\'');
                 ghEvent = 'status';
             }
+
             let taskConfig;
             try {
                 taskConfig = JSON.parse(message.MessageAttributes.ghTaskConfig.StringValue);
@@ -111,12 +113,13 @@ Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function (data)
                 console.log('No Message Attribute \'ghTaskConfig\' in Message. Defaulting to \'{}\'');
                 taskConfig = JSON.parse({});
             }
+
             let messageBody = JSON.parse(message.Body);
             messageBody.ghEventType = ghEvent;
             messageBody.ghTaskConfig = taskConfig;
             systemConfig.event.current = messageBody;
             let result = HandlerStore.handleEvent(messageBody);
-            if (result != true)
+            if (result !== true)
                 console.log('Event was not Handled: ' + ghEvent);
             else
                 console.log('Event Handled: ' + ghEvent);

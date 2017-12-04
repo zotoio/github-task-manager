@@ -102,6 +102,7 @@
     "require-dir": "^0.3.2",
     "sqs-consumer": "^3.8.0",
     "systemjs": "^0.20.19",
+    "travis-ci": "^2.1.1",
     "webpack": "^3.8.1"
   }
 }

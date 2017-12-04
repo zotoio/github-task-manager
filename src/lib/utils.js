@@ -95,7 +95,7 @@ export class Utils {
                 if (err) console.log(err, err.stack); // an error occurred
                 else {
                     let topicArn = data.TopicArn;
-                    var params = {
+                    let params = {
                         Message: message,
                         TopicArn: topicArn
                     };

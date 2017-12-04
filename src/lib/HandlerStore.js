@@ -18,7 +18,7 @@ export class HandlerStore {
 
     static addHandler(handler) {
         let handlerLocation = this.handlers.indexOf(handler);
-        if (handlerLocation != -1) {
+        if (handlerLocation !== -1) {
             console.log('Handler already exists in Handler Store: ' + handler.eventType);
             return false;
         } else {
@@ -30,7 +30,7 @@ export class HandlerStore {
 
     static removeHandler(removeHandler) {
         let handlerLocation = this.handlers.indexOf(removeHandler);
-        if (handlerLocation != -1) {
+        if (handlerLocation !== -1) {
             this.handlers.splice( handlerLocation, 1 );
         } else
             console.log('No Items Matched Provided Event Handler');
@@ -38,7 +38,7 @@ export class HandlerStore {
 
     static handleEvent(event) {
         let eventHandled = false;
-        if(this.handlers.length == 0) {
+        if(this.handlers.length === 0) {
             console.log('No Handlers in Store');
             return false;
         }

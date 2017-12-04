@@ -25,7 +25,7 @@ export class CIExecutorJenkins extends CIExecutor {
             return data;
         });
         let tries = 1;
-        while(buildDict.result == null) {
+        while(buildDict.result === null) {
             buildDict = await this.jenkins.build.get(buildName, buildNumber).then(function(data) {
                 console.log('Waiting for Build \'' + buildName + '\' to Finish: ' + tries++);
                 return data;
@@ -40,7 +40,7 @@ export class CIExecutorJenkins extends CIExecutor {
         let buildNumber = await this.jenkins.job.build({ name: jobName, parameters: buildParams });
         let result = await this.waitForBuild(jobName, buildNumber);
         console.log('Build Finished: ' + result);
-        return result;
+        return result === 'SUCCESS';  // todo handle results
     }
 
 }

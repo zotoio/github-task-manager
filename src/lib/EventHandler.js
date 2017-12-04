@@ -13,7 +13,7 @@ export class EventHandler {
 
     handleEvent(event) {
         // Do something internal before calling the user callback.
-        if (event.ghEventType != this.eventType)
+        if (event.ghEventType !== this.eventType)
             return false;
         if (this.userCallback)
             this.userCallback(event);
