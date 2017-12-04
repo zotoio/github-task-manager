@@ -7,7 +7,6 @@ const Consumer = require('sqs-consumer');
 const hljs = require('highlight.js');
 import { HandlerStore } from '../lib/HandlerStore';
 import { Utils } from '../lib/utils';
-import { CIExecutor } from '../lib/CIExecutor';
 require('dotenv').config();
 require('babel-polyfill');
 const SSE = require('express-sse');
@@ -46,7 +45,6 @@ systemConfig.event = {};
 // Setting up Instances
 const app = express();
 const isDev = runmode === 'development';
-let ciToolJenkins = CIExecutor.create('Jenkins', { test: 'Testing Value' });
 
 // Configure Templates
 app.set('views', __dirname + '/templates');
@@ -72,11 +70,6 @@ app.get('/event_test/', (req, res) => {
     res.redirect(302, '/process/');
 });
 
-app.get('/testJenkins', (req, res) => {
-    console.log(ciToolJenkins.info());
-    res.send('Hello');
-});
-
 app.get('/process/', (req, res) => {
     let updatedEventData;
     if (systemConfig.event.current)
@@ -98,7 +91,7 @@ Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function (data)
     pendingQueueHandler = Consumer.create({
         queueUrl: pendingUrl,
         region: process.env.GTM_AWS_REGION,
-        messageAttributeNames: ['ghEventType'],
+        messageAttributeNames: ['ghEventType', 'ghTaskConfig'],
         handleMessage: (message, done) => {
             console.log('Received Event from Queue');
             console.debug(message);
@@ -111,8 +104,16 @@ Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function (data)
                 console.log('No Message Attribute \'ghEventType\' in Message. Defaulting to \'status\'');
                 ghEvent = 'status';
             }
+            let taskConfig;
+            try {
+                taskConfig = JSON.parse(message.MessageAttributes.ghTaskConfig.StringValue);
+            } catch (TypeError) {
+                console.log('No Message Attribute \'ghTaskConfig\' in Message. Defaulting to \'{}\'');
+                taskConfig = JSON.parse({});
+            }
             let messageBody = JSON.parse(message.Body);
             messageBody.ghEventType = ghEvent;
+            messageBody.ghTaskConfig = taskConfig;
             systemConfig.event.current = messageBody;
             let result = HandlerStore.handleEvent(messageBody);
             if (result != true)

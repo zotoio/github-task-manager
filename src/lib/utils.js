@@ -1,6 +1,7 @@
 'use strict';
 
 const pullRequestData = require('./pullrequest.json');
+const { URL } = require('url');
 require('dotenv').config();
 process.env.AWS_ACCESS_KEY_ID = process.env.GTM_AGENT_AWS_ACCESS_KEY_ID;
 process.env.AWS_SECRET_ACCESS_KEY = process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY;
@@ -21,6 +22,19 @@ export class Utils {
     static maskString(plaintext, desiredLength = 12, visibleChars = 5, maskChar = '*') {
         var maskLength = Math.min(plaintext.length - visibleChars, desiredLength);
         return maskChar.repeat(maskLength) + plaintext.slice(-5);
+    }
+
+    /**
+     * Format a URL for Basic Auth
+     * @param {string} username - Basic Auth Username
+     * @param {string} password - Basic Auth Password
+     * @param {string} url - Base URL
+     */
+    static formatBasicAuth(username, password, url) {
+        let basicUrl = new URL(url);
+        basicUrl.username = username;
+        basicUrl.password = password;
+        return basicUrl.toString();
     }
 
     switchByVal(cases, defaultCase, key) {
