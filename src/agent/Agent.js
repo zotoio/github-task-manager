@@ -105,11 +105,11 @@ export class Agent {
         app.use('/static', express.static(__dirname + '/static'));
 
         app.get('/config', (req, res) => {
-            res.send(JSON.stringify(systemConfig));
+            res.json(systemConfig);
         });
         
         app.get('/config/pendingqueue', (req, res) => {
-            res.send(JSON.stringify(systemConfig.pendingQueue));
+            res.json(systemConfig.pendingQueue);
         });
         
         app.get('/config/pendingqueue/:desiredState', (req, res) => {
@@ -131,7 +131,7 @@ export class Agent {
             }
             systemConfig.pendingQueue.enabled = !pendingQueueHandler.stopped;
             systemConfig.pendingQueue.state = pendingQueueHandler.stopped ? 'Stopped' : 'Running';
-            res.send(JSON.stringify({state: systemConfig.pendingQueue.state}));
+            res.json({state: systemConfig.pendingQueue.state});
         });
 
         Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function (data) {
