@@ -1,15 +1,16 @@
 import { EventHandler } from '../agent/EventHandler';
-import { Utils } from '../agent/AgentUtils';
 import { Executor } from '../agent/Executor';
+import { Utils } from '../agent/AgentUtils';
+let log = Utils.logger();
 
 export class EventHandlerPullRequest extends EventHandler {
 
     handleEvent(eventData) {
 
-        console.log('\n-----------------------------');
-        console.log('New Event: ' + eventData.ghEventType);
-        console.log('Repository Name: ' + eventData.repository.name);
-        console.log('Pull Request: ' + eventData.pull_request.number);
+        log.info('\n-----------------------------');
+        log.info('New Event: ' + eventData.ghEventType);
+        log.info('Repository Name: ' + eventData.repository.name);
+        log.info('Pull Request: ' + eventData.pull_request.number);
 
         // first set each pr check to pending
         this.setIntialTaskState(eventData);
@@ -30,19 +31,19 @@ export class EventHandlerPullRequest extends EventHandler {
                 initialDesc = 'Unknown Executor';
             }
 
-            console.log('\n## Setting Task "' + task.type + '" to ' + initialState);
-            console.log(task);
+            log.info('\n## Setting Task "' + task.type + '" to ' + initialState);
+            log.info(task);
 
             let status = Utils.createStatus(
                 eventData,
                 initialState,
                 task.type,
                 initialDesc,
-                '#'
+                'https://www.google.com' // fails if not an https url
             );
 
             await Utils.postResultsAndTrigger(process.env.GTM_SQS_RESULTS_QUEUE, status, process.env.GTM_SNS_RESULTS_TOPIC, 'Ping').then(function () {
-                console.log('-----------------------------');
+                log.info('-----------------------------');
             });
         });
     }
@@ -68,7 +69,7 @@ export class EventHandlerPullRequest extends EventHandler {
                 TAGS: '["@sample-run"]',
                 ENVIRONMENT: 'automated-test-env'
             });
-            console.log('Build Result: ' + JSON.stringify(buildResult));
+            log.info('Build Result: ' + JSON.stringify(buildResult));
 
             let status = Utils.createStatus(
                 eventData,
@@ -79,7 +80,7 @@ export class EventHandlerPullRequest extends EventHandler {
             );
 
             await Utils.postResultsAndTrigger(process.env.GTM_SQS_RESULTS_QUEUE, status, process.env.GTM_SNS_RESULTS_TOPIC, 'Ping').then(function () {
-                console.log('-----------------------------');
+                log.info('-----------------------------');
             });
 
         });

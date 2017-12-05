@@ -1,18 +1,30 @@
 'use strict';
 
 const pullRequestData = require('./pullrequest.json');
-const { URL } = require('url');
 require('dotenv').config();
+const { URL } = require('url');
+import { default as AgentLogger } from './AgentLogger';
+let log = AgentLogger.log();
+
+// due to serverless .env issue
 process.env.AWS_ACCESS_KEY_ID = process.env.GTM_AGENT_AWS_ACCESS_KEY_ID;
 process.env.AWS_SECRET_ACCESS_KEY = process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY;
 
 const AWS = require('aws-sdk');
 AWS.config.update({ region: process.env.GTM_AWS_REGION });
-var sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
-var sns = new AWS.SNS({ apiVersion: '2010-03-31' });
+let sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
+let sns = new AWS.SNS({ apiVersion: '2010-03-31' });
 require('babel-polyfill');
 
 export class Utils {
+
+    static agentId() {
+        return AgentLogger.AGENT_ID;
+    }
+
+    static sse() {
+        return AgentLogger.SSE;
+    }
 
     static samplePullRequestEvent() {
         pullRequestData.ghEventType = 'pull_request';
@@ -20,7 +32,7 @@ export class Utils {
     }
 
     static maskString(plaintext, desiredLength = 12, visibleChars = 5, maskChar = '*') {
-        var maskLength = Math.min(plaintext.length - visibleChars, desiredLength);
+        let maskLength = Math.min(plaintext.length - visibleChars, desiredLength);
         return maskChar.repeat(maskLength) + plaintext.slice(-5);
     }
 
@@ -76,7 +88,7 @@ export class Utils {
 
     static async getQueueUrl(queueName) {
         return this.getQueueUrlPromise(queueName).then(function (data) {
-            console.log(data);
+            log.debug(data);
             return data;
         });
     }
@@ -101,17 +113,17 @@ export class Utils {
                 DelaySeconds: 0
             };
             sqs.sendMessage(params, function (err, data) {
-                if (err) console.log(err, err.stack);
-                else console.log(data);
+                if (err) log.error(err, err.stack);
+                else log.debug(data);
             });
         });
-        console.log('Enqueue Results on SQS: ' + sqsQueueName);
+        log.info('Enqueue Results on SQS: ' + sqsQueueName);
         return new Promise((resolve, reject) => {
             let params = {
                 Name: snsQueueName
             };
             sns.createTopic(params, function (err, data) {
-                if (err) console.log(err, err.stack); // an error occurred
+                if (err) log.error(err, err.stack); // an error occurred
                 else {
                     let topicArn = data.TopicArn;
                     let params = {
@@ -120,11 +132,11 @@ export class Utils {
                     };
                     sns.publish(params, function (err, data) {
                         if (err) {
-                            console.log(err, err.stack);
+                            log.error(err, err.stack);
                             return reject();
                         } else {
-                            console.log('Published Message \'' + message + '\' to Queue');
-                            console.debug(data);
+                            log.info('Published Message \'' + message + '\' to Queue');
+                            log.debug(data);
                             return resolve(true);
                         }
                     });
@@ -135,6 +147,25 @@ export class Utils {
 
     static timeout(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    static todayDate() {
+        let today = new Date();
+        let dd = today.getDate();
+        let mm = today.getMonth()+1; //January is 0!
+
+        let yyyy = today.getFullYear();
+        if(dd < 10){
+            dd = '0' + dd;
+        }
+        if(mm < 10){
+            mm = '0' + mm;
+        }
+        return yyyy + '/' + mm + '/' + dd;
+    }
+
+    static logger() {
+        return log;
     }
 
     static printBanner() {

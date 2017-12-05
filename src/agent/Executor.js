@@ -1,6 +1,8 @@
 'use strict';
 import requireDir from 'require-dir';
 import { Plugin } from './Plugin';
+import { Utils } from './AgentUtils';
+let log = Utils.logger();
 
 /**
  * Create an Executor to run Builds, Deploys, and Tests
@@ -23,7 +25,7 @@ export class Executor extends Plugin {
     }
 
     describeExecutor() {
-        console.log(this.options);
+        log.info(this.options);
     }
 }
 

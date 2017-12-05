@@ -1,50 +1,36 @@
 'use strict';
 
 import 'babel-polyfill';
+
+import { default as dotenv } from 'dotenv';
+dotenv.config();
+
+import { default as AgentLogger } from './AgentLogger';
+let log = AgentLogger.log();
+
 import { default as express } from 'express';
 import { default as expressNunjucks } from 'express-nunjucks';
 import { default as Consumer } from 'sqs-consumer';
 import { default as hljs } from 'highlight.js';
-import { default as dotenv } from 'dotenv';
-import { default as SSE } from 'express-sse';
+
 import { EventHandler } from './EventHandler';
 import { Utils } from './AgentUtils';
-dotenv.config();
-let sse = new SSE();
 
 export class Agent {
 
     start() {
 
         process.on('unhandledRejection', (reason, p) => {
-            console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+            log.error('Unhandled Rejection at: Promise', p, 'reason:', reason);
             // application specific logging, throwing an error, or other logic here
         });
 
-        this.decorateLogger();
-
         if (!process.env.GTM_AGENT_AWS_ACCESS_KEY_ID || !process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY) {
-            console.log('### ERROR ### Environment Variables GTM_AGENT_AWS_ACCESS_KEY_ID or GTM_AGENT_AWS_SECRET_ACCESS_KEY Missing!');
+            log.error('### ERROR ### Environment Variables GTM_AGENT_AWS_ACCESS_KEY_ID or GTM_AGENT_AWS_SECRET_ACCESS_KEY Missing!');
             process.exit(1);
         }
 
         this.launchAgent();
-    }
-
-    decorateLogger(fn) {
-        if (fn) {
-            fn();
-        } else {
-            let oldLog = console.log;
-            console.log = function (message) {
-
-                if (sse) {
-                    sse.send(message);
-                }
-
-                oldLog.apply(console, arguments);
-            };
-        }
     }
 
     launchAgent() {
@@ -59,7 +45,7 @@ export class Agent {
                 runmode = 'production';
         } catch (error) {
             runmode = 'production';
-            console.log(error);
+            log.error(error);
         }
         systemConfig.event = {};
 
@@ -71,7 +57,7 @@ export class Agent {
         app.set('views', __dirname + '/templates');
 
         // Init Nunjucks
-        const njk = expressNunjucks(app, {
+        expressNunjucks(app, {
             watch: isDev,
             noCache: isDev
         });
@@ -85,9 +71,9 @@ export class Agent {
             systemConfig.event.current = event;
             let result = EventHandler.create('pull_request').handleEvent(event);
             if (result !== true)
-                console.log('Event was not Handled');
+                log.info('Event was not Handled');
             else
-                console.log('Event Handled');
+                log.info('Event Handled');
             res.redirect(302, '/process/');
         });
 
@@ -100,7 +86,8 @@ export class Agent {
             res.render('event.html', {globalProperties: systemConfig, eventData: updatedEventData});
         });
 
-        app.get('/stream', sse.init);
+        // Server Sent Events stream hooked to logging
+        app.get('/stream', Utils.sse().init);
 
         app.use('/static', express.static(__dirname + '/static'));
 
@@ -115,19 +102,19 @@ export class Agent {
         app.get('/config/pendingqueue/:desiredState', (req, res) => {
             try {
                 let desiredState = req.params.desiredState;
-                if (!desiredState == 'enable' || !desiredState == 'disable') {
-                    console.log('Unknown State: ' + desiredState + '. Ignoring Request.');
+                if (!desiredState === 'enable' || !desiredState === 'disable') {
+                    log.debug('Unknown State: ' + desiredState + '. Ignoring Request.');
                 } else {
                     if (desiredState === 'disable') {
                         pendingQueueHandler.stop();
-                        console.log('Queue Processing Stopped');
+                        log.debug('Queue Processing Stopped');
                     } else {
                         pendingQueueHandler.start();
-                        console.log('Queue Processing Started');
+                        log.debug('Queue Processing Started');
                     }
                 }
             } catch(error) {
-                console.log('Error Setting Queue State from Request');
+                log.error('Error Setting Queue State from Request');
             }
             systemConfig.pendingQueue.enabled = !pendingQueueHandler.stopped;
             systemConfig.pendingQueue.state = pendingQueueHandler.stopped ? 'Stopped' : 'Running';
@@ -148,16 +135,16 @@ export class Agent {
 
                 handleMessage: (message, done) => {
 
-                    console.log('Received Event from Queue');
-                    console.debug(message);
-                    console.debug('JSON Parse');
-                    console.debug(JSON.parse(message.Body));
+                    log.info('Received Event from Queue');
+                    log.debug(message);
+                    log.debug('JSON Parse');
+                    log.debug(JSON.parse(message.Body));
 
                     let ghEvent;
                     try {
                         ghEvent = message.MessageAttributes.ghEventType.StringValue;
                     } catch (TypeError) {
-                        console.log('No Message Attribute \'ghEventType\' in Message. Defaulting to \'status\'');
+                        log.error('No Message Attribute \'ghEventType\' in Message. Defaulting to \'status\'');
                         ghEvent = 'status';
                     }
 
@@ -165,7 +152,7 @@ export class Agent {
                     try {
                         taskConfig = JSON.parse(message.MessageAttributes.ghTaskConfig.StringValue);
                     } catch (TypeError) {
-                        console.log('No Message Attribute \'ghTaskConfig\' in Message. Defaulting to \'{}\'');
+                        log.error('No Message Attribute \'ghTaskConfig\' in Message. Defaulting to \'{}\'');
                         taskConfig = JSON.parse({});
                     }
 
@@ -176,32 +163,32 @@ export class Agent {
 
                     let result = EventHandler.create(ghEvent).handleEvent(messageBody);
                     if (result !== true)
-                        console.log('Event was not Handled: ' + ghEvent);
+                        log.info('Event was not Handled: ' + ghEvent);
                     else
-                        console.log('Event Handled: ' + ghEvent);
+                        log.info('Event Handled: ' + ghEvent);
                     done();
                 }
             });
 
             pendingQueueHandler.on('error', (err) => {
-                console.log('ERROR In SQS Queue Handler');
-                console.log(err.message);
+                log.error('ERROR In SQS Queue Handler');
+                log.error(err.message);
             });
 
             app.listen(process.env.GTM_AGENT_PORT, function () {
                 Utils.printBanner();
-                console.log('GitHub Task Manager Agent Running on Port ' + process.env.GTM_AGENT_PORT);
-                console.log('Runmode: ' + runmode);
-                console.log('AWS Access Key ID: ' + Utils.maskString(process.env.GTM_AGENT_AWS_ACCESS_KEY_ID));
-                console.log('AWS Access Key: ' + Utils.maskString(process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY));
-                console.log('Pending Queue URL: ' + pendingUrl);
-                console.debug(njk.env);
-            });
+                log.info('AGENT_ID: ' + Utils.agentId());
+                log.info('GitHub Task Manager Agent Running on Port ' + process.env.GTM_AGENT_PORT);
+                log.info('Runmode: ' + runmode);
+                log.info('AWS Access Key ID: ' + Utils.maskString(process.env.GTM_AGENT_AWS_ACCESS_KEY_ID));
+                log.info('AWS Access Key: ' + Utils.maskString(process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY));
+                log.info('Pending Queue URL: ' + pendingUrl);
 
-            pendingQueueHandler.start();
-            console.log('Queue Processing Started');
-            systemConfig.pendingQueue.state = pendingQueueHandler.stopped ? 'Stopped' : 'Running';
-            systemConfig.pendingQueue.enabled = !pendingQueueHandler.stopped;
+                pendingQueueHandler.start();
+                log.info('Queue Processing Started');
+                systemConfig.pendingQueue.state = pendingQueueHandler.stopped ? 'Stopped' : 'Running';
+                systemConfig.pendingQueue.enabled = !pendingQueueHandler.stopped;
+            });
             
         });
     }

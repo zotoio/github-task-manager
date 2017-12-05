@@ -1,5 +1,7 @@
 import { default as Travis } from 'travis-ci';
 import { Executor } from '../agent/Executor';
+import { Utils } from '../agent/AgentUtils';
+let log = Utils.logger();
 
 export class ExecutorTravis extends Executor {
 
@@ -17,7 +19,7 @@ export class ExecutorTravis extends Executor {
     }
 
     taskNameToBuild(taskName) {
-        console.debug(taskName);
+        log.debug(taskName);
         return 'EXECUTE_AUTOMATED_TESTS';
     }
 
@@ -28,16 +30,16 @@ export class ExecutorTravis extends Executor {
             github_token: process.env.GTM_GITHUB_TOKEN
         }, function (err) {
             if (err) {
-                console.log(err);
+                log.error(err);
                 return;
             }
 
-            console.log('logged in to travis');
+            log.info('logged in to travis');
         });
 
-        console.debug(buildParams);
+        log.debug(buildParams);
         let result = true;
-        console.log('Build Finished: ' + result);
+        log.info('Build Finished: ' + result);
         return result;
     }
 

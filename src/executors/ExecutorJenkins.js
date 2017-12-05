@@ -1,6 +1,7 @@
 import { default as JenkinsLib } from 'jenkins';
 import { Executor } from '../agent/Executor';
 import { Utils } from '../agent/AgentUtils';
+let log = Utils.logger();
 
 export class ExecutorJenkins extends Executor {
 
@@ -16,7 +17,7 @@ export class ExecutorJenkins extends Executor {
     }
 
     taskNameToBuild(taskName) {
-        console.debug(taskName);
+        log.debug(taskName);
         return 'EXECUTE_AUTOMATED_TESTS';
     }
 
@@ -27,20 +28,20 @@ export class ExecutorJenkins extends Executor {
         let tries = 1;
         while(buildDict.result === null) {
             buildDict = await this.jenkins.build.get(buildName, buildNumber).then(function(data) {
-                console.log('Waiting for Build \'' + buildName + '\' to Finish: ' + tries++);
+                log.info('Waiting for Build \'' + buildName + '\' to Finish: ' + tries++);
                 return data;
             });
         }
-        console.log(JSON.stringify(buildDict));
+        log.info(JSON.stringify(buildDict));
         return buildDict.result;
     }
 
     async executeTask(taskName, buildParams) {
         let jobName = this.taskNameToBuild(taskName);
-        console.debug(buildParams);
+        log.debug(buildParams);
         let buildNumber = await this.jenkins.job.build({ name: jobName, parameters: buildParams });
         let result = await this.waitForBuild(jobName, buildNumber);
-        console.log('Build Finished: ' + result);
+        log.info('Build Finished: ' + result);
         let resultBool = result === 'SUCCESS';
         return { passed: resultBool, url: 'https://neko.ac' };  // todo handle results
     }

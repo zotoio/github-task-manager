@@ -1,3 +1,5 @@
+import { default as AgentLogger } from './AgentLogger';
+let log = AgentLogger.log();
 
 export class Plugin {
 
@@ -22,9 +24,9 @@ export class Plugin {
         if (!(this.isRegistered(clazzname) &&
             clazz.prototype instanceof this)) {
             this.registeredTypes.set(clazzname, clazz);
-            console.info('Registered ' + this.name + ': ' + clazzname);
+            log.info('Registered ' + this.name + ': ' + clazzname);
         } else {
-            console.log('Cannot Register ' + clazzname + ', Invalid Type. Must be a subclass of ' + this.name);
+            log.error('Cannot Register ' + clazzname + ', Invalid Type. Must be a subclass of ' + this.name);
         }
     }
 
@@ -36,7 +38,7 @@ export class Plugin {
     static create(clazzname, ...options) {
         if (!clazzname) return null;
         if (!this.registeredTypes.has(clazzname)) {
-            console.error('Cannot Create Instance. Unknown Subclass: ' + clazzname);
+            log.error('Cannot Create Instance. Unknown Subclass: ' + clazzname);
             return null;
         }
 
