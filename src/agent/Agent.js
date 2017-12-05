@@ -104,6 +104,36 @@ export class Agent {
 
         app.use('/static', express.static(__dirname + '/static'));
 
+        app.get('/config', (req, res) => {
+            res.send(JSON.stringify(systemConfig));
+        });
+        
+        app.get('/config/pendingqueue', (req, res) => {
+            res.send(JSON.stringify(systemConfig.pendingQueue));
+        });
+        
+        app.get('/config/pendingqueue/:desiredState', (req, res) => {
+            try {
+                let desiredState = req.params.desiredState;
+                if (!desiredState == 'enable' || !desiredState == 'disable') {
+                    console.log('Unknown State: ' + desiredState + '. Ignoring Request.');
+                } else {
+                    if (desiredState === 'disable') {
+                        pendingQueueHandler.stop();
+                        console.log('Queue Processing Stopped');
+                    } else {
+                        pendingQueueHandler.start();
+                        console.log('Queue Processing Started');
+                    }
+                }
+            } catch(error) {
+                console.log('Error Setting Queue State from Request');
+            }
+            systemConfig.pendingQueue.enabled = !pendingQueueHandler.stopped;
+            systemConfig.pendingQueue.state = pendingQueueHandler.stopped ? 'Stopped' : 'Running';
+            res.send(JSON.stringify({state: systemConfig.pendingQueue.state}));
+        });
+
         Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function (data) {
 
             let pendingUrl = data;
@@ -158,14 +188,6 @@ export class Agent {
                 console.log(err.message);
             });
 
-            pendingQueueHandler.on('stopped', () => {
-                console.log('Queue Processing Stopped');
-                systemConfig.pendingQueue.state = 'Stopped';
-            });
-
-            pendingQueueHandler.start();
-            systemConfig.pendingQueue.state = 'Running';
-
             app.listen(process.env.GTM_AGENT_PORT, function () {
                 Utils.printBanner();
                 console.log('GitHub Task Manager Agent Running on Port ' + process.env.GTM_AGENT_PORT);
@@ -175,6 +197,12 @@ export class Agent {
                 console.log('Pending Queue URL: ' + pendingUrl);
                 console.debug(njk.env);
             });
+
+            pendingQueueHandler.start();
+            console.log('Queue Processing Started');
+            systemConfig.pendingQueue.state = pendingQueueHandler.stopped ? 'Stopped' : 'Running';
+            systemConfig.pendingQueue.enabled = !pendingQueueHandler.stopped;
+            
         });
     }
 }
