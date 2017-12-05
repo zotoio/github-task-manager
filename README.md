@@ -72,10 +72,10 @@ npm run docker-local-bounce
 ```
 ..or if you have a k8s cluster and kubectl configured:
 ```
-npm run k8s-create
+npm run k8s-apply
 npm run k8s-delete
-npm run k8s-logs
 ```
+note that these k8s npm script inject vars from .env into the manifest
 
 ## Plugins
 Task executors for Jenkins, Teamcity and Travis are in progress. Custom task executors can be added by.. **todo**
