@@ -1,29 +1,8 @@
 
-export class SelfRegisteringSubClass {
+export class Plugin {
 
     constructor() {
         return this;
-    }
-
-    static get valueMap() {
-        return this._valueMap;
-    }
-
-    static set valueMap(valueMap) {
-        this._valueMap = valueMap;
-    }
-
-    value(value) {
-        let result;
-        if (this.valueMap && this.valueMap.has(value)) {
-            let replacement = this.valueMap.get(value);
-            console.debug('replacing "' + value + '" with "' + replacement + '"');
-            result = '"' + replacement + '"';
-        } else {
-            result = '"' + value + '"';
-        }
-
-        return 'swapVars(' + result + ')';
     }
 
     static get registeredTypes() {

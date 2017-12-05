@@ -1,12 +1,7 @@
-process.on('unhandledRejection', (reason, p) => {
-    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
-    // application specific logging, throwing an error, or other logic here
-});
+import { EventHandler } from './agent/EventHandler';
+import { Executor } from './agent/Executor';
+import { Agent } from './agent/Agent';
 
-export function placeholder(test) {
-    if (test) {
-        test = test + 'test';
-        console.log('placeholder');
-    }
-    return test;
-}
+module.exports.registerEventHandler = EventHandler.register;
+module.exports.registerExecutor = Executor.register;
+module.exports.startAgent = Agent.start;

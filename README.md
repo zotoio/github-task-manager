@@ -33,7 +33,7 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 [![flow](https://storage.googleapis.com/github-bin/github-task-manager.png)]()
 
 ## Install
-- clone this repo (TODO: or `npm install --save-dev github-task-manager`)
+- clone this repo or `npm install --save github-task-manager`
 - npm install
 - setup serverless aws creds per https://github.com/serverless/serverless/blob/master/docs/providers/aws/guide/credentials.md
 - setup a .env file in the repo root (copy from .envExample and modify)

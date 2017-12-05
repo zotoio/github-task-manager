@@ -1,7 +1,7 @@
 var sass = require('node-sass');
 var fs = require('fs');
 
-let file = './dist/src/ghEventAgent/static/main';
+let file = './dist/src/agent/static/main';
 
 console.log('rendering css..');
 sass.render({

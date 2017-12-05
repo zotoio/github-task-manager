@@ -1,7 +1,7 @@
 import { default as Travis } from 'travis-ci';
-import { CIExecutor } from '../lib/CIExecutor';
+import { Executor } from '../agent/Executor';
 
-export class CIExecutorTravis extends CIExecutor {
+export class ExecutorTravis extends Executor {
 
     constructor(options) {
         super();
@@ -43,4 +43,4 @@ export class CIExecutorTravis extends CIExecutor {
 
 }
 
-CIExecutor.register('Travis', CIExecutorTravis);
+Executor.register('Travis', ExecutorTravis);
