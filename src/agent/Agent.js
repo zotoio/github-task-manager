@@ -161,11 +161,13 @@ export class Agent {
                     messageBody.ghTaskConfig = taskConfig;
                     systemConfig.event.current = messageBody;
 
-                    let result = EventHandler.create(ghEvent).handleEvent(messageBody);
-                    if (result !== true)
+                    if (!EventHandler.isRegistered(ghEvent)) {
                         log.info('Event was not Handled: ' + ghEvent);
-                    else
+                    } else {
+                        EventHandler.create(ghEvent).handleEvent(messageBody);
                         log.info('Event Handled: ' + ghEvent);
+                    }
+                        
                     done();
                 }
             });

@@ -25,15 +25,14 @@ export class ExecutorJenkins extends Executor {
         let buildDict = await this.jenkins.build.get(buildName, buildNumber).then(function(data) {
             return data;
         });
-        let tries = 1;
+        //let tries = 1;
         while(buildDict.result === null) {
             buildDict = await this.jenkins.build.get(buildName, buildNumber).then(function(data) {
-                log.info('Waiting for Build \'' + buildName + '\' to Finish: ' + tries++);
+                //log.info('Waiting for Build \'' + buildName + '\' to Finish: ' + tries++);
                 return data;
             });
         }
-        log.info(JSON.stringify(buildDict));
-        return buildDict.result;
+        return buildDict;
     }
 
     async executeTask(taskName, buildParams) {
@@ -41,9 +40,9 @@ export class ExecutorJenkins extends Executor {
         log.debug(buildParams);
         let buildNumber = await this.jenkins.job.build({ name: jobName, parameters: buildParams });
         let result = await this.waitForBuild(jobName, buildNumber);
-        log.info('Build Finished: ' + result);
-        let resultBool = result === 'SUCCESS';
-        return { passed: resultBool, url: 'https://neko.ac' };  // todo handle results
+        log.info('Build Finished: ' + result.result);
+        let resultBool = result.result === 'SUCCESS';
+        return { passed: resultBool, url: result.url };  // todo handle results
     }
 
 }
