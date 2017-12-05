@@ -77,6 +77,11 @@ npm run k8s-delete
 ```
 note that these k8s npm script inject vars from .env into the manifest
 
+[![k8s](https://storage.googleapis.com/github-bin/agent-k8s.png)]()
+
+a starting point k8s manifest is in ./k8s/k8s-gtm-agent.yml
+
+
 ## Plugins
 Task executors for Jenkins, Teamcity and Travis are in progress. Custom task executors can be added by.. **todo**
 
