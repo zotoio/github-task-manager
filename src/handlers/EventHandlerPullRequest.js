@@ -1,6 +1,6 @@
-import { EventHandler } from '../lib/EventHandler';
-import { Utils } from '../lib/utils';
-import { CIExecutor } from '../lib/CIExecutor';
+import { EventHandler } from '../agent/EventHandler';
+import { Utils } from '../agent/AgentUtils';
+import { Executor } from '../agent/Executor';
 
 export class EventHandlerPullRequest extends EventHandler {
 
@@ -25,7 +25,7 @@ export class EventHandlerPullRequest extends EventHandler {
 
             let initialState = 'pending';
             let initialDesc = 'Task Execution in Progress';
-            if (!CIExecutor.isRegistered(task.executor)) {
+            if (!Executor.isRegistered(task.executor)) {
                 initialState = 'error';
                 initialDesc = 'Unknown Executor';
             }
@@ -52,12 +52,12 @@ export class EventHandlerPullRequest extends EventHandler {
         //todo use q.all on promise array to trigger in parallel
         eventData.ghTaskConfig.tasks.forEach(async (task) => {
 
-            if (!CIExecutor.isRegistered(task.executor)) {
+            if (!Executor.isRegistered(task.executor)) {
                 return;
             }
 
             // todo params by executor type
-            let executor = CIExecutor.create(task.executor, {
+            let executor = Executor.create(task.executor, {
                 url: 'https://kuro.neko.ac',
                 username: process.env.NEKO_USER,
                 password: process.env.NEKO_PWD

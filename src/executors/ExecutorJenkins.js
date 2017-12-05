@@ -1,8 +1,8 @@
-const JenkinsLib = require('jenkins');
-import { CIExecutor } from '../lib/CIExecutor';
-import { Utils } from '../lib/utils';
+import { default as JenkinsLib } from 'jenkins';
+import { Executor } from '../agent/Executor';
+import { Utils } from '../agent/AgentUtils';
 
-export class CIExecutorJenkins extends CIExecutor {
+export class ExecutorJenkins extends Executor {
 
     constructor(options) {
         super();
@@ -47,4 +47,4 @@ export class CIExecutorJenkins extends CIExecutor {
 
 }
 
-CIExecutor.register('Jenkins', CIExecutorJenkins);
+Executor.register('Jenkins', ExecutorJenkins);

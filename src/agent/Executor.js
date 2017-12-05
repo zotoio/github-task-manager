@@ -1,11 +1,11 @@
 'use strict';
 import requireDir from 'require-dir';
-import { SelfRegisteringSubClass } from './SelfRegisteringSubClass';
+import { Plugin } from './Plugin';
 
 /**
- * Create a CI Executor to run Builds, Deploys, and Tests
+ * Create an Executor to run Builds, Deploys, and Tests
  */
-export class CIExecutor extends SelfRegisteringSubClass {
+export class Executor extends Plugin {
 
     /**
      * Initialise the CI Executor
@@ -14,7 +14,7 @@ export class CIExecutor extends SelfRegisteringSubClass {
      */
     constructor(name, options) {
         super();
-        return CIExecutor.create(name, options);
+        return Executor.create(name, options);
     }
 
     executeTask() {

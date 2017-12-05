@@ -1,8 +1,8 @@
 'use strict';
 import requireDir from 'require-dir';
-import { SelfRegisteringSubClass } from '../lib/SelfRegisteringSubClass';
+import { Plugin } from './Plugin';
 
-export class EventHandler extends SelfRegisteringSubClass {
+export class EventHandler extends Plugin {
 
     constructor(eventType, userCallback = null) {
         super();
