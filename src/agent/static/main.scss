@@ -11,6 +11,16 @@ body {
     font-weight: 300;
 }
 
+.stream {
+    background-color: black;
+    color: white;
+    overflow:scroll; height:400px;
+
+    .item {
+        margin-left: 5px;
+    }
+}
+
 // Navigation
 nav {
     width: 100%;

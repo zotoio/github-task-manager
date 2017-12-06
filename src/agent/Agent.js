@@ -86,8 +86,18 @@ export class Agent {
             res.render('event.html', {globalProperties: systemConfig, eventData: updatedEventData});
         });
 
-        // Server Sent Events stream hooked to logging
-        app.get('/stream', Utils.sse().init);
+        // Server Sent Events stream hooked to cloudwatch
+        app.get('/stream/gtmGithubHook', Utils.sse()['gtmGithubHook'].init);
+
+        app.get('/stream/gtmGithubResults', Utils.sse()['gtmGithubResults'].init);
+
+        app.get('/stream/' + process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP,
+            Utils.sse()[process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP].init);
+
+        app.get('/stream/filter/:group/:stream', (req, res) => {
+            Utils.stream(req.params.group, req.params.stream);
+            res.json({group: req.params.group, stream: req.params.stream});
+        });
 
         app.use('/static', express.static(__dirname + '/static'));
 

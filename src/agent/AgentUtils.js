@@ -26,6 +26,10 @@ export class Utils {
         return AgentLogger.SSE;
     }
 
+    static stream(group, stream) {
+        AgentLogger.stream(group, stream);
+    }
+
     static samplePullRequestEvent() {
         pullRequestData.ghEventType = 'pull_request';
         return pullRequestData;

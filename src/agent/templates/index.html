@@ -1,19 +1,97 @@
 {% extends "base.html" %}
 
 {% block maincontent %}
-<h1>GitHub Task Manager Agent</h1>
-<p>Systems are running normally.</p>
+<h3>GitHub Task Manager Agent</h3>
+<div>Systems are running normally.</div>
+<div>Pending Queue: {{ globalProperties.pendingQueue.url }}</div>
+<div>Pending Queue State: {{ globalProperties.pendingQueue.state }}</div>
 
-<p>Pending Queue URL: {{ globalProperties.pendingQueue.url }}</p>
-<p>Pending Queue State: {{ globalProperties.pendingQueue.state }}</p>
-<div id="stream"></div>
+<ul class="tab-nav">
+    <li>
+        <a class="button" href="#gtmGithubHook">gtmGithubHook</a>
+    </li>
+    <li>
+        <a class="button active" href="#gtmAgent">gtmAgents</a>
+    </li>
+    <li>
+        <a class="button" href="#gtmGithubResults">gtmGithubResults</a>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane" id="gtmGithubHook">
+        <button id="follow_gtmGithubHook" onClick="swapFollow('gtmGithubHook')">stop following</button>
+        <div id="stream_gtmGithubHook" class="stream"></div>
+    </div>
+    <div class="tab-pane active" id="gtmAgent">
+        <button id="follow_gtmAgent" onClick="swapFollow('gtmAgent')">stop following</button>
+        <select id="agentFilter" onChange="setAgentFilter(this)">
+            <option value="ALL">All in group</option>
+        </select>
+        <div id="stream_gtmAgent" class="stream"></div>
+    </div>
+    <div class="tab-pane" id="gtmGithubResults">
+        <button id="follow_gtmGithubResults" onClick="swapFollow('gtmGithubResults')">stop following</button>
+        <div id="stream_gtmGithubResults" class="stream"></div>
+    </div>
+</div>
+
+
 <script>
-    var es = new EventSource('/stream');
-    es.onmessage = function (event) {
-        var entry = document.createElement('div');
-        entry.innerHTML = event.data;
-        document.getElementById('stream').appendChild(entry);
-        console.log(event)
-    };
+    var follow = [];
+
+    function swapFollow(group) {
+        follow[group] = !follow[group];
+        if (follow[group]) {
+            streamElem.scrollTop = streamElem.scrollHeight;
+        }
+        document.getElementById('follow_' + group).textContent = (follow[group] ? 'stop following' : 'resume following');
+    }
+
+    function setAgentFilter(sel) {
+        fetch('/stream/filter/gtmAgent/' + sel.options[sel.selectedIndex].value);
+        document.getElementById('stream_gtmAgent').innerHTML = '';
+    }
+
+    function stream(group) {
+        follow[group] = true;
+
+        var streamElem = document.getElementById('stream_' + group);
+
+        var es = new EventSource('/stream/' + group);
+
+        es.onmessage = function (event) {
+            console.log(event);
+
+            var entry = document.createElement('div');
+            entry.setAttribute('class', 'item');
+
+            var data = JSON.parse(event.data);
+
+            entry.innerHTML = '<b>' + (new Date(data.timestamp).toISOString()) + '</b>' +
+                ' - <span>' + (group === 'gtmAgent' ? JSON.parse(data.message).msg : data.message) + '</span>';
+
+            streamElem.appendChild(entry);
+
+            if (follow[group]) {
+                streamElem.scrollTop = streamElem.scrollHeight;
+            }
+
+            // add new agents as they are found
+            if (group === 'gtmAgent' && !document.getElementById('ls-' + data.logStreamName)) {
+                var opt = document.createElement("option");
+                opt.setAttribute('id', 'ls-' + data.logStreamName);
+                opt.value = data.logStreamName;
+                opt.textContent = data.logStreamName;
+                document.getElementById('agentFilter').appendChild(opt);
+            }
+
+        };
+    }
+
+    stream('gtmGithubHook');
+    stream('gtmAgent');
+    stream('gtmGithubResults');
+
 </script>
 {% endblock %}
