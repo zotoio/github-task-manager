@@ -7,11 +7,11 @@ let crypto = require('crypto');
 function connect(context) {
 
     let githubOptions = {
-        host: process.env.GTM_GITHUB_HOST ? process.env.GTM_GITHUB_HOST : 'api.github.com',
-        debug: process.env.GTM_GITHUB_DEBUG ? process.env.GTM_GITHUB_DEBUG : false,
-        timeout: process.env.GTM_GITHUB_TIMEOUT ? parseInt(process.env.GTM_GITHUB_TIMEOUT) : 5000,
-        pathPrefix: process.env.GTM_GITHUB_PATH_PREFIX ? process.env.GTM_GITHUB_PATH_PREFIX : '',
-        proxy: process.env.GTM_GITHUB_PROXY ? process.env.GTM_GITHUB_PROXY : ''
+        host: process.env.GTM_GITHUB_HOST || 'api.github.com',
+        debug: process.env.GTM_GITHUB_DEBUG || false,
+        timeout: process.env.GTM_GITHUB_TIMEOUT || 5000,
+        pathPrefix: process.env.GTM_GITHUB_PATH_PREFIX || '',
+        proxy: process.env.GTM_GITHUB_PROXY || ''
     };
 
     let github = new GitHubApi(githubOptions);
