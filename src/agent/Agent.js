@@ -16,6 +16,9 @@ import { default as hljs } from 'highlight.js';
 import { EventHandler } from './EventHandler';
 import { Utils } from './AgentUtils';
 
+// Setting up Instances
+const app = express();
+
 export class Agent {
 
     start() {
@@ -49,8 +52,6 @@ export class Agent {
         }
         systemConfig.event = {};
 
-        // Setting up Instances
-        const app = express();
         const isDev = runmode === 'development';
 
         // Configure Templates
@@ -86,17 +87,33 @@ export class Agent {
             res.render('event.html', {globalProperties: systemConfig, eventData: updatedEventData});
         });
 
-        // Server Sent Events stream hooked to cloudwatch
-        app.get('/stream/gtmGithubHook', Utils.sse()['gtmGithubHook'].init);
+        app.get('/stream/start/:group', (req, res) => {
+            this.startLogStream(req.params.group);
+            if (req) res.end();
+        });
 
-        app.get('/stream/gtmGithubResults', Utils.sse()['gtmGithubResults'].init);
+        app.get('/stream/stop', (req, res) => {
+            this.stopAllStreams();
+            if (req) res.end();
+        });
 
-        app.get('/stream/' + process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP,
-            Utils.sse()[process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP].init);
+        app.get('/stream/stop/:group', (req, res) => {
+            this.stopStream(req.params.group);
+            if (req) res.end();
+        });
 
         app.get('/stream/filter/:group/:stream', (req, res) => {
             Utils.stream(req.params.group, req.params.stream);
             res.json({group: req.params.group, stream: req.params.stream});
+        });
+
+        app.get('/stream/keepalive', (req, res) => {
+            Utils.registerActivity();
+            if (req) res.end();
+        });
+
+        app.get('/routes', (req, res) => {
+            if (req) res.json(this.showRoutes());
         });
 
         app.use('/static', express.static(__dirname + '/static'));
@@ -201,5 +218,26 @@ export class Agent {
             });
             
         });
+    }
+
+    startLogStream(group) {
+
+        // start cloudwatch streams
+        Utils.stream(group);
+
+        // Server Sent Events stream hooked to cloudwatch
+        app.get(`/stream/${group}`, Utils.sse()[group].init);
+    }
+
+    stopStream(group) {
+        Utils.stopStream(group);
+    }
+
+    stopAllStreams() {
+        Utils.stopAllStreams();
+    }
+
+    showRoutes() {
+        return app._router.stack;
     }
 }

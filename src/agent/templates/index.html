@@ -8,22 +8,24 @@
 
 <ul class="tab-nav">
     <li>
-        <a class="button" href="#gtmGithubHook">gtmGithubHook</a>
+        <a class="button" href="#gtmGithubHook">Github Hook</a>
     </li>
     <li>
-        <a class="button active" href="#gtmAgent">gtmAgents</a>
+        <a class="button active" href="#gtmAgent">Agents</a>
     </li>
     <li>
-        <a class="button" href="#gtmGithubResults">gtmGithubResults</a>
+        <a class="button" href="#gtmGithubResults">Github Results</a>
     </li>
 </ul>
 
 <div class="tab-content">
     <div class="tab-pane" id="gtmGithubHook">
+        <button id="logstream_gtmGithubHook" onClick="swapLogstream('gtmGithubHook')">start logstream</button>
         <button id="follow_gtmGithubHook" onClick="swapFollow('gtmGithubHook')">stop following</button>
         <div id="stream_gtmGithubHook" class="stream"></div>
     </div>
     <div class="tab-pane active" id="gtmAgent">
+        <button id="logstream_gtmAgent" onClick="swapLogstream('gtmAgent')">start logstream</button>
         <button id="follow_gtmAgent" onClick="swapFollow('gtmAgent')">stop following</button>
         <select id="agentFilter" onChange="setAgentFilter(this)">
             <option value="ALL">All in group</option>
@@ -31,6 +33,7 @@
         <div id="stream_gtmAgent" class="stream"></div>
     </div>
     <div class="tab-pane" id="gtmGithubResults">
+        <button id="logstream_gtmGithubResults" onClick="swapLogstream('gtmGithubResults')">start logstream</button>
         <button id="follow_gtmGithubResults" onClick="swapFollow('gtmGithubResults')">stop following</button>
         <div id="stream_gtmGithubResults" class="stream"></div>
     </div>
@@ -39,26 +42,42 @@
 
 <script>
     var follow = [];
+    var logstream = [];
 
     function swapFollow(group) {
+        var streamElem = document.getElementById('stream_' + group);
         follow[group] = !follow[group];
         if (follow[group]) {
             streamElem.scrollTop = streamElem.scrollHeight;
         }
-        document.getElementById('follow_' + group).textContent = (follow[group] ? 'stop following' : 'resume following');
+        document.getElementById(`follow_${group}`).textContent
+            = (follow[group] ? 'stop following' : 'resume following');
+    }
+
+    function swapLogstream(group) {
+        logstream[group] = !logstream[group];
+        if (!logstream[group]) {
+            fetch('/stream/stop/' + group);
+        } else {
+            fetch('/stream/start/' + group).then(() => {
+                stream(group);
+            });
+        }
+        document.getElementById(`logstream_${group}`).textContent
+            = (logstream[group] ? 'stop logstream' : 'start logstream');
     }
 
     function setAgentFilter(sel) {
-        fetch('/stream/filter/gtmAgent/' + sel.options[sel.selectedIndex].value);
+        fetch(`/stream/filter/gtmAgent/${sel.options[sel.selectedIndex].value}`);
         document.getElementById('stream_gtmAgent').innerHTML = '';
     }
 
     function stream(group) {
         follow[group] = true;
 
-        var streamElem = document.getElementById('stream_' + group);
+        var streamElem = document.getElementById(`stream_${group}`);
 
-        var es = new EventSource('/stream/' + group);
+        var es = new EventSource(`/stream/${group}`);
 
         es.onmessage = function (event) {
             console.log(event);
@@ -78,20 +97,25 @@
             }
 
             // add new agents as they are found
-            if (group === 'gtmAgent' && !document.getElementById('ls-' + data.logStreamName)) {
+            if (group === 'gtmAgent' && !document.getElementById(`ls-${data.logStreamName}`)) {
                 var opt = document.createElement("option");
-                opt.setAttribute('id', 'ls-' + data.logStreamName);
+                opt.setAttribute('id', `ls-${data.logStreamName}`);
                 opt.value = data.logStreamName;
                 opt.textContent = data.logStreamName;
                 document.getElementById('agentFilter').appendChild(opt);
             }
 
         };
+
+        es.onerror = function(e) {
+            console.log(e);
+        };
     }
 
-    stream('gtmGithubHook');
-    stream('gtmAgent');
-    stream('gtmGithubResults');
+    fetch('/stream/stop').then(() => {
+        window.setInterval(() => fetch('/stream/keepalive'), 30000);
+    })
+
 
 </script>
 {% endblock %}
