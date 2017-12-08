@@ -7,7 +7,7 @@ export class EventHandlerPullRequest extends EventHandler {
 
     handleEvent(eventData) {
 
-        log.info('\n-----------------------------');
+        log.info('-----------------------------');
         log.info('New Event: ' + eventData.ghEventType);
         log.info('Repository Name: ' + eventData.repository.name);
         log.info('Pull Request: ' + eventData.pull_request.number);
@@ -60,13 +60,21 @@ export class EventHandlerPullRequest extends EventHandler {
             // todo params by executor type
             let executor = Executor.create(task.executor, {
                 url: 'https://kuro.neko.ac',
-                username: process.env.NEKO_USER,
-                password: process.env.NEKO_PWD
+                username: process.env.GTM_JENKINS_USER,
+                password: process.env.GTM_JENKINS_TOKEN
             });
+
+            let tags;
+            try {
+                tags = JSON.stringify(task.options.tags);
+            } catch(error) {
+                log.warn('No Tags set in Task Configuration. Defaulting to \'@smoke-tests\'');
+                tags = '["@smoke-tests"]';
+            }
 
             // todo param merge taskConfig with agent conf?
             let buildResult = await executor.executeTask(task.executor, {
-                TAGS: '["@sample-run"]',
+                TAGS: tags,
                 ENVIRONMENT: 'automated-test-env'
             });
             log.info('Build Result: ' + JSON.stringify(buildResult));
