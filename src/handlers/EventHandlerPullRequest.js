@@ -60,8 +60,8 @@ export class EventHandlerPullRequest extends EventHandler {
             // todo params by executor type
             let executor = Executor.create(task.executor, {
                 url: 'https://kuro.neko.ac',
-                username: process.env.NEKO_USER,
-                password: process.env.NEKO_PWD
+                username: process.env.GTM_JENKINS_USER,
+                password: process.env.GTM_JENKINS_TOKEN
             });
 
             let tags;
