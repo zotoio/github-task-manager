@@ -63,3 +63,24 @@ nav {
     background: #f7f7f7;
     padding: 8px;
 }
+
+// Main Div
+.main {
+    h3 {
+        margin-top: 20px;
+        margin-bottom: 15px;
+    }
+}
+
+// System State
+.systemstate {
+    margin-bottom: 20px;
+}
+
+// States
+.state_green {
+    color: #4e944e;
+}
+.state_red {
+    color: #944e4e;
+}

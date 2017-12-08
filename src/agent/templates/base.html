@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,10 +12,13 @@
     <link rel="stylesheet" href="/static/skeleton-tabs.css">
     <link rel="stylesheet" href="/static/main.css">
 </head>
+
 <body>
     <nav>
         <a class="branding">GitHub Task Manager Agent</a>
+        <a href="/process">Most Recent Payload</a>
         <a>Queue Statistics</a>
+        <a href="#" id="agentToggleBtn" class="u-pull-right"><span id="agentStateBtn">{{ 'Disable' if globalProperties.pendingQueue.enabled else 'Enable' }}</span> Agent</a>
     </nav>
     <div class="container">
         <div class="main">
@@ -25,5 +29,26 @@
     </div>
     <script src="/static/jquery.js"></script>
     <script src="/static/skeleton-tabs.js"></script>
+    <script>
+        var statePath = '/config/pendingqueue';
+        $('#agentToggleBtn').click(function() {
+            $.getJSON(statePath, function (data) {
+                if(data.enabled) {
+                    console.log('Stopping Agent');
+                    $.getJSON(statePath + '/disable', function (data) {
+                        console.log('Agent ' + data.state);
+                        $('#agentStateBtn').text('Enable');
+                    });
+                } else {
+                    console.log('Starting Agent');
+                    $.getJSON(statePath + '/enable', function (data) {
+                        console.log('Agent ' + data.state);
+                        $('#agentStateBtn').text('Disable');
+                    });
+                }
+            });
+        });
+    </script>
 </body>
+
 </html>

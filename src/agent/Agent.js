@@ -217,6 +217,7 @@ export class Agent {
                 log.info('Queue Processing Started');
                 systemConfig.pendingQueue.state = pendingQueueHandler.stopped ? 'Stopped' : 'Running';
                 systemConfig.pendingQueue.enabled = !pendingQueueHandler.stopped;
+                systemConfig.agentId = Utils.agentId();
             });
             
         });

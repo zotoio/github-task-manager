@@ -1,10 +1,10 @@
-{% extends "base.html" %}
-
-{% block maincontent %}
+{% extends "base.html" %} {% block maincontent %}
 <h3>GitHub Task Manager Agent</h3>
-<div>Systems are running normally.</div>
-<div>Pending Queue: {{ globalProperties.pendingQueue.url }}</div>
-<div>Pending Queue State: {{ globalProperties.pendingQueue.state }}</div>
+<div class="systemstate">
+    <div>Agent ID: {{ globalProperties.agentId }}</div>
+    <div>Pending Queue: {{ globalProperties.pendingQueue.url }}</div>
+    <div>Pending Queue State: <span class="{{ 'state_green' if globalProperties.pendingQueue.enabled else 'state_red' }}">{{ globalProperties.pendingQueue.state }}</span></div>
+</div>
 
 <ul class="tab-nav">
     <li>
@@ -107,7 +107,7 @@
 
         };
 
-        es.onerror = function(e) {
+        es.onerror = function (e) {
             console.log(e);
         };
     }
@@ -116,6 +116,4 @@
         window.setInterval(() => fetch('/stream/keepalive'), 30000);
     })
 
-
-</script>
-{% endblock %}
+</script> {% endblock %}
