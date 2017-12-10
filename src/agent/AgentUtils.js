@@ -38,8 +38,8 @@ export class Utils {
         AgentLogger.stopAllStreams();
     }
 
-    static registerActivity() {
-        AgentLogger.registerActivity();
+    static registerActivity(ip) {
+        AgentLogger.registerActivity(ip);
     }
 
     static samplePullRequestEvent() {
@@ -168,8 +168,7 @@ export class Utils {
     static todayDate() {
         let today = new Date();
         let dd = today.getDate();
-        let mm = today.getMonth()+1; //January is 0!
-
+        let mm = today.getMonth()+1;
         let yyyy = today.getFullYear();
         if(dd < 10){
             dd = '0' + dd;

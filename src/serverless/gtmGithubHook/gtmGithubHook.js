@@ -23,7 +23,7 @@ async function listener(event, context, callback) {
 
     /* eslint-disable */
     console.log('---------------------------------');
-    console.log(`Github-Event: "${githubEvent}" with action: "${eventBody.action}"`);
+    console.log(`Github-Event: "${githubEvent}"`);
     console.log('---------------------------------');
     console.log('Payload', json.plain(eventBody));
     /* eslint-enable */
@@ -59,11 +59,13 @@ async function handleEvent(type, body) {
         });
 
         let bodyString = JSON.stringify(body);
+        let ghEventId = crypto.createHash('md5').update(bodyString).digest('hex');
         producer.send([
             {
-                id: crypto.createHash('md5').update(bodyString).digest('hex'),
+                id: ghEventId,
                 body: bodyString,
                 messageAttributes: {
+                    ghEventId: { DataType: 'String', StringValue: ghEventId },
                     ghEventType: { DataType: 'String', StringValue: type },
                     ghTaskConfig: { DataType: 'String', StringValue: JSON.stringify(taskConfig) }
                 }

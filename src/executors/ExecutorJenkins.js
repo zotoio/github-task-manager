@@ -5,15 +5,19 @@ let log = Utils.logger();
 
 export class ExecutorJenkins extends Executor {
 
-    constructor(options) {
+    constructor() {
         super();
-        this.options = options;
-        this.jenkins = JenkinsLib({ baseUrl: Utils.formatBasicAuth(this.options.username, this.options.password, this.options.url), crumbIssuer: true, promisify: true });
-    }
+        this.options = this.getOptions();
 
-    info() {
-        this.executeTask('Functional', {test: 'Testing'});
-        return 'Auto-Registered Executor for Jenkins';
+        this.jenkins = JenkinsLib({
+            baseUrl: Utils.formatBasicAuth(
+                this.options.GTM_JENKINS_USER,
+                this.options.GTM_JENKINS_TOKEN,
+                this.options.url),
+            crumbIssuer: true, promisify: true
+        });
+
+        this.run['pull_request'] = this.executeForPullRequest;
     }
 
     taskNameToBuild(taskName) {
@@ -35,13 +39,26 @@ export class ExecutorJenkins extends Executor {
         return buildDict;
     }
 
-    async executeTask(taskName, buildParams) {
-        let jobName = this.taskNameToBuild(taskName);
+    static createJenkinsBuildParams(task) {
+        // todo jenkins params by eventType, task options etc
+        return {
+            TAGS: JSON.stringify(task.options.tags),
+            ENVIRONMENT: 'automated-test-env'
+        };
+    }
+
+    async executeForPullRequest(task) {
+
+        let jobName = this.taskNameToBuild(task.context);
+        let buildParams = this.createJenkinsBuildParams(task);
         log.debug(buildParams);
+
         let buildNumber = await this.jenkins.job.build({ name: jobName, parameters: buildParams });
         let result = await this.waitForBuild(jobName, buildNumber);
+
         log.info('Build Finished: ' + result.result);
         let resultBool = result.result === 'SUCCESS';
+
         return { passed: resultBool, url: result.url };  // todo handle results
     }
 

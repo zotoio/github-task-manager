@@ -108,7 +108,8 @@ export class Agent {
         });
 
         app.get('/stream/keepalive', (req, res) => {
-            Utils.registerActivity();
+            var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+            Utils.registerActivity(ip);
             if (req) res.end();
         });
 
@@ -160,19 +161,27 @@ export class Agent {
                 region: process.env.GTM_AWS_REGION,
                 messageAttributeNames: ['ghEventType', 'ghTaskConfig'],
 
-                handleMessage: (message, done) => {
+                handleMessage: async (message, done) => {
 
                     log.info('Received Event from Queue');
                     log.debug(message);
                     log.debug('JSON Parse');
                     log.debug(JSON.parse(message.Body));
 
-                    let ghEvent;
+                    let ghEventId;
                     try {
-                        ghEvent = message.MessageAttributes.ghEventType.StringValue;
+                        ghEventId = message.MessageAttributes.ghEventId.StringValue;
+                    } catch (TypeError) {
+                        log.error('No Message Attribute \'ghEventId\' in Message. Defaulting to \'unknown\'');
+                        ghEventId = 'unknown';
+                    }
+
+                    let ghEventType;
+                    try {
+                        ghEventType = message.MessageAttributes.ghEventType.StringValue;
                     } catch (TypeError) {
                         log.error('No Message Attribute \'ghEventType\' in Message. Defaulting to \'status\'');
-                        ghEvent = 'status';
+                        ghEventType = 'status';
                     }
 
                     let taskConfig;
@@ -183,16 +192,17 @@ export class Agent {
                         taskConfig = JSON.parse({});
                     }
 
-                    let messageBody = JSON.parse(message.Body);
-                    messageBody.ghEventType = ghEvent;
-                    messageBody.ghTaskConfig = taskConfig;
-                    systemConfig.event.current = messageBody;
+                    let eventData = JSON.parse(message.Body);
+                    eventData.ghEventId = ghEventId;
+                    eventData.ghEventType = ghEventType;
+                    eventData.ghTaskConfig = taskConfig;
+                    systemConfig.event.current = eventData;
 
-                    if (!EventHandler.isRegistered(ghEvent)) {
-                        log.info('Event was not Handled: ' + ghEvent);
+                    if (!EventHandler.isRegistered(ghEventType)) {
+                        log.info(`Event handler not registered for this type: ${ghEventType} id=${ghEventId}`);
                     } else {
-                        EventHandler.create(ghEvent).handleEvent(messageBody);
-                        log.info('Event Handled: ' + ghEvent);
+                        await EventHandler.create(ghEventType, eventData).handleEvent();
+                        log.info(`Event handled: type=${ghEventType} id=${ghEventId}`);
                     }
                         
                     done();

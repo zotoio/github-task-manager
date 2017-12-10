@@ -25,7 +25,7 @@ export class ExecutorTeamCity extends Executor {
         return 'EXECUTE_AUTOMATED_TESTS';
     }
 
-    async executeTask(taskName, buildParams) {
+    async executeTask(taskName, eventData, buildParams) {
         //let jobName = this.taskNameToBuild(taskName);
 
         log.debug(buildParams);

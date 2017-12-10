@@ -86,9 +86,10 @@
             entry.setAttribute('class', 'item');
 
             var data = JSON.parse(event.data);
+            var message = JSON.parse(data.message);
 
-            entry.innerHTML = '<b>' + (new Date(data.timestamp).toISOString()) + '</b>' +
-                ' - <span>' + (group === 'gtmAgent' ? JSON.parse(data.message).msg : data.message) + '</span>';
+            entry.innerHTML = `<b>${(new Date(data.timestamp).toISOString())} ${message.name || ''}</b>
+                 : <span>${(group === 'gtmAgent' ? message.msg : data.message)}</span>`;
 
             streamElem.appendChild(entry);
 
