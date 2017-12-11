@@ -198,7 +198,7 @@ export class Agent {
                     systemConfig.event.current = eventData;
 
                     if (!EventHandler.isRegistered(ghEventType)) {
-                        log.info(`Event handler not registered for this type: ${ghEventType} id=${ghEventId}`);
+                        log.info(`No Event Handler for Type: '${ghEventType}' (Event ID: ${ghEventId})`);
 
                     } else {
 

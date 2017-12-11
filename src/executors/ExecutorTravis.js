@@ -43,6 +43,12 @@ export class ExecutorTravis extends Executor {
         return { passed: result, url: 'https://travis-ci.org' };
     }
 
+    async executeTask(task) {
+        log.info('Travis Build Finished');
+        log.debug(task);
+        return {passed: true, url: 'https://travis-ci.org'};
+    }
+
 }
 
 Executor.register('Travis', ExecutorTravis);

@@ -42,6 +42,12 @@ export class ExecutorPing extends Executor {
         return { passed: result, url: 'https://linux.die.net/man/8/ping' };
     }
 
+    async executeTask(task) {
+        log.info('Pinged!');
+        log.debug(task);
+        return {passed: true, url: 'https://ping.io/ping/' + task.options.count};
+    }
+
 }
 
 Executor.register('Ping', ExecutorPing);

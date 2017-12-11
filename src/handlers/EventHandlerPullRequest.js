@@ -10,7 +10,7 @@ export class EventHandlerPullRequest extends EventHandler {
         let supportedActions = ['opened', 'synchronize'];
 
         if (!supportedActions.includes(this.eventData.action)) {
-            log.error(`unsupported action '${this.eventData.action}'`);
+            log.error(`Unsupported Action: '${this.eventData.action}'`);
             return;
         }
 
@@ -24,13 +24,13 @@ export class EventHandlerPullRequest extends EventHandler {
         // now process each task..
         this.processTasks(this);
 
-        log.info('event handling completed for pull request');
+        log.info('Pull Request Event Handled');
 
     }
 
     setIntialTaskState(event) {
 
-        event.tasks.forEach((task) => {
+        event.tasks.forEach(async (task) => {
 
             let initialState = 'pending';
             let initialDesc = 'Task Execution in Progress';
@@ -63,22 +63,23 @@ export class EventHandlerPullRequest extends EventHandler {
 
     processTasks(event) {
 
-        event.tasks.forEach((task) => {
+        event.tasks.forEach(async (task) => {
 
             if (!Executor.isRegistered(task.executor)) {
                 return;
             }
 
+            log.info('Creating Executor for Task: ' + task.executor + ':' + task.context);
             let executor = Executor.create(task.executor, event.eventData);
 
-            let taskResult = executor.executeTask(task);
+            let taskResult = await executor.executeTask(task);
             let status;
             if (taskResult == 'NO_MATCHING_TASK') {
                 status = Utils.createStatus(
                     event.eventData,
                     'error',
                     task.context,
-                    'Unknown Task Type: ' + task.type,
+                    'Unknown Task Type: ' + task.context,
                     'https://kuro.neko.ac'
                 );
             } else {
@@ -97,8 +98,7 @@ export class EventHandlerPullRequest extends EventHandler {
                 process.env.GTM_SQS_RESULTS_QUEUE,
                 status,
                 process.env.GTM_SNS_RESULTS_TOPIC,
-                `Result for ${event.eventType} - eventId: ${event.eventId}`
-
+                `Result for ${task.context} - Event ID: ${event.eventId}`
             ).then(function () {
                 log.info('-----------------------------');
             });

@@ -27,10 +27,10 @@ export class Executor extends Plugin {
         this.eventData = eventData;
 
         log.info('----------------------------');
-        log.info(`New executor created`);
-        log.info('Event Id: ' + this.eventId);
+        log.info(`New Executor Created`);
+        log.info('Event ID: ' + this.eventId);
         log.info('Event Type: ' + this.eventType);
-        log.info('Task Config: ' + json.plain(this.taskConfig));
+        log.debug('Task Config: ' + json.plain(this.taskConfig));
         log.debug(eventData);
 
     }

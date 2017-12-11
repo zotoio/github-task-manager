@@ -1,7 +1,6 @@
 import { default as JenkinsLib } from 'jenkins';
 import { Executor } from '../agent/Executor';
 import { Utils } from '../agent/AgentUtils';
-import { default as json } from 'format-json';
 let log = Utils.logger();
 
 export class ExecutorJenkins extends Executor {
@@ -20,9 +19,9 @@ export class ExecutorJenkins extends Executor {
 
     }
 
-    static taskNameToBuild(context) {
+    taskNameToBuild(context) {
 
-        let desiredTask = json.plain(context);
+        let desiredTask = context;
         console.debug(desiredTask);
 
         let tasks = {
@@ -31,14 +30,16 @@ export class ExecutorJenkins extends Executor {
         };
 
         if (!tasks.hasOwnProperty(desiredTask)) {
+            log.error('No Tasks Matched Request: ' + desiredTask);
             return null;
         } else {
-            return tasks[desiredTask];
+            let mappedTask = tasks[desiredTask];
+            log.info('Mapped Task ' + desiredTask + ' to Job ' + mappedTask);
+            return mappedTask;
         }
     }
 
     async waitForBuildToExist(buildName, buildNumber) {
-
         // TODO: Make this a set amount of time instead of retries
         // or make it wait between each retry
         return new Promise(async (resolve, reject) => {
@@ -47,9 +48,11 @@ export class ExecutorJenkins extends Executor {
             let tries = 0;
             while (!exists && tries++ < maxRetries) {
                 exists = await this.jenkins.build.get(buildName, buildNumber).then(function () {
+                    log.info(`Build ${buildName} #${buildNumber} Started!`);
                     return true;
                 }, function () {
-                    return setTimeout(function () { return false; }, 10000);
+                    log.debug(`Build ${buildName} #${buildNumber} Hasn't Started: ${tries}`);
+                    return false;
                 });
             }
             exists ? resolve(true) : reject();
@@ -61,17 +64,18 @@ export class ExecutorJenkins extends Executor {
         let buildDict = await this.jenkins.build.get(buildName, buildNumber).then(function (data) {
             return data;
         });
-        //let tries = 1;
+        let tries = 1;
         while (buildDict.result === null) {
             buildDict = await this.jenkins.build.get(buildName, buildNumber).then(function (data) {
-                //log.info('Waiting for Build \'' + buildName + '\' to Finish: ' + tries++);
+                log.debug('Waiting for Build \'' + buildName + '\' to Finish: ' + tries++);
                 return data;
             });
         }
+        log.info(`Build Finished: ${buildName} #${buildNumber} - ${buildDict.result}`);
         return buildDict;
     }
 
-    static createJenkinsBuildParams(task) {
+    createJenkinsBuildParams(task) {
         // todo jenkins params by eventType, task options etc
         return {
             TAGS: JSON.stringify(task.options.tags),
@@ -81,17 +85,18 @@ export class ExecutorJenkins extends Executor {
 
     async executeTask(task) {
 
-        log.info(`jenkins options: ${json.plain(task.options)}`);
-
         let jobName = this.taskNameToBuild(task.context);
-        if (!jobName)
+        if (jobName == null)
             return 'NO_MATCHING_TASK';
 
         let buildParams = this.createJenkinsBuildParams(task);
         log.debug(buildParams);
 
+        log.info('Starting Jenkins Job: ' + jobName);
         let buildNumber = await this.jenkins.job.build({ name: jobName, parameters: buildParams });
-        let result = this.waitForBuildToExist(jobName, buildNumber).then(await this.waitForBuild(jobName, buildNumber));
+        let buildExists = await this.waitForBuildToExist(jobName, buildNumber);
+        console.debug(buildExists);
+        let result = await this.waitForBuild(jobName, buildNumber);
 
         log.info('Build Finished: ' + result.result);
         let resultBool = result.result === 'SUCCESS';

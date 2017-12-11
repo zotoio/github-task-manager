@@ -46,6 +46,12 @@ export class ExecutorTeamCity extends Executor {
         return { passed: result, url: 'https://www.jetbrains.com/teamcity' };
     }
 
+    async executeTask(task) {
+        log.info('TeamCity Build Finished');
+        log.debug(task);
+        return {passed: true, url: 'https://www.jetbrains.com/teamcity'};
+    }
+
 }
 
 Executor.register('TeamCity', ExecutorTeamCity);
