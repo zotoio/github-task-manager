@@ -133,7 +133,7 @@ export class Utils {
                 else log.debug(data);
             });
         });
-        log.info('Enqueue ' + results.context + ' Results on SQS: ' + sqsQueueName);
+        log.info('Enqueue ' + results.context + ' on SQS: ' + sqsQueueName);
         return new Promise((resolve, reject) => {
             let params = {
                 Name: snsQueueName
