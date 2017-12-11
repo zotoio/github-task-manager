@@ -15,6 +15,7 @@ import { default as hljs } from 'highlight.js';
 
 import { EventHandler } from './EventHandler';
 import { Utils } from './AgentUtils';
+import { default as json } from 'format-json';
 
 // Setting up Instances
 const app = express();
@@ -159,14 +160,12 @@ export class Agent {
 
                 queueUrl: pendingUrl,
                 region: process.env.GTM_AWS_REGION,
-                messageAttributeNames: ['ghEventType', 'ghTaskConfig'],
+                messageAttributeNames: ['ghEventType', 'ghTaskConfig', 'ghEventId'],
 
                 handleMessage: async (message, done) => {
 
                     log.info('Received Event from Queue');
-                    log.debug(message);
-                    log.debug('JSON Parse');
-                    log.debug(JSON.parse(message.Body));
+                    log.info(`message: ${json.plain(message)}`);
 
                     let ghEventId;
                     try {

@@ -1,27 +1,28 @@
 import { default as JenkinsLib } from 'jenkins';
 import { Executor } from '../agent/Executor';
 import { Utils } from '../agent/AgentUtils';
+import { default as json } from 'format-json';
 let log = Utils.logger();
 
 export class ExecutorJenkins extends Executor {
 
-    constructor() {
-        super();
+    constructor(eventData) {
+        super(eventData);
         this.options = this.getOptions();
 
         this.jenkins = JenkinsLib({
             baseUrl: Utils.formatBasicAuth(
                 this.options.GTM_JENKINS_USER,
                 this.options.GTM_JENKINS_TOKEN,
-                this.options.url),
+                this.options.GTM_JENKINS_URL),
             crumbIssuer: true, promisify: true
         });
 
         this.run['pull_request'] = this.executeForPullRequest;
     }
 
-    taskNameToBuild(taskName) {
-        log.debug(taskName);
+    static taskNameToBuild(context) {
+        log.debug(json.plain(context));
         return 'EXECUTE_AUTOMATED_TESTS';
     }
 
@@ -48,6 +49,8 @@ export class ExecutorJenkins extends Executor {
     }
 
     async executeForPullRequest(task) {
+
+        log.info(`jenkins options: ${json.plain(task.options)}`);
 
         let jobName = this.taskNameToBuild(task.context);
         let buildParams = this.createJenkinsBuildParams(task);

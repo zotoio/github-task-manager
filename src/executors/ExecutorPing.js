@@ -4,30 +4,29 @@ let log = Utils.logger();
 
 export class ExecutorPing extends Executor {
 
-    constructor(options) {
-        super();
-        this.options = options;
+    constructor(eventData) {
+        super(eventData);
+        this.options = this.getOptions();
+
+        this.run['push'] = this.executeForPush;
     }
 
-    info() {
-        this.executeTask('Ping', {result: 'Pong'});
-        return 'Auto-Registered Executor for Ping';
-    }
+    async executeForPush(task) {
 
-    async executeTask(taskName, eventData, buildParams) {
-        //let jobName = this.taskNameToBuild(taskName);
-
-        //log.debug(buildParams);
-        let count = parseInt(buildParams.options.count);
+        let count = parseInt(task.options.count);
 
         for (let i = 1; i <= count; i++) {
             let status = Utils.createStatus(
-                eventData,
+                this.eventData,
                 'success',
                 'diagnostic',
                 `got ping ${i}`
             );
-            await Utils.postResultsAndTrigger(process.env.GTM_SQS_RESULTS_QUEUE, status, process.env.GTM_SNS_RESULTS_TOPIC, 'Ping').then(function () {
+            await Utils.postResultsAndTrigger(
+                process.env.GTM_SQS_RESULTS_QUEUE,
+                status,
+                process.env.GTM_SNS_RESULTS_TOPIC,
+                'Ping').then(function () {
                 log.info(`sent ping ${i}`);
             });
         }

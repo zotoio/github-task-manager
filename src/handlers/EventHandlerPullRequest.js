@@ -7,6 +7,12 @@ export class EventHandlerPullRequest extends EventHandler {
 
     async handleEvent() {
 
+        let supportedActions = ['opened', 'synchronize'];
+
+        if (!supportedActions.includes(this.eventData.action)) {
+            log.error(`unsupported action '${this.eventData.action}'`);
+        }
+
         log.info('-----------------------------');
         log.info('Repository Name: ' + this.eventData.repository.name);
         log.info('Pull Request: ' + this.eventData.pull_request.number);
@@ -42,7 +48,7 @@ export class EventHandlerPullRequest extends EventHandler {
                 initialState,
                 task.context,
                 initialDesc,
-                'https://www.google.com' // fails if not an https url
+                'https://github.com' // fails if not an https url
             );
 
             await Utils.postResultsAndTrigger(

@@ -2,13 +2,15 @@
 import requireDir from 'require-dir';
 import { Plugin } from './Plugin';
 import { Utils } from './AgentUtils';
-let json = require('format-json');
+import { default as json } from 'format-json';
 let log = Utils.logger();
 
 export class EventHandler extends Plugin {
 
     constructor(eventData) {
         super();
+
+        log.info(`incoming event: ${eventData}`);
 
         this.eventId = eventData.ghEventId;
         this.eventType = eventData.ghEventType;
@@ -20,7 +22,7 @@ export class EventHandler extends Plugin {
         log.info('New Event received');
         log.info('Event Id: ' + this.eventId);
         log.info('Event Type: ' + this.eventType);
-        log.info('Task Config: ' + json.plain(this.taskConfig));
+        log.info('Tasks: ' + json.plain(this.tasks));
         log.debug(eventData);
 
     }

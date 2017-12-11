@@ -89,7 +89,7 @@ describe('gtmGithubHook', function() {
             };
 
             //gtmGithubHook.setUtils(githubUtils);
-            let actual = await gtmGithubHook.getTaskConfig(body);
+            let actual = await gtmGithubHook.getTaskConfig('pull_request', body);
             return assert.equal(actual.abc, 'this is a test');
 
 
