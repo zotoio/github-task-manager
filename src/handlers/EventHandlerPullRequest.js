@@ -11,6 +11,7 @@ export class EventHandlerPullRequest extends EventHandler {
 
         if (!supportedActions.includes(this.eventData.action)) {
             log.error(`unsupported action '${this.eventData.action}'`);
+            return;
         }
 
         log.info('-----------------------------');
@@ -35,7 +36,7 @@ export class EventHandlerPullRequest extends EventHandler {
             let initialDesc = 'Task Execution in Progress';
             if (!Executor.isRegistered(task.executor)) {
                 initialState = 'error';
-                initialDesc = 'Unknown Executor';
+                initialDesc = 'Unknown Executor: ' + task.executor;
             }
 
             log.info(`\n## Pull request: setting Task "${task.executor}:${task.context}" to ${initialState}`);
@@ -54,7 +55,6 @@ export class EventHandlerPullRequest extends EventHandler {
                 status,
                 process.env.GTM_SNS_RESULTS_TOPIC,
                 `Pending for ${event.eventType} - eventId: ${event.eventId}`
-
             ).then(function () {
                 log.info('-----------------------------');
             });
@@ -71,23 +71,27 @@ export class EventHandlerPullRequest extends EventHandler {
 
             let executor = Executor.create(task.executor, event.eventData);
 
-            if (!executor.run[event.eventType]) {
-                log.info(`Event type '${event.eventType}' is not supported by this executor.`);
-                return;
+            let taskResult = executor.executeTask(task);
+            let status;
+            if (taskResult == 'NO_MATCHING_TASK') {
+                status = Utils.createStatus(
+                    event.eventData,
+                    'error',
+                    task.context,
+                    'Unknown Task Type: ' + task.type,
+                    'https://kuro.neko.ac'
+                );
+            } else {
+                status = Utils.createStatus(
+                    event.eventData,
+                    taskResult.passed ? 'success' : 'error',
+                    task.context,
+                    taskResult.passed ? 'Task Completed Successfully' : 'Task Completed with Errors',
+                    taskResult.url
+                );
             }
 
-            console.log('run: ' + executor.run.length);
-
-            let taskResult = executor.run(event.eventType)(task);
             log.info('Task Result: ' + JSON.stringify(taskResult));
-
-            let status = Utils.createStatus(
-                event.eventData,
-                taskResult.passed ? 'success' : 'error',
-                task.context,
-                taskResult.passed ? 'Task Completed Successfully' : 'Task Completed with Errors',
-                taskResult.url
-            );
 
             Utils.postResultsAndTrigger(
                 process.env.GTM_SQS_RESULTS_QUEUE,

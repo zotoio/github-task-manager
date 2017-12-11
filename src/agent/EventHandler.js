@@ -16,11 +16,19 @@ export class EventHandler extends Plugin {
         this.eventType = eventData.ghEventType;
         this.taskConfig = eventData.ghTaskConfig;
         this.eventData = eventData;
-        this.tasks = this.taskConfig[this.eventType].tasks;
+
+        // Handle Older Task Format
+        try {
+            this.tasks = this.taskConfig[this.eventType].tasks;
+        } catch(error) {
+            log.error('No Tasks Defined for Event Type ' + this.eventType);
+            log.debug(error);
+            this.tasks = {};
+        }
 
         log.info('----------------------------');
-        log.info('New Event received');
-        log.info('Event Id: ' + this.eventId);
+        log.info('New Event Received');
+        log.info('Event ID: ' + this.eventId);
         log.info('Event Type: ' + this.eventType);
         log.info('Tasks: ' + json.plain(this.tasks));
         log.debug(eventData);
