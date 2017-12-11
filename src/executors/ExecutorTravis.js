@@ -10,12 +10,17 @@ export class ExecutorTravis extends Executor {
         super(eventData);
         this.options = this.getOptions();
 
-        this.run['pull_request'] = this.executeForPullRequest;
+        this.runFunctions = {};
+        this.runFunctions['pull_request'] = this.executeForPullRequest;
 
         this.travis = new Travis({
             version: '2.0.0'
         });
 
+    }
+
+    run(fn) {
+        return this.runFunctions[fn];
     }
 
     async executeForPullRequest(task) {

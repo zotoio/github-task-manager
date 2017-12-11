@@ -18,8 +18,13 @@ export class ExecutorJenkins extends Executor {
             crumbIssuer: true, promisify: true
         });
 
-        this.run['pull_request'] = this.executeForPullRequest;
+        this.runFunctions = {};
+        this.runFunctions['pull_request'] = this.executeForPullRequest;
 
+    }
+
+    run(fn) {
+        return this.runFunctions[fn];
     }
 
     static taskNameToBuild(context) {

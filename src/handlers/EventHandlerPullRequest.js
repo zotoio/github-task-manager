@@ -38,7 +38,7 @@ export class EventHandlerPullRequest extends EventHandler {
                 initialDesc = 'Unknown Executor';
             }
 
-            log.info('\n## Setting Task "' + task.executor + '" to ' + initialState);
+            log.info(`\n## Pull request: setting Task "${task.executor}:${task.context}" to ${initialState}`);
             log.info(task);
 
             let status = Utils.createStatus(
@@ -73,9 +73,12 @@ export class EventHandlerPullRequest extends EventHandler {
 
             if (!executor.run[event.eventType]) {
                 log.info(`Event type '${event.eventType}' is not supported by this executor.`);
+                return;
             }
 
-            let taskResult = executor.run[event.eventType](task);
+            console.log('run: ' + executor.run.length);
+
+            let taskResult = executor.run(event.eventType)(task);
             log.info('Task Result: ' + JSON.stringify(taskResult));
 
             let status = Utils.createStatus(

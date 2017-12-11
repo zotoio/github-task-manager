@@ -8,8 +8,13 @@ export class ExecutorPing extends Executor {
         super(eventData);
         this.options = this.getOptions();
 
-        this.run['push'] = this.executeForPush;
+        this.runFunctions = {};
+        this.runFunctions['push'] = this.executeForPush;
 
+    }
+
+    run(fn) {
+        return this.runFunctions[fn];
     }
 
     async executeForPush(task) {

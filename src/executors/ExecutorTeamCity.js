@@ -10,7 +10,8 @@ export class ExecutorTeamCity extends Executor {
         super(eventData);
         this.options = this.getOptions();
 
-        this.run['pull_request'] = this.executeForPullRequest;
+        this.runFunctions = {};
+        this.runFunctions['pull_request'] = this.executeForPullRequest;
 
         /*this.teamCity = TeamCity.create({
             url: 'http://localhost:8111',
@@ -18,6 +19,10 @@ export class ExecutorTeamCity extends Executor {
             password: 'pass'
         });*/
 
+    }
+
+    run(fn) {
+        return this.runFunctions[fn];
     }
 
     async executeForPullRequest(task) {

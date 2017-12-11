@@ -19,7 +19,7 @@ export class Executor extends Plugin {
         super();
 
         // executors must register functions for event types
-        this.run = [];
+        //this.run = [];
 
         this.eventId = eventData.ghEventId;
         this.eventType = eventData.ghEventType;
