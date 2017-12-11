@@ -15,6 +15,7 @@ export class ExecutorTravis extends Executor {
         this.travis = new Travis({
             version: '2.0.0'
         });
+
     }
 
     async executeForPullRequest(task) {

@@ -18,20 +18,18 @@ export class EventHandlerPullRequest extends EventHandler {
         log.info('Pull Request: ' + this.eventData.pull_request.number);
 
         // first set each pr check to pending
-        await this.setIntialTaskState(this.eventData);
+        this.setIntialTaskState(this);
 
         // now process each task..
-        await this.processTasks(this.eventData);
+        this.processTasks(this);
 
         log.info('event handling completed for pull request');
 
     }
 
-    async setIntialTaskState(eventData) {
+    setIntialTaskState(event) {
 
-        let that = this;
-
-        this.tasks.forEach(async (task) => {
+        event.tasks.forEach((task) => {
 
             let initialState = 'pending';
             let initialDesc = 'Task Execution in Progress';
@@ -44,18 +42,18 @@ export class EventHandlerPullRequest extends EventHandler {
             log.info(task);
 
             let status = Utils.createStatus(
-                eventData,
+                event.eventData,
                 initialState,
                 task.context,
                 initialDesc,
                 'https://github.com' // fails if not an https url
             );
 
-            await Utils.postResultsAndTrigger(
+            Utils.postResultsAndTrigger(
                 process.env.GTM_SQS_RESULTS_QUEUE,
                 status,
                 process.env.GTM_SNS_RESULTS_TOPIC,
-                `Pending for ${that.eventType} - eventId: ${that.eventId}`
+                `Pending for ${event.eventType} - eventId: ${event.eventId}`
 
             ).then(function () {
                 log.info('-----------------------------');
@@ -63,37 +61,36 @@ export class EventHandlerPullRequest extends EventHandler {
         });
     }
 
-    async processTasks() {
+    processTasks(event) {
 
-        let that = this;
-        this.tasks.forEach(async (task) => {
+        event.tasks.forEach((task) => {
 
             if (!Executor.isRegistered(task.executor)) {
                 return;
             }
 
-            let executor = Executor.create(task.executor, that.eventData);
+            let executor = Executor.create(task.executor, event.eventData);
 
-            if (!executor.run[that.eventType]) {
-                log.info(`Event type '${that.eventType} is not supported by this executor.`);
+            if (!executor.run[event.eventType]) {
+                log.info(`Event type '${event.eventType}' is not supported by this executor.`);
             }
 
-            let taskResult = await executor.run[that.eventType](task);
+            let taskResult = executor.run[event.eventType](task);
             log.info('Task Result: ' + JSON.stringify(taskResult));
 
             let status = Utils.createStatus(
-                that.eventData,
+                event.eventData,
                 taskResult.passed ? 'success' : 'error',
                 task.context,
                 taskResult.passed ? 'Task Completed Successfully' : 'Task Completed with Errors',
                 taskResult.url
             );
 
-            await Utils.postResultsAndTrigger(
+            Utils.postResultsAndTrigger(
                 process.env.GTM_SQS_RESULTS_QUEUE,
                 status,
                 process.env.GTM_SNS_RESULTS_TOPIC,
-                `Result for ${that.eventType} - eventId: ${that.eventId}`
+                `Result for ${event.eventType} - eventId: ${event.eventId}`
 
             ).then(function () {
                 log.info('-----------------------------');

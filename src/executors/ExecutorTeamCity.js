@@ -17,6 +17,7 @@ export class ExecutorTeamCity extends Executor {
             username: 'user',
             password: 'pass'
         });*/
+
     }
 
     async executeForPullRequest(task) {

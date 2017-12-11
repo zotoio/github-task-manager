@@ -9,6 +9,7 @@ export class ExecutorPing extends Executor {
         this.options = this.getOptions();
 
         this.run['push'] = this.executeForPush;
+
     }
 
     async executeForPush(task) {

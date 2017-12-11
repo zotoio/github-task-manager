@@ -199,8 +199,12 @@ export class Agent {
 
                     if (!EventHandler.isRegistered(ghEventType)) {
                         log.info(`Event handler not registered for this type: ${ghEventType} id=${ghEventId}`);
+
                     } else {
+
+                        // handle the event and execute tasks
                         await EventHandler.create(ghEventType, eventData).handleEvent();
+
                         log.info(`Event handled: type=${ghEventType} id=${ghEventId}`);
                     }
                         

@@ -10,7 +10,7 @@ export class EventHandler extends Plugin {
     constructor(eventData) {
         super();
 
-        log.info(`incoming event: ${eventData}`);
+        log.info(`incoming event: ${json.plain(eventData)}`);
 
         this.eventId = eventData.ghEventId;
         this.eventType = eventData.ghEventType;

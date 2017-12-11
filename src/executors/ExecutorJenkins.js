@@ -19,6 +19,7 @@ export class ExecutorJenkins extends Executor {
         });
 
         this.run['pull_request'] = this.executeForPullRequest;
+
     }
 
     static taskNameToBuild(context) {
