@@ -3,6 +3,7 @@
 let json = require('format-json');
 let crypto = require('crypto');
 let Producer = require('sqs-producer');
+
 let githubUtils = require('../gtmGithubUtils.js');
 
 async function listener(event, context, callback) {
@@ -23,7 +24,7 @@ async function listener(event, context, callback) {
 
     /* eslint-disable */
     console.log('---------------------------------');
-    console.log(`Github-Event: "${githubEvent}" with action: "${eventBody.action}"`);
+    console.log(`Github-Event: "${githubEvent}"`);
     console.log('---------------------------------');
     console.log('Payload', json.plain(eventBody));
     /* eslint-enable */
@@ -42,52 +43,85 @@ async function listener(event, context, callback) {
 
 async function handleEvent(type, body) {
 
-    if (type === 'pull_request' && body.action && ['opened', 'synchronize'].includes(body.action)) {
-        console.log(`pull request: "${body.pull_request.title}" ${body.action} by ${body.pull_request.user.login}`);
+    // collect config from github
+    let taskConfig = await getTaskConfig(type, body);
+    console.log(json.plain(taskConfig));
 
-        // collect config from github
-        let taskConfig = await getTaskConfig(body);
-        console.log(json.plain(taskConfig));
+    // add event body to SQS
+    console.log('adding event to SQS: ' + process.env.SQS_PENDING_QUEUE_URL);
 
-        // add event body to SQS
-        console.log('adding event to SQS: ' + process.env.SQS_PENDING_QUEUE_URL);
+    // create simple producer
+    let producer = Producer.create({
+        queueUrl: process.env.SQS_PENDING_QUEUE_URL,
+        region: process.env.GTM_AWS_REGION
+    });
 
-        // create simple producer
-        let producer = Producer.create({
-            queueUrl: process.env.SQS_PENDING_QUEUE_URL,
-            region: process.env.GTM_AWS_REGION
-        });
+    let bodyString = JSON.stringify(body);
+    let ghEventId = crypto.createHash('md5').update(bodyString).digest('hex');
 
-        let bodyString = JSON.stringify(body);
-        producer.send([
-            {
-                id: crypto.createHash('md5').update(bodyString).digest('hex'),
-                body: bodyString,
-                messageAttributes: {
-                    ghEventType: { DataType: 'String', StringValue: type },
-                    ghTaskConfig: { DataType: 'String', StringValue: JSON.stringify(taskConfig) }
-                }
+    let event = [
+        {
+            id: ghEventId,
+            body: bodyString,
+            messageAttributes: {
+                ghEventId: { DataType: 'String', StringValue: ghEventId },
+                ghEventType: { DataType: 'String', StringValue: type },
+                ghTaskConfig: { DataType: 'String', StringValue: json.plain(taskConfig) }
             }
-        ], function(err) {
-            if (err) console.log(err);
-        });
+        }
+    ];
 
-    } else {
-        console.log(`unsupported event: type: '${type}' action: '${body.action}'`);
-    }
+    console.log(`Outgoing event payload: ${json.plain(event)}`);
+
+    producer.send(event, function(err) {
+        if (err) console.log(err);
+    });
+
 }
 
-async function getTaskConfig(body) {
 
-    let params = {
-        owner: body.pull_request.head.repo.owner.login,
-        repo: body.pull_request.head.repo.name,
-        path: process.env.GTM_TASK_CONFIG_FILENAME ? process.env.GTM_TASK_CONFIG_FILENAME : '.githubTaskManager.json',
-        ref: body.pull_request.head.ref
-    };
+async function getTaskConfig(type, body) {
 
-    let fileResponse = await githubUtils.getFile(params);
-    return githubUtils.decodeFileResponse(fileResponse);
+    let fileParams = getFileParams(type, body);
+
+    console.log(`file request params for ${type} = ${json.plain(fileParams)}`);
+
+    let fileResponse = await githubUtils.getFile(fileParams);
+    let taskConfig = githubUtils.decodeFileResponse(fileResponse);
+
+    if (!taskConfig[type] || !taskConfig[type].tasks || !taskConfig[type].tasks.length > 0) {
+        console.error(`repository config not found for event type '${type}' in config ${json.plain(taskConfig)}`);
+    }
+
+    console.log(`task config for ${type} = ${json.plain(taskConfig[type])}`);
+
+    return taskConfig;
+}
+
+function getFileParams(type, body) {
+    switch (type) {
+    case 'pull_request':
+        return {
+            owner: body.pull_request.head.repo.owner.login,
+            repo: body.pull_request.head.repo.name,
+            path: process.env.GTM_TASK_CONFIG_FILENAME || '.githubTaskManager.json',
+            ref: body.pull_request.head.ref
+        };
+    case 'push':
+        return {
+            owner: body.repository.owner.login,
+            repo: body.repository.name,
+            path: process.env.GTM_TASK_CONFIG_FILENAME || '.githubTaskManager.json',
+            ref: body.ref
+        };
+    default:
+        return {
+            owner: body.repository.owner.login,
+            repo: body.repository.name,
+            path: process.env.GTM_TASK_CONFIG_FILENAME || '.githubTaskManager.json',
+            ref: 'master'
+        };
+    }
 }
 
 function decodeEventBody(event) {

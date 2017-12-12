@@ -57,12 +57,31 @@ describe('gtmGithubHook', function() {
 
     describe('getTaskConfig', function () {
 
+        let config = {
+            pull_request: {
+                tasks: [
+                    {
+                        executor: 'jenkins',
+                        context: 'functional',
+                        options: {
+                            tags: [
+                                '@smoke'
+                            ],
+                            browsers: [
+                                'chrome'
+                            ]
+                        }
+                    }
+                ]
+            }
+        };
+
         before(function(){
             sinon.stub(githubUtils, 'getFile').callsFake( () => {
                 return Promise.resolve(
                     {
                         data: {
-                            content: 'eyJhYmMiOiAidGhpcyBpcyBhIHRlc3QifQo=' //base64 { abc: 'this is a test' }
+                            content: Buffer.from(JSON.stringify(config)).toString('base64'),
                         }
                     });
             });
@@ -89,9 +108,8 @@ describe('gtmGithubHook', function() {
             };
 
             //gtmGithubHook.setUtils(githubUtils);
-            let actual = await gtmGithubHook.getTaskConfig(body);
-            return assert.equal(actual.abc, 'this is a test');
-
+            let actual = await gtmGithubHook.getTaskConfig('pull_request', body);
+            return assert.equal(actual.pull_request.tasks[0].executor, 'jenkins');
 
         });
     });

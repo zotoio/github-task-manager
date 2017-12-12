@@ -1,26 +1,36 @@
 {
-  "tasks": [
-    {
-      "type": "functional",
-      "executor": "jenkins",
-      "options": {
-        "tags": ["@smoke"],
-        "browsers": ["chrome"]
+  "pull_request": {
+    "tasks": [
+      {
+        "executor": "jenkins",
+        "context": "functional",
+        "options": {
+          "tags": [
+            "@smoke"
+          ],
+          "browsers": [
+            "chrome"
+          ]
+        }
+      },
+      {
+        "executor": "teamcity",
+        "context": "a11y",
+        "options": {
+          "tags": [
+            "@a11y"
+          ]
+        }
+      },
+      {
+        "executor": "travis",
+        "context": "integration",
+        "options": {
+          "tags": [
+            "@a11y"
+          ]
+        }
       }
-    },
-    {
-      "type": "a11y",
-      "executor": "teamcity",
-      "options": {
-        "tags": ["@a11y"]
-      }
-    },
-    {
-      "type": "integration",
-      "executor": "travis",
-      "options": {
-        "tags": ["@a11y"]
-      }
-    }
-  ]
+    ]
+  }
 }

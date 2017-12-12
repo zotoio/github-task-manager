@@ -53,7 +53,7 @@ function log() {
     return LOG;
 }
 
-// important - do not use log() in this fn or a cloudwatch loop can occur :)
+// important - do not use log() in this function, or a cloudwatch loop will occur :)
 function stream(groupName, streamName) {
 
     console.log(`starting cloudwatch stream (groupName: ${groupName}, streamName: ${(streamName || 'ALL')})`);
@@ -89,10 +89,10 @@ function stream(groupName, streamName) {
 
     STREAM[groupName].on('data', (eventObject) => {
 
-        console.debug(
+        /*console.debug( // noisy!
             'Timestamp: ', new Date(eventObject.timestamp),
             'Message: ', eventObject.message
-        );
+        );*/
 
         if (SSE[groupName]) {
             SSE[groupName].send(eventObject);
@@ -110,22 +110,22 @@ function stopAllStreams() {
 
 function stopStream(group) {
     if (STREAM[group]) {
-        console.log(`closing stream: ${group}`);
+        log().info(`closing stream: ${group}`);
         STREAM[group].close();
         STREAM[group] = null;
     }
 }
 
-function registerActivity() {
+function registerActivity(ip) {
     STREAM_USER_LAST_ACTIVITY = Date.now();
-    console.log('stream keepalive..');
+    log().debug(`stream keepalive request from ${ip}..`);
 }
 
 function streamJanitor() {
     let maxMinutesInactivity = 2;
-    console.log(`streamJanitor ${Date.now()}, ${STREAM_USER_LAST_ACTIVITY}`);
-    if (Date.now() - STREAM_USER_LAST_ACTIVITY > maxMinutesInactivity * 60 * 1000) {
-        console.log(`closing streams after no browsers detected for ${maxMinutesInactivity} minutes.`);
+    //console.log(`streamJanitor ${Date.now()}, ${STREAM_USER_LAST_ACTIVITY}`);
+    if (Object.keys(STREAM).length > 0 && Date.now() - STREAM_USER_LAST_ACTIVITY > maxMinutesInactivity * 60 * 1000) {
+        log().info(`closing streams after no browsers detected for ${maxMinutesInactivity} minutes.`);
         stopAllStreams();
         clearInterval(janitorInterval);
     }

@@ -1,30 +1,31 @@
 import { default as Travis } from 'travis-ci';
 import { Executor } from '../agent/Executor';
 import { Utils } from '../agent/AgentUtils';
+import { default as json } from 'format-json';
 let log = Utils.logger();
 
 export class ExecutorTravis extends Executor {
 
-    constructor(options) {
-        super();
-        this.options = options;
+    constructor(eventData) {
+        super(eventData);
+        this.options = this.getOptions();
+
+        this.runFunctions = {};
+        this.runFunctions['pull_request'] = this.executeForPullRequest;
+
         this.travis = new Travis({
             version: '2.0.0'
         });
+
     }
 
-    info() {
-        this.executeTask('Functional', {test: 'Testing'});
-        return 'Auto-Registered Executor for Travis';
+    run(fn) {
+        return this.runFunctions[fn];
     }
 
-    taskNameToBuild(taskName) {
-        log.debug(taskName);
-        return 'EXECUTE_AUTOMATED_TESTS';
-    }
+    async executeForPullRequest(task) {
 
-    async executeTask(taskName, buildParams) {
-        //let jobName = this.taskNameToBuild(taskName);
+        log.info(`travis options: ${json.plain(task.options)}`);
 
         this.travis.authenticate({
             github_token: process.env.GTM_GITHUB_TOKEN
@@ -37,10 +38,15 @@ export class ExecutorTravis extends Executor {
             log.info('logged in to travis');
         });
 
-        log.debug(buildParams);
         let result = true;
         log.info('Build Finished: ' + result);
-        return result;
+        return { passed: result, url: 'https://travis-ci.org' };
+    }
+
+    async executeTask(task) {
+        log.info('Travis Build Finished');
+        log.debug(task);
+        return {passed: true, url: 'https://travis-ci.org'};
     }
 
 }

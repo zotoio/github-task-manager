@@ -2,6 +2,7 @@
 import requireDir from 'require-dir';
 import { Plugin } from './Plugin';
 import { Utils } from './AgentUtils';
+let json = require('format-json');
 let log = Utils.logger();
 
 /**
@@ -11,22 +12,42 @@ export class Executor extends Plugin {
 
     /**
      * Initialise the CI Executor
-     * @param {String} name - Class Name to Create
-     * @param {*} options - Object of Options to pass into Class
+     * @param {String} executorType - Class Name to Create
+     * @param {*} eventData - Object of Options to pass into Class
      */
-    constructor(name, options) {
+    constructor(eventData) {
         super();
-        return Executor.create(name, options);
+
+        // executors must register functions for event types
+        //this.run = [];
+
+        this.eventId = eventData.ghEventId;
+        this.eventType = eventData.ghEventType;
+        this.taskConfig = eventData.ghTaskConfig;
+        this.eventData = eventData;
+
+        log.info('----------------------------');
+        log.info(`New Executor Created`);
+        log.info('Event ID: ' + this.eventId);
+        log.info('Event Type: ' + this.eventType);
+        log.debug('Task Config: ' + json.plain(this.taskConfig));
+        log.debug(eventData);
+
     }
 
-    executeTask() {
+    /**
+     * default implementation just returns env vars
+     * @returns options specific to executor type
+     */
+    getOptions() {
+        return process.env;
+    }
+
+    async executeTask() {
         // Override in Implementation
         // This will need to be a promise so we can chain and get results back
     }
 
-    describeExecutor() {
-        log.info(this.options);
-    }
 }
 
 requireDir('../executors');

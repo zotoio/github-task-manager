@@ -1,34 +1,34 @@
 //import { default as TeamCity } from 'teamcity-rest-api';
 import { Executor } from '../agent/Executor';
 import { Utils } from '../agent/AgentUtils';
+import { default as json } from 'format-json';
 let log = Utils.logger();
 
 export class ExecutorTeamCity extends Executor {
 
-    constructor(options) {
-        super();
-        this.options = options;
+    constructor(eventData) {
+        super(eventData);
+        this.options = this.getOptions();
+
+        this.runFunctions = {};
+        this.runFunctions['pull_request'] = this.executeForPullRequest;
+
         /*this.teamCity = TeamCity.create({
             url: 'http://localhost:8111',
             username: 'user',
             password: 'pass'
         });*/
+
     }
 
-    info() {
-        this.executeTask('Functional', {test: 'Testing'});
-        return 'Auto-Registered Executor for TeamCity';
+    run(fn) {
+        return this.runFunctions[fn];
     }
 
-    taskNameToBuild(taskName) {
-        log.debug(taskName);
-        return 'EXECUTE_AUTOMATED_TESTS';
-    }
-
-    async executeTask(taskName, buildParams) {
+    async executeForPullRequest(task) {
         //let jobName = this.taskNameToBuild(taskName);
 
-        log.debug(buildParams);
+        log.info(`teamcity options: ${json.plain(task.options)}`);
 
         /*
         let buildNodeObject = '<build>' +
@@ -43,7 +43,13 @@ export class ExecutorTeamCity extends Executor {
 
         let result = true;
         log.info('Build Finished: ' + result);
-        return result;
+        return { passed: result, url: 'https://www.jetbrains.com/teamcity' };
+    }
+
+    async executeTask(task) {
+        log.info('TeamCity Build Finished');
+        log.debug(task);
+        return {passed: true, url: 'https://www.jetbrains.com/teamcity'};
     }
 
 }

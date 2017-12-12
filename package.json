@@ -7,9 +7,10 @@
     "build": "npm run lint && rimraf dist/ && babel ./src --out-dir dist/src --copy-files && babel ./test --out-dir dist/test --copy-files && babel ./*.js --out-dir dist/ --copy-files",
     "commit": "./node_modules/.bin/git-cz",
     "lint": "node ./node_modules/.bin/eslint ./src ./test --ext=.js --ignore-pattern src/agent/static/ --ignore-pattern node_modules/ --ignore-pattern dist/ --ignore-pattern coverage/ --quiet",
-    "test": "npm run build && cross-env NODE_ENV=test nyc ./node_modules/.bin/mocha --timeout 10000 --require babel-core/register --require babel-polyfill --recursive ./dist/test",
+    "test": "npm run build && cross-env NODE_ENV=test nyc ./node_modules/.bin/mocha --timeout 10000 --require babel-core/register --require babel-polyfill './dist/test/**/*.spec.js'",
+    "test-integration": "npm run agent-build && npm run sls-deploy && npm run docker-start && EDGEGRID_ENV=test node ./node_modules/.bin/mocha --timeout 10000 --require babel-core/register --require babel-polyfill ./dist/test/**/*.spec-int.js",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
-    "sls-deploy": "npm run build && node ./node_modules/serverless/bin/serverless deploy -v",
+    "sls-deploy": "npm run build && node ./node_modules/serverless/bin/serverless deploy -v | tee ./sls.out && cat ./sls.out | grep ServiceEndpoint | sed 's/ServiceEndpoint[^https]*\\(https:\\/\\/.*\\)/\\1\\\/gtm-github-hook/' | sed 's/\\x1b\\[[0-9;]*m//g' > ./sls-hook-url.out",
     "sls-undeploy": "node ./node_modules/serverless/bin/serverless remove",
     "sls-logs-hook": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubHook -t",
     "sls-logs-results": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubResults -t",
@@ -54,6 +55,7 @@
     "cz-conventional-changelog": "^2.1.0",
     "dotenv": "^4.0.0",
     "eslint": "^4.12.0",
+    "firstline": "^1.2.1",
     "format-json": "^1.0.3",
     "mocha": "^4.0.1",
     "node-sass": "^4.7.2",
@@ -64,7 +66,8 @@
     "serverless-dotenv-plugin": "^1.0.1",
     "serverless-webpack": "^4.1.0",
     "sinon": "^4.1.2",
-    "sqs-producer": "^1.6.2"
+    "sqs-producer": "^1.6.2",
+    "supertest": "^3.0.0"
   },
   "engines": {
     "node": ">=8.4.0"
