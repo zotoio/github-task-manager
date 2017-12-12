@@ -258,8 +258,6 @@ export class Agent {
 
     checkEventSignature(signature, event) {
 
-        let signatureAttr = event.MessageAttributes.ghEventSignature;
-
         let checkEvent = {
             id: event.MessageAttributes.ghEventId.StringValue,
             body: event.Body,
@@ -273,8 +271,6 @@ export class Agent {
         log.debug(`eventString for signature check: ${JSON.stringify(checkEvent)}`);
         let calculatedSig = `sha1=${crypto.createHmac('sha1', process.env.GTM_GITHUB_WEBHOOK_SECRET)
             .update(JSON.stringify(checkEvent), 'utf-8').digest('hex')}`;
-
-        event.ghEventSignature = signatureAttr;
 
         if (calculatedSig === signature) {
             log.error(`signature mismatch: ${calculatedSig} !== ${signature}`);
