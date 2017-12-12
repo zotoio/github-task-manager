@@ -14,21 +14,22 @@ export class EventHandlerPullRequest extends EventHandler {
             return;
         }
 
-        log.info('-----------------------------');
+        log.info('---------------------------------');
         log.info('Repository Name: ' + this.eventData.repository.name);
         log.info('Pull Request: ' + this.eventData.pull_request.number);
+        log.info('---------------------------------');
 
         // first set each pr check to pending
-        this.setIntialTaskState(this);
-
-        // now process each task..
-        this.processTasks(this);
-
-        log.info('Pull Request Event Handled');
+        let that = this;
+        return this.setIntialTaskState(this).then(() => {
+            return that.processTasks(that);
+        });
 
     }
 
-    setIntialTaskState(event) {
+    async setIntialTaskState(event) {
+
+        let promises = [];
 
         event.tasks.forEach(async (task) => {
 
@@ -39,9 +40,6 @@ export class EventHandlerPullRequest extends EventHandler {
                 initialDesc = 'Unknown Executor: ' + task.executor;
             }
 
-            log.info(`\n## Pull request: setting Task "${task.executor}:${task.context}" to ${initialState}`);
-            log.info(task);
-
             let status = Utils.createStatus(
                 event.eventData,
                 initialState,
@@ -50,60 +48,70 @@ export class EventHandlerPullRequest extends EventHandler {
                 'https://github.com' // fails if not an https url
             );
 
-            Utils.postResultsAndTrigger(
+            promises.push(Utils.postResultsAndTrigger(
                 process.env.GTM_SQS_RESULTS_QUEUE,
                 status,
                 process.env.GTM_SNS_RESULTS_TOPIC,
-                `Pending for ${task.context} - Event ID: ${event.eventId}`
+                `Pending for ${event.eventType} => ${task.executor}:${task.context} - Event ID: ${event.eventId}`
+
             ).then(function () {
+                log.info(task);
                 log.info('-----------------------------');
-            });
+            }));
+
         });
+
+        return Promise.all(promises);
     }
 
-    processTasks(event) {
+    async processTasks(event) {
+
+        let promises = [];
 
         event.tasks.forEach(async (task) => {
 
             if (!Executor.isRegistered(task.executor)) {
                 return;
             }
-
+            log.info('=================================');
             log.info('Creating Executor for Task: ' + task.executor + ':' + task.context);
             let executor = Executor.create(task.executor, event.eventData);
 
-            let taskResult = await executor.executeTask(task);
-            let status;
-            if (taskResult == 'NO_MATCHING_TASK') {
-                status = Utils.createStatus(
-                    event.eventData,
-                    'error',
-                    task.context,
-                    'Unknown Task Type: ' + task.context,
-                    'https://kuro.neko.ac'
-                );
-            } else {
-                status = Utils.createStatus(
-                    event.eventData,
-                    taskResult.passed ? 'success' : 'error',
-                    task.context,
-                    taskResult.passed ? 'Task Completed Successfully' : 'Task Completed with Errors',
-                    taskResult.url
-                );
-            }
+            let taskPromise = executor.executeTask(task).then((taskResult) => {
+                let status;
+                if (taskResult === 'NO_MATCHING_TASK') {
+                    status = Utils.createStatus(
+                        event.eventData,
+                        'error',
+                        task.context,
+                        'Unknown Task Type: ' + task.context,
+                        'https://kuro.neko.ac'
+                    );
+                } else {
+                    status = Utils.createStatus(
+                        event.eventData,
+                        taskResult.passed ? 'success' : 'error',
+                        task.context,
+                        taskResult.passed ? 'Task Completed Successfully' : 'Task Completed with Errors',
+                        taskResult.url
+                    );
+                }
+                return status;
 
-            log.info('Task Result: ' + JSON.stringify(taskResult));
+            }).then((status) => {
 
-            Utils.postResultsAndTrigger(
-                process.env.GTM_SQS_RESULTS_QUEUE,
-                status,
-                process.env.GTM_SNS_RESULTS_TOPIC,
-                `Result for ${event.eventType} => ${task.executor}:${task.context} - Event ID: ${event.eventId}`
-            ).then(function () {
-                log.info('-----------------------------');
+                return Utils.postResultsAndTrigger(
+                    process.env.GTM_SQS_RESULTS_QUEUE,
+                    status,
+                    process.env.GTM_SNS_RESULTS_TOPIC,
+                    `Result for ${event.eventType} => ${task.executor}:${task.context} - Event ID: ${event.eventId}`
+                );
             });
+            promises.push(taskPromise);
 
         });
+
+        return Promise.all(promises);
 
     }
 }

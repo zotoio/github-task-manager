@@ -30,6 +30,7 @@ export class Executor extends Plugin {
         log.info(`New Executor Created`);
         log.info('Event ID: ' + this.eventId);
         log.info('Event Type: ' + this.eventType);
+        log.info('----------------------------');
         log.debug('Task Config: ' + json.plain(this.taskConfig));
         log.debug(eventData);
 

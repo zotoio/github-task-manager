@@ -152,7 +152,7 @@ export class Agent {
 
         let that = this;
 
-        Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function (data) {
+        Utils.getQueueUrl(process.env.GTM_SQS_PENDING_QUEUE).then(function (data) {
 
             let pendingUrl = data;
             systemConfig.pendingQueue = {};
@@ -166,6 +166,7 @@ export class Agent {
 
                 handleMessage: async (message, done) => {
 
+                    log.info('====================================');
                     log.info('Received Event from Queue');
                     log.debug(`message: ${json.plain(message)}`);
 
@@ -223,12 +224,14 @@ export class Agent {
                     } else {
 
                         // handle the event and execute tasks
-                        await EventHandler.create(ghEventType, eventData).handleEvent();
+                        await (EventHandler.create(ghEventType, eventData).handleEvent()).then(() => {
+                            done();
+                            return Promise.resolve(log.info(`Event handled: type=${ghEventType} id=${ghEventId}}`));
 
-                        log.info(`Event handled: type=${ghEventType} id=${ghEventId}`);
+                        });
+
                     }
-                        
-                    done();
+
                 }
             });
 
@@ -272,7 +275,7 @@ export class Agent {
         let calculatedSig = `sha1=${crypto.createHmac('sha1', process.env.GTM_GITHUB_WEBHOOK_SECRET)
             .update(JSON.stringify(checkEvent), 'utf-8').digest('hex')}`;
 
-        if (calculatedSig === signature) {
+        if (calculatedSig !== signature) {
             log.error(`signature mismatch: ${calculatedSig} !== ${signature}`);
         }
 

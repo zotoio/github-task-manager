@@ -43,9 +43,8 @@ export class ExecutorPing extends Executor {
     }
 
     async executeTask(task) {
-        log.info('Pinged!');
-        log.debug(task);
-        return {passed: true, url: 'https://ping.io/ping/' + task.options.count};
+        log.info('Task Ping started.');
+        return Promise.resolve({passed: true, url: 'https://ping.io/ping/' + task.options.count});
     }
 
 }
