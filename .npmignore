@@ -64,3 +64,8 @@ typings/
 
 # Serverless directories
 .serverless/
+
+# Mac Stuff
+.DS_Store
+
+*.out
