@@ -165,7 +165,7 @@ export class Agent {
                 handleMessage: async (message, done) => {
 
                     log.info('Received Event from Queue');
-                    log.info(`message: ${json.plain(message)}`);
+                    log.debug(`message: ${json.plain(message)}`);
 
                     let ghEventId;
                     try {

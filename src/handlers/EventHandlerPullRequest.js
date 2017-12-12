@@ -54,7 +54,7 @@ export class EventHandlerPullRequest extends EventHandler {
                 process.env.GTM_SQS_RESULTS_QUEUE,
                 status,
                 process.env.GTM_SNS_RESULTS_TOPIC,
-                `Pending for ${event.eventType} - eventId: ${event.eventId}`
+                `Pending for ${task.context} - Event ID: ${event.eventId}`
             ).then(function () {
                 log.info('-----------------------------');
             });
