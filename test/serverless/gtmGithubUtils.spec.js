@@ -40,7 +40,7 @@ describe('gtmGithubUtils', function() {
                 }
             };
 
-            let expected = 'No X-Github-Event found on request';
+            let expected = 'Error: No X-Github-Event found on request';
             let actual = githubUtils.invalidHook(event);
             assert.equal(actual, expected);
             done();

@@ -98,7 +98,7 @@ export class EventHandlerPullRequest extends EventHandler {
                 process.env.GTM_SQS_RESULTS_QUEUE,
                 status,
                 process.env.GTM_SNS_RESULTS_TOPIC,
-                `Result for ${task.context} - Event ID: ${event.eventId}`
+                `Result for ${event.eventType} => ${task.executor}:${task.context} - Event ID: ${event.eventId}`
             ).then(function () {
                 log.info('-----------------------------');
             });

@@ -1,7 +1,7 @@
 'use strict';
 
 import 'babel-polyfill';
-
+import { default as crypto } from 'crypto';
 import { default as dotenv } from 'dotenv';
 dotenv.config();
 
@@ -150,6 +150,8 @@ export class Agent {
             res.json({state: systemConfig.pendingQueue.state});
         });
 
+        let that = this;
+
         Utils.getQueueUrlPromise(process.env.GTM_SQS_PENDING_QUEUE).then(function (data) {
 
             let pendingUrl = data;
@@ -160,7 +162,7 @@ export class Agent {
 
                 queueUrl: pendingUrl,
                 region: process.env.GTM_AWS_REGION,
-                messageAttributeNames: ['ghEventType', 'ghTaskConfig', 'ghEventId'],
+                messageAttributeNames: ['ghEventType', 'ghTaskConfig', 'ghEventId', 'ghEventSignature'],
 
                 handleMessage: async (message, done) => {
 
@@ -189,6 +191,24 @@ export class Agent {
                     } catch (TypeError) {
                         log.error('No Message Attribute \'ghTaskConfig\' in Message. Defaulting to \'{}\'');
                         taskConfig = JSON.parse({});
+                    }
+
+                    let ghEventSignature;
+                    try {
+                        ghEventSignature = message.MessageAttributes.ghEventSignature.StringValue;
+                        if (!that.checkEventSignature(ghEventSignature, message)) {
+                            log.error('Event signature mismatch - discarding Event!');
+                            done();
+                            return;
+                        } else {
+                            log.info('Event signature verified. processing event..');
+                        }
+
+                    } catch (TypeError) {
+                        log.error('No Message Attribute \'ghEventSignature\' in Message. Discarding Event!');
+                        log.error(TypeError.message);
+                        done();
+                        return;
                     }
 
                     let eventData = JSON.parse(message.Body);
@@ -234,6 +254,33 @@ export class Agent {
             });
             
         });
+    }
+
+    checkEventSignature(signature, event) {
+
+        let signatureAttr = event.MessageAttributes.ghEventSignature;
+
+        let checkEvent = {
+            id: event.MessageAttributes.ghEventId.StringValue,
+            body: event.Body,
+            messageAttributes: {
+                ghEventId: {DataType: 'String', StringValue: event.MessageAttributes.ghEventId.StringValue},
+                ghEventType: {DataType: 'String', StringValue: event.MessageAttributes.ghEventType.StringValue},
+                ghTaskConfig: {DataType: 'String', StringValue: event.MessageAttributes.ghTaskConfig.StringValue}
+            }
+        };
+
+        log.debug(`eventString for signature check: ${JSON.stringify(checkEvent)}`);
+        let calculatedSig = `sha1=${crypto.createHmac('sha1', process.env.GTM_GITHUB_WEBHOOK_SECRET)
+            .update(JSON.stringify(checkEvent), 'utf-8').digest('hex')}`;
+
+        event.ghEventSignature = signatureAttr;
+
+        if (calculatedSig === signature) {
+            log.error(`signature mismatch: ${calculatedSig} !== ${signature}`);
+        }
+
+        return (calculatedSig === signature);
     }
 
     startLogStream(group) {

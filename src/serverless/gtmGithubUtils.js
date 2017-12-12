@@ -37,6 +37,7 @@ function signRequestBody(key, body) {
 
 function invalidHook(event) {
 
+    let err = null;
     let errMsg = null;
     const token = process.env.GTM_GITHUB_WEBHOOK_SECRET;
     const headers = event.headers;
@@ -77,15 +78,16 @@ function invalidHook(event) {
         validators.forEach((v) => {
             if (v.check) {
                 errMsg = v.msg;
-                throw Error;
+                throw new Error(errMsg);
             }
             console.log(v.name + ' is ok!');
         });
     } catch (e) {
-        console.log(errMsg);
+        console.log(e.message);
+        err = e;
     }
 
-    return errMsg;
+    return err;
 }
 
 function decodeFileResponse(fileResponse) {

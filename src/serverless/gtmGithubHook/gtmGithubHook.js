@@ -1,7 +1,7 @@
 'use strict';
 
 let json = require('format-json');
-let crypto = require('crypto');
+let UUID = require('uuid/v4');
 let Producer = require('sqs-producer');
 
 let githubUtils = require('../gtmGithubUtils.js');
@@ -9,13 +9,14 @@ let githubUtils = require('../gtmGithubUtils.js');
 async function listener(event, context, callback) {
 
     const githubEvent = event.headers['X-GitHub-Event'];
+    const githubSignature = event.headers['X-Hub-Signature'];
 
-    let errMsg = githubUtils.invalidHook(event);
-    if (errMsg) {
-        return callback(null, {
+    let err = githubUtils.invalidHook(event);
+    if (err) {
+        return callback(err, {
             statusCode: 401,
             headers: {'Content-Type': 'text/plain'},
-            body: errMsg,
+            body: err.message,
         });
     }
 
@@ -29,22 +30,35 @@ async function listener(event, context, callback) {
     console.log('Payload', json.plain(eventBody));
     /* eslint-enable */
 
-    await handleEvent(githubEvent, eventBody);
+    let response;
+    try {
+        await handleEvent(githubEvent, eventBody, githubSignature);
+        response = {
+            statusCode: 200,
+            body: JSON.stringify({
+                input: event,
+            }),
+        };
 
-    const response = {
-        statusCode: 200,
-        body: JSON.stringify({
-            input: event,
-        }),
-    };
+    } catch (e) {
+        err = e;
+        response = {
+            statusCode: 400,
+            headers: {'Content-Type': 'text/plain'},
+            body: err.message,
+        };
+    }
 
-    return callback(null, response);
+    return callback(err, response);
 }
 
-async function handleEvent(type, body) {
+async function handleEvent(type, body, signature) {
 
     // collect config from github
     let taskConfig = await getTaskConfig(type, body);
+    if (!taskConfig) {
+        throw new Error(`No task config for event type ${type}`);
+    }
     console.log(json.plain(taskConfig));
 
     // add event body to SQS
@@ -57,7 +71,7 @@ async function handleEvent(type, body) {
     });
 
     let bodyString = JSON.stringify(body);
-    let ghEventId = crypto.createHash('md5').update(bodyString).digest('hex');
+    let ghEventId = UUID();
 
     let event = [
         {
@@ -70,6 +84,10 @@ async function handleEvent(type, body) {
             }
         }
     ];
+
+    signature = githubUtils.signRequestBody(process.env.GTM_GITHUB_WEBHOOK_SECRET, JSON.stringify(event[0]));
+
+    event[0].messageAttributes.ghEventSignature = { DataType: 'String', StringValue: signature };
 
     console.log(`Outgoing event payload: ${json.plain(event)}`);
 
@@ -91,6 +109,7 @@ async function getTaskConfig(type, body) {
 
     if (!taskConfig[type] || !taskConfig[type].tasks || !taskConfig[type].tasks.length > 0) {
         console.error(`repository config not found for event type '${type}' in config ${json.plain(taskConfig)}`);
+        return false;
     }
 
     console.log(`task config for ${type} = ${json.plain(taskConfig[type])}`);
