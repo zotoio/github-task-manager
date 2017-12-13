@@ -216,7 +216,7 @@ export class Agent {
                     eventData.ghEventId = ghEventId;
                     eventData.ghEventType = ghEventType;
                     eventData.ghTaskConfig = taskConfig;
-                    eventData.MessageID = message.MessageId;
+                    eventData.MessageHandle = message.ReceiptHandle;
                     systemConfig.event.current = eventData;
 
                     if (!EventHandler.isRegistered(ghEventType)) {

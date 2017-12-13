@@ -80,7 +80,7 @@ export class EventHandlerPullRequest extends EventHandler {
             let executor = Executor.create(task.executor, event.eventData);
 
             executor.on('SQSHeartBeat', function() {
-                log.info(`Sending Heartbeat to SQS for Message ID: ${that.MessageID}`);
+                Utils.setSqsMessageTimeout(process.env.GTM_SQS_PENDING_QUEUE, that.MessageHandle, 30);
             });
 
             let taskPromise = executor.executeTask(task).then((taskResult) => {
@@ -104,7 +104,6 @@ export class EventHandlerPullRequest extends EventHandler {
                         taskResult.url
                     );
                 }
-                log.info(status);
                 return status;
 
             }).then((status) => {

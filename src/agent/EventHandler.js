@@ -16,7 +16,7 @@ export class EventHandler extends Plugin {
         this.eventType = eventData.ghEventType;
         this.taskConfig = eventData.ghTaskConfig;
         this.eventData = eventData;
-        this.MessageID = eventData.MessageID;
+        this.MessageHandle = eventData.MessageHandle;
 
         // Handle Older Task Format
         try {

@@ -108,6 +108,20 @@ export class Utils {
         });
     }
 
+    static async setSqsMessageTimeout(queueName, messageHandle, timeoutValue) {
+        log.debug(`Setting SQS Message Timeout to ${timeoutValue} Seconds`);
+        return Utils.getQueueUrl(queueName).then(function (queueUrl) {
+            log.debug(`Queue URL: ${queueUrl}, Message Handle: ${messageHandle}, Timeout: ${timeoutValue}`);
+            return sqs.changeMessageVisibility({
+                QueueUrl: queueUrl,
+                ReceiptHandle: messageHandle,
+                VisibilityTimeout: timeoutValue
+            }).promise();
+        }).then(function(data) {
+            log.info(JSON.stringify(data));
+        });
+    }
+
     static async postResultsAndTrigger(sqsQueueName, results, snsQueueName, message) {
         return Utils.getQueueUrl(sqsQueueName).then(function (sqsQueueUrl) {
             let params = {
@@ -157,12 +171,12 @@ export class Utils {
     static todayDate() {
         let today = new Date();
         let dd = today.getDate();
-        let mm = today.getMonth()+1;
+        let mm = today.getMonth() + 1;
         let yyyy = today.getFullYear();
-        if(dd < 10){
+        if (dd < 10) {
             dd = '0' + dd;
         }
-        if(mm < 10){
+        if (mm < 10) {
             mm = '0' + mm;
         }
         return yyyy + '/' + mm + '/' + dd;
