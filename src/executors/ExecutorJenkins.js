@@ -40,18 +40,17 @@ export class ExecutorJenkins extends Executor {
     }
 
     async waitForBuildToExist(buildName, buildNumber) {
-        // TODO: Make this a set amount of time instead of retries
-        // or make it wait between each retry
         return new Promise(async (resolve, reject) => {
             let exists = false;
-            let maxRetries = 30;
+            let maxRetries = 600;
             let tries = 0;
             while (!exists && tries++ < maxRetries) {
                 exists = await this.jenkins.build.get(buildName, buildNumber).then(function () {
                     log.info(`Build ${buildName} #${buildNumber} Started!`);
                     return true;
-                }, function () {
+                }, async function () {
                     log.debug(`Build ${buildName} #${buildNumber} Hasn't Started: ${tries}`);
+                    await Utils.timeout(10000);
                     return false;
                 });
             }
