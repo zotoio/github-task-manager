@@ -46,7 +46,7 @@ export class ExecutorDocker extends Executor {
 
             });
 
-            container.logs({
+            return container.logs({
                 follow: true,
                 stdout: true,
                 stderr: true
@@ -61,9 +61,9 @@ export class ExecutorDocker extends Executor {
                     logStream.end('!stop!');
                 });
 
-                setTimeout(function () {
+                /*setTimeout(function () {
                     stream.destroy();
-                }, 2000);
+                }, 2000);*/
             });
         }
 
