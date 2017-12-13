@@ -43,7 +43,7 @@ export class EventHandlerPullRequest extends EventHandler {
             let status = Utils.createStatus(
                 event.eventData,
                 initialState,
-                task.context,
+                `${task.executor}: ${task.context}`,
                 initialDesc,
                 'https://github.com' // fails if not an https url
             );
@@ -87,17 +87,17 @@ export class EventHandlerPullRequest extends EventHandler {
                         status = Utils.createStatus(
                             event.eventData,
                             'error',
-                            task.context,
+                            `${task.executor}: ${task.context}`,
                             'Unknown Task Type: ' + task.context,
                             'https://kuro.neko.ac'
                         );
                     } else {
-                        let defaultBuildMessage = taskResult.passed ? 'Task Completed Successfully' : 'Task Completed with Errors';
-                        let taskResultMessage = taskResult.buildMessage ? taskResult.buildMessage : defaultBuildMessage;
+                        let defaultResultMessage = taskResult.passed ? 'Task Completed Successfully' : 'Task Completed with Errors';
+                        let taskResultMessage = taskResult.message || defaultResultMessage;
                         status = Utils.createStatus(
                             event.eventData,
                             taskResult.passed ? 'success' : 'error',
-                            task.context,
+                            `${task.executor}: ${task.context}`,
                             taskResultMessage,
                             taskResult.url
                         );
