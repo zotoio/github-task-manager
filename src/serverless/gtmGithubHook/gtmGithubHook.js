@@ -80,7 +80,8 @@ async function handleEvent(type, body, signature) {
             messageAttributes: {
                 ghEventId: { DataType: 'String', StringValue: ghEventId },
                 ghEventType: { DataType: 'String', StringValue: type },
-                ghTaskConfig: { DataType: 'String', StringValue: json.plain(taskConfig) }
+                ghTaskConfig: { DataType: 'String', StringValue: json.plain(taskConfig) },
+                ghAgentGroup: { DataType: 'String', StringValue:  taskConfig[type].agentGroup || ''}
             }
         }
     ];

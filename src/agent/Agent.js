@@ -19,6 +19,7 @@ import { default as json } from 'format-json';
 
 // Setting up Instances
 const app = express();
+const agentGroup = process.env.GTM_AGENT_GROUP || 'default';
 
 export class Agent {
 
@@ -85,7 +86,7 @@ export class Agent {
                 updatedEventData = hljs.highlight('json', JSON.stringify(systemConfig.event.current, null, 4)).value;
             else
                 updatedEventData = null;
-            res.render('event.html', { globalProperties: systemConfig, eventData: updatedEventData });
+            res.render('event.html', {globalProperties: systemConfig, eventData: updatedEventData});
         });
 
         app.get('/stream/start/:group', (req, res) => {
@@ -105,7 +106,7 @@ export class Agent {
 
         app.get('/stream/filter/:group/:stream', (req, res) => {
             Utils.stream(req.params.group, req.params.stream);
-            res.json({ group: req.params.group, stream: req.params.stream });
+            res.json({group: req.params.group, stream: req.params.stream});
         });
 
         app.get('/stream/keepalive', (req, res) => {
@@ -123,11 +124,11 @@ export class Agent {
         app.get('/config', (req, res) => {
             res.json(systemConfig);
         });
-
+        
         app.get('/config/pendingqueue', (req, res) => {
             res.json(systemConfig.pendingQueue);
         });
-
+        
         app.get('/config/pendingqueue/:desiredState', (req, res) => {
             try {
                 let desiredState = req.params.desiredState;
@@ -142,12 +143,12 @@ export class Agent {
                         log.debug('Queue Processing Started');
                     }
                 }
-            } catch (error) {
+            } catch(error) {
                 log.error('Error Setting Queue State from Request');
             }
             systemConfig.pendingQueue.enabled = !pendingQueueHandler.stopped;
             systemConfig.pendingQueue.state = pendingQueueHandler.stopped ? 'Stopped' : 'Running';
-            res.json({ state: systemConfig.pendingQueue.state });
+            res.json({state: systemConfig.pendingQueue.state});
         });
 
         let that = this;
@@ -162,7 +163,7 @@ export class Agent {
 
                 queueUrl: pendingUrl,
                 region: process.env.GTM_AWS_REGION,
-                messageAttributeNames: ['ghEventType', 'ghTaskConfig', 'ghEventId', 'ghEventSignature'],
+                messageAttributeNames: ['ghEventType', 'ghTaskConfig', 'ghEventId', 'ghEventSignature', 'ghAgentGroup'],
 
                 handleMessage: async (message, done) => {
 
@@ -184,6 +185,14 @@ export class Agent {
                     } catch (TypeError) {
                         log.error('No Message Attribute \'ghEventType\' in Message. Defaulting to \'status\'');
                         ghEventType = 'status';
+                    }
+
+                    let ghAgentGroup;
+                    try {
+                        ghAgentGroup = message.MessageAttributes.ghAgentGroup.StringValue;
+                    } catch (TypeError) {
+                        log.error('No Message Attribute \'ghAgentGroup\' in Message. Defaulting to \'default\'');
+                        ghAgentGroup = 'default';
                     }
 
                     let taskConfig;
@@ -216,21 +225,23 @@ export class Agent {
                     eventData.ghEventId = ghEventId;
                     eventData.ghEventType = ghEventType;
                     eventData.ghTaskConfig = taskConfig;
-                    eventData.MessageHandle = message.ReceiptHandle;
+                    eventData.MessageID = message.MessageId;
                     systemConfig.event.current = eventData;
+
+                    if (ghAgentGroup !== agentGroup) {
+
+                    }
 
                     if (!EventHandler.isRegistered(ghEventType)) {
                         log.info(`No Event Handler for Type: '${ghEventType}' (Event ID: ${ghEventId})`);
 
                     } else {
-                        let loopTimer = setInterval(function() {
-                            Utils.setSqsMessageTimeout(process.env.GTM_SQS_PENDING_QUEUE, message.ReceiptHandle, 30);
-                        }, 5000);
+
                         // handle the event and execute tasks
                         await (EventHandler.create(ghEventType, eventData).handleEvent()).then(() => {
                             done();
-                            clearInterval(loopTimer);
                             return Promise.resolve(log.info(`Event handled: type=${ghEventType} id=${ghEventId}}`));
+
                         });
 
                     }
@@ -246,6 +257,7 @@ export class Agent {
             app.listen(process.env.GTM_AGENT_PORT, function () {
                 Utils.printBanner();
                 log.info('AGENT_ID: ' + Utils.agentId());
+                log.info('AGENT_GROUP: ' + agentGroup);
                 log.info('GitHub Task Manager Agent Running on Port ' + process.env.GTM_AGENT_PORT);
                 log.info('Runmode: ' + runmode);
                 log.info('AWS Access Key ID: ' + Utils.maskString(process.env.GTM_AGENT_AWS_ACCESS_KEY_ID));
