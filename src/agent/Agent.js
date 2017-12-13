@@ -43,6 +43,7 @@ export class Agent {
         let pendingQueueHandler;
         let systemConfig = {};
         let runmode;
+        systemConfig.agentGroup = agentGroup;
 
         try {
             runmode = process.env.NODE_ENV;

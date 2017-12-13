@@ -2,6 +2,7 @@
 <h3>GitHub Task Manager Agent</h3>
 <div class="systemstate">
     <div>Agent ID: {{ globalProperties.agentId }}</div>
+    <div>Agent Group: {{ globalProperties.agentGroup }}</div>
     <div>Pending Queue: {{ globalProperties.pendingQueue.url }}</div>
     <div>Pending Queue State: <span class="{{ 'state_green' if globalProperties.pendingQueue.enabled else 'state_red' }}">{{ globalProperties.pendingQueue.state }}</span></div>
 </div>
