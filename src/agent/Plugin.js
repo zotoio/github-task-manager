@@ -1,9 +1,11 @@
 import { default as AgentLogger } from './AgentLogger';
+import { default as EventEmitter } from 'events';
 let log = AgentLogger.log();
 
-export class Plugin {
+export class Plugin extends EventEmitter {
 
     constructor() {
+        super();
         return this;
     }
 

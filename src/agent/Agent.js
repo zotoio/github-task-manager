@@ -29,8 +29,8 @@ export class Agent {
             // application specific logging, throwing an error, or other logic here
         });
 
-        if (!process.env.GTM_AGENT_AWS_ACCESS_KEY_ID || !process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY) {
-            log.error('### ERROR ### Environment Variables GTM_AGENT_AWS_ACCESS_KEY_ID or GTM_AGENT_AWS_SECRET_ACCESS_KEY Missing!');
+        if (!process.env.GTM_AGENT_AWS_ACCESS_KEY_ID || !process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY || !process.env.GTM_GITHUB_WEBHOOK_SECRET) {
+            log.error('### ERROR ### Environment Variables GTM_GITHUB_WEBHOOK_SECRET, GTM_AGENT_AWS_ACCESS_KEY_ID, or GTM_AGENT_AWS_SECRET_ACCESS_KEY Missing!');
             process.exit(1);
         }
 

@@ -68,6 +68,8 @@ export class EventHandlerPullRequest extends EventHandler {
 
         let promises = [];
 
+        let that = this;
+
         event.tasks.forEach(async (task) => {
 
             if (!Executor.isRegistered(task.executor)) {
@@ -76,6 +78,10 @@ export class EventHandlerPullRequest extends EventHandler {
             log.info('=================================');
             log.info('Creating Executor for Task: ' + task.executor + ':' + task.context);
             let executor = Executor.create(task.executor, event.eventData);
+
+            executor.on('SQSHeartBeat', function() {
+                log.info(`Sending Heartbeat to SQS for Message ID: ${that.MessageID}`);
+            });
 
             let taskPromise = executor.executeTask(task).then((taskResult) => {
                 let status;
@@ -88,14 +94,17 @@ export class EventHandlerPullRequest extends EventHandler {
                         'https://kuro.neko.ac'
                     );
                 } else {
+                    let defaultBuildMessage = taskResult.passed ? 'Task Completed Successfully' : 'Task Completed with Errors';
+                    let taskResultMessage = taskResult.buildMessage ? taskResult.buildMessage : defaultBuildMessage;
                     status = Utils.createStatus(
                         event.eventData,
                         taskResult.passed ? 'success' : 'error',
                         task.context,
-                        taskResult.passed ? 'Task Completed Successfully' : 'Task Completed with Errors',
+                        taskResultMessage,
                         taskResult.url
                     );
                 }
+                log.info(status);
                 return status;
 
             }).then((status) => {
