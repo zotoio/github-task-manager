@@ -66,7 +66,7 @@ export class Utils {
     }
 
     /**
-     * 
+     * Create a Status Object to Send to GitHub
      * @param {object} eventData - Data from GitHub Event
      * @param {string} state - Current Task State (pending, passed, failed)
      * @param {string} context - Content Name to Display in GitHub
@@ -102,12 +102,22 @@ export class Utils {
         return result;
     }
 
+    /**
+     * Returns the URL for a Given Queue
+     * @param {String} queueName - Name of Queue in Current AWS Account
+     */
     static async getQueueUrl(queueName) {
         return sqs.getQueueUrl({ QueueName: queueName }).promise().then((data) => {
             return Promise.resolve(data.QueueUrl);
         });
     }
 
+    /**
+     * Update a Message Timeout on an SQS Queue
+     * @param {String} queueName - Name of SQS Queue Holding Message
+     * @param {String} messageHandle - Message Handle from ReceiveMessage Event
+     * @param {Integer} timeoutValue - New Message Timeout Value (Seconds)
+     */
     static async setSqsMessageTimeout(queueName, messageHandle, timeoutValue) {
         log.debug(`Setting SQS Message Timeout to ${timeoutValue} Seconds`);
         return Utils.getQueueUrl(queueName).then(function (queueUrl) {
@@ -164,6 +174,10 @@ export class Utils {
             });
     }
 
+    /**
+     * Pause Execution for Arbitrary Time
+     * @param {Integer} ms - Milliseconds to Pause
+     */
     static timeout(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
