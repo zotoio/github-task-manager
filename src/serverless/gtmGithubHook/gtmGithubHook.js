@@ -72,6 +72,7 @@ async function handleEvent(type, body, signature) {
 
     let bodyString = JSON.stringify(body);
     let ghEventId = UUID();
+    let ghAgentGroup = taskConfig[type] && taskConfig[type].agentGroup ? taskConfig[type].agentGroup : 'default';
 
     let event = [
         {
@@ -81,7 +82,7 @@ async function handleEvent(type, body, signature) {
                 ghEventId: { DataType: 'String', StringValue: ghEventId },
                 ghEventType: { DataType: 'String', StringValue: type },
                 ghTaskConfig: { DataType: 'String', StringValue: json.plain(taskConfig) },
-                ghAgentGroup: { DataType: 'String', StringValue:  taskConfig[type].agentGroup || ''}
+                ghAgentGroup: { DataType: 'String', StringValue:  ghAgentGroup}
             }
         }
     ];

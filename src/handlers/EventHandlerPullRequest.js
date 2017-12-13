@@ -77,38 +77,64 @@ export class EventHandlerPullRequest extends EventHandler {
             log.info('Creating Executor for Task: ' + task.executor + ':' + task.context);
             let executor = Executor.create(task.executor, event.eventData);
 
-            let taskPromise = executor.executeTask(task).then((taskResult) => {
-                let status;
-                if (taskResult === 'NO_MATCHING_TASK') {
+            let status;
+            let taskPromise;
+
+            try {
+                taskPromise = executor.executeTask(task).then((taskResult) => {
+
+                    if (taskResult === 'NO_MATCHING_TASK') {
+                        status = Utils.createStatus(
+                            event.eventData,
+                            'error',
+                            task.context,
+                            'Unknown Task Type: ' + task.context,
+                            'https://kuro.neko.ac'
+                        );
+                    } else {
+                        let defaultBuildMessage = taskResult.passed ? 'Task Completed Successfully' : 'Task Completed with Errors';
+                        let taskResultMessage = taskResult.buildMessage ? taskResult.buildMessage : defaultBuildMessage;
+                        status = Utils.createStatus(
+                            event.eventData,
+                            taskResult.passed ? 'success' : 'error',
+                            task.context,
+                            taskResultMessage,
+                            taskResult.url
+                        );
+                    }
+                    return status;
+
+                }).then((status) => {
+
+                    return Utils.postResultsAndTrigger(
+                        process.env.GTM_SQS_RESULTS_QUEUE,
+                        status,
+                        process.env.GTM_SNS_RESULTS_TOPIC,
+                        `Result '${status.state}' for ${event.eventType} => ${task.executor}:${task.context} - Event ID: ${event.eventId}`
+                    );
+
+                }).catch(() => {
+
                     status = Utils.createStatus(
                         event.eventData,
                         'error',
                         task.context,
-                        'Unknown Task Type: ' + task.context,
-                        'https://kuro.neko.ac'
+                        'Task execution failure'
                     );
-                } else {
-                    let defaultBuildMessage = taskResult.passed ? 'Task Completed Successfully' : 'Task Completed with Errors';
-                    let taskResultMessage = taskResult.buildMessage ? taskResult.buildMessage : defaultBuildMessage;
-                    status = Utils.createStatus(
-                        event.eventData,
-                        taskResult.passed ? 'success' : 'error',
-                        task.context,
-                        taskResultMessage,
-                        taskResult.url
+
+                    return Utils.postResultsAndTrigger(
+                        process.env.GTM_SQS_RESULTS_QUEUE,
+                        status,
+                        process.env.GTM_SNS_RESULTS_TOPIC,
+                        `Result 'error' for ${event.eventType} => ${task.executor}:${task.context} - Event ID: ${event.eventId}`
                     );
-                }
-                return status;
 
-            }).then((status) => {
+                });
 
-                return Utils.postResultsAndTrigger(
-                    process.env.GTM_SQS_RESULTS_QUEUE,
-                    status,
-                    process.env.GTM_SNS_RESULTS_TOPIC,
-                    `Result for ${event.eventType} => ${task.executor}:${task.context} - Event ID: ${event.eventId}`
-                );
-            });
+            } catch (e) {
+                taskPromise = Promise.reject(e.message);
+            }
+
             promises.push(taskPromise);
 
         });

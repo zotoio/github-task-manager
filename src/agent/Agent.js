@@ -86,7 +86,7 @@ export class Agent {
                 updatedEventData = hljs.highlight('json', JSON.stringify(systemConfig.event.current, null, 4)).value;
             else
                 updatedEventData = null;
-            res.render('event.html', {globalProperties: systemConfig, eventData: updatedEventData});
+            res.render('event.html', { globalProperties: systemConfig, eventData: updatedEventData });
         });
 
         app.get('/stream/start/:group', (req, res) => {
@@ -106,7 +106,7 @@ export class Agent {
 
         app.get('/stream/filter/:group/:stream', (req, res) => {
             Utils.stream(req.params.group, req.params.stream);
-            res.json({group: req.params.group, stream: req.params.stream});
+            res.json({ group: req.params.group, stream: req.params.stream });
         });
 
         app.get('/stream/keepalive', (req, res) => {
@@ -124,11 +124,11 @@ export class Agent {
         app.get('/config', (req, res) => {
             res.json(systemConfig);
         });
-        
+
         app.get('/config/pendingqueue', (req, res) => {
             res.json(systemConfig.pendingQueue);
         });
-        
+
         app.get('/config/pendingqueue/:desiredState', (req, res) => {
             try {
                 let desiredState = req.params.desiredState;
@@ -143,12 +143,12 @@ export class Agent {
                         log.debug('Queue Processing Started');
                     }
                 }
-            } catch(error) {
+            } catch (error) {
                 log.error('Error Setting Queue State from Request');
             }
             systemConfig.pendingQueue.enabled = !pendingQueueHandler.stopped;
             systemConfig.pendingQueue.state = pendingQueueHandler.stopped ? 'Stopped' : 'Running';
-            res.json({state: systemConfig.pendingQueue.state});
+            res.json({ state: systemConfig.pendingQueue.state });
         });
 
         let that = this;
@@ -167,7 +167,7 @@ export class Agent {
 
                 handleMessage: async (message, done) => {
 
-                    log.info('====================================');
+                    log.info('## == NEW EVENT ==================================');
                     log.info('Received Event from Queue');
                     log.debug(`message: ${json.plain(message)}`);
 
@@ -175,32 +175,36 @@ export class Agent {
                     try {
                         ghEventId = message.MessageAttributes.ghEventId.StringValue;
                     } catch (TypeError) {
-                        log.error('No Message Attribute \'ghEventId\' in Message. Defaulting to \'unknown\'');
-                        ghEventId = 'unknown';
+                        log.error('No Message Attribute \'ghEventId\' in Message - discarding Event!');
+                        done();
+                        return;
                     }
 
                     let ghEventType;
                     try {
                         ghEventType = message.MessageAttributes.ghEventType.StringValue;
                     } catch (TypeError) {
-                        log.error('No Message Attribute \'ghEventType\' in Message. Defaulting to \'status\'');
-                        ghEventType = 'status';
+                        log.error('No Message Attribute \'ghEventType\' in Message - discarding Event!');
+                        done();
+                        return;
                     }
 
                     let ghAgentGroup;
                     try {
                         ghAgentGroup = message.MessageAttributes.ghAgentGroup.StringValue;
                     } catch (TypeError) {
-                        log.error('No Message Attribute \'ghAgentGroup\' in Message. Defaulting to \'default\'');
-                        ghAgentGroup = 'default';
+                        log.error('No Message Attribute \'ghAgentGroup\' in Message - discarding Event!');
+                        done();
+                        return;
                     }
 
                     let taskConfig;
                     try {
                         taskConfig = JSON.parse(message.MessageAttributes.ghTaskConfig.StringValue);
                     } catch (TypeError) {
-                        log.error('No Message Attribute \'ghTaskConfig\' in Message. Defaulting to \'{}\'');
-                        taskConfig = JSON.parse({});
+                        log.error('No Message Attribute \'ghTaskConfig\' in Message - discarding Event!');
+                        done();
+                        return;
                     }
 
                     let ghEventSignature;
@@ -214,9 +218,9 @@ export class Agent {
                             log.info('Event signature verified. processing event..');
                         }
 
-                    } catch (TypeError) {
-                        log.error('No Message Attribute \'ghEventSignature\' in Message. Discarding Event!');
-                        log.error(TypeError.message);
+                    } catch (Error) {
+                        log.error('Event signature validation error. Discarding Event!');
+                        log.error(Error.message);
                         done();
                         return;
                     }
@@ -225,24 +229,38 @@ export class Agent {
                     eventData.ghEventId = ghEventId;
                     eventData.ghEventType = ghEventType;
                     eventData.ghTaskConfig = taskConfig;
-                    eventData.MessageID = message.MessageId;
+                    eventData.MessageHandle = message.ReceiptHandle;
                     systemConfig.event.current = eventData;
 
                     if (ghAgentGroup !== agentGroup) {
-
+                        log.info(`agentGroup mismatch - event: '${ghAgentGroup}' agent: '${agentGroup}' skipping..`);
+                        Utils.setSqsMessageTimeout(process.env.GTM_SQS_PENDING_QUEUE, message.ReceiptHandle, 0);
+                        return;
                     }
 
                     if (!EventHandler.isRegistered(ghEventType)) {
-                        log.info(`No Event Handler for Type: '${ghEventType}' (Event ID: ${ghEventId})`);
+                        log.error(`No Event Handler for Type: '${ghEventType}' (Event ID: ${ghEventId})`);
+                        done();
 
                     } else {
 
-                        // handle the event and execute tasks
-                        await (EventHandler.create(ghEventType, eventData).handleEvent()).then(() => {
-                            done();
-                            return Promise.resolve(log.info(`Event handled: type=${ghEventType} id=${ghEventId}}`));
+                        let loopTimer = setInterval(function() {
+                            Utils.setSqsMessageTimeout(process.env.GTM_SQS_PENDING_QUEUE, message.ReceiptHandle, 30);
+                        }, 5000);
 
-                        });
+                        // handle the event and execute tasks
+                        try {
+                            await (EventHandler.create(ghEventType, eventData).handleEvent()).then(() => {
+                                done();
+                                clearInterval(loopTimer);
+                                return Promise.resolve(log.info(`### Event handled: type=${ghEventType} id=${ghEventId}}`));
+                            });
+
+                        } catch (e) {
+                            log.error(e);
+                            clearInterval(loopTimer);
+                            done(e);
+                        }
 
                     }
 
@@ -282,7 +300,8 @@ export class Agent {
             messageAttributes: {
                 ghEventId: { DataType: 'String', StringValue: event.MessageAttributes.ghEventId.StringValue },
                 ghEventType: { DataType: 'String', StringValue: event.MessageAttributes.ghEventType.StringValue },
-                ghTaskConfig: { DataType: 'String', StringValue: event.MessageAttributes.ghTaskConfig.StringValue }
+                ghTaskConfig: { DataType: 'String', StringValue: event.MessageAttributes.ghTaskConfig.StringValue },
+                ghAgentGroup: { DataType: 'String', StringValue: event.MessageAttributes.ghAgentGroup.StringValue }
             }
         };
 
