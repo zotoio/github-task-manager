@@ -234,7 +234,7 @@ export class Agent {
 
                     if (ghAgentGroup !== agentGroup) {
                         log.info(`agentGroup mismatch - event: '${ghAgentGroup}' agent: '${agentGroup}' skipping..`);
-                        Utils.setSqsMessageTimeout(process.env.GTM_SQS_PENDING_QUEUE, message.ReceiptHandle, 0);
+                        Utils.setSqsMessageTimeout(process.env.GTM_SQS_PENDING_QUEUE, message.ReceiptHandle, 5);
                         return;
                     }
 
