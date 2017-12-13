@@ -66,7 +66,6 @@ export class ExecutorJenkins extends Executor {
         });
         let tries = 1;
         while (buildDict.result === null) {
-            this.emit('SQSHeartBeat');
             await Utils.timeout(5000);
             buildDict = await this.jenkins.build.get(buildName, buildNumber).then(function (data) {
                 log.debug('Waiting for Build \'' + buildName + '\' to Finish: ' + tries++);

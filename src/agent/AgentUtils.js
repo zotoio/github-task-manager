@@ -118,7 +118,7 @@ export class Utils {
                 VisibilityTimeout: timeoutValue
             }).promise();
         }).then(function(data) {
-            log.info(JSON.stringify(data));
+            log.info('SQS Heartbeat Sent. (' + timeoutValue + 's) ' + JSON.stringify(data));
         });
     }
 

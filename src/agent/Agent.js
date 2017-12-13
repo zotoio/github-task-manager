@@ -65,7 +65,7 @@ export class Agent {
         });
 
         app.get('/', (req, res) => {
-            res.render('index.html', {globalProperties: systemConfig});
+            res.render('index.html', { globalProperties: systemConfig });
         });
 
         app.get('/event_test/', (req, res) => {
@@ -85,7 +85,7 @@ export class Agent {
                 updatedEventData = hljs.highlight('json', JSON.stringify(systemConfig.event.current, null, 4)).value;
             else
                 updatedEventData = null;
-            res.render('event.html', {globalProperties: systemConfig, eventData: updatedEventData});
+            res.render('event.html', { globalProperties: systemConfig, eventData: updatedEventData });
         });
 
         app.get('/stream/start/:group', (req, res) => {
@@ -105,7 +105,7 @@ export class Agent {
 
         app.get('/stream/filter/:group/:stream', (req, res) => {
             Utils.stream(req.params.group, req.params.stream);
-            res.json({group: req.params.group, stream: req.params.stream});
+            res.json({ group: req.params.group, stream: req.params.stream });
         });
 
         app.get('/stream/keepalive', (req, res) => {
@@ -123,11 +123,11 @@ export class Agent {
         app.get('/config', (req, res) => {
             res.json(systemConfig);
         });
-        
+
         app.get('/config/pendingqueue', (req, res) => {
             res.json(systemConfig.pendingQueue);
         });
-        
+
         app.get('/config/pendingqueue/:desiredState', (req, res) => {
             try {
                 let desiredState = req.params.desiredState;
@@ -142,12 +142,12 @@ export class Agent {
                         log.debug('Queue Processing Started');
                     }
                 }
-            } catch(error) {
+            } catch (error) {
                 log.error('Error Setting Queue State from Request');
             }
             systemConfig.pendingQueue.enabled = !pendingQueueHandler.stopped;
             systemConfig.pendingQueue.state = pendingQueueHandler.stopped ? 'Stopped' : 'Running';
-            res.json({state: systemConfig.pendingQueue.state});
+            res.json({ state: systemConfig.pendingQueue.state });
         });
 
         let that = this;
@@ -223,12 +223,14 @@ export class Agent {
                         log.info(`No Event Handler for Type: '${ghEventType}' (Event ID: ${ghEventId})`);
 
                     } else {
-
+                        let loopTimer = setInterval(function() {
+                            Utils.setSqsMessageTimeout(process.env.GTM_SQS_PENDING_QUEUE, message.ReceiptHandle, 30);
+                        }, 5000);
                         // handle the event and execute tasks
                         await (EventHandler.create(ghEventType, eventData).handleEvent()).then(() => {
                             done();
+                            clearInterval(loopTimer);
                             return Promise.resolve(log.info(`Event handled: type=${ghEventType} id=${ghEventId}}`));
-
                         });
 
                     }
@@ -256,7 +258,7 @@ export class Agent {
                 systemConfig.pendingQueue.enabled = !pendingQueueHandler.stopped;
                 systemConfig.agentId = Utils.agentId();
             });
-            
+
         });
     }
 
@@ -266,9 +268,9 @@ export class Agent {
             id: event.MessageAttributes.ghEventId.StringValue,
             body: event.Body,
             messageAttributes: {
-                ghEventId: {DataType: 'String', StringValue: event.MessageAttributes.ghEventId.StringValue},
-                ghEventType: {DataType: 'String', StringValue: event.MessageAttributes.ghEventType.StringValue},
-                ghTaskConfig: {DataType: 'String', StringValue: event.MessageAttributes.ghTaskConfig.StringValue}
+                ghEventId: { DataType: 'String', StringValue: event.MessageAttributes.ghEventId.StringValue },
+                ghEventType: { DataType: 'String', StringValue: event.MessageAttributes.ghEventType.StringValue },
+                ghTaskConfig: { DataType: 'String', StringValue: event.MessageAttributes.ghTaskConfig.StringValue }
             }
         };
 

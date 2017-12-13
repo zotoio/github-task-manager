@@ -68,8 +68,6 @@ export class EventHandlerPullRequest extends EventHandler {
 
         let promises = [];
 
-        let that = this;
-
         event.tasks.forEach(async (task) => {
 
             if (!Executor.isRegistered(task.executor)) {
@@ -78,10 +76,6 @@ export class EventHandlerPullRequest extends EventHandler {
             log.info('=================================');
             log.info('Creating Executor for Task: ' + task.executor + ':' + task.context);
             let executor = Executor.create(task.executor, event.eventData);
-
-            executor.on('SQSHeartBeat', function() {
-                Utils.setSqsMessageTimeout(process.env.GTM_SQS_PENDING_QUEUE, that.MessageHandle, 30);
-            });
 
             let taskPromise = executor.executeTask(task).then((taskResult) => {
                 let status;
