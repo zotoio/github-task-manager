@@ -98,8 +98,7 @@ export class ExecutorJenkins extends Executor {
         let buildExists = await this.waitForBuildToExist(jobName, buildNumber);
         console.debug(buildExists);
         let result = await this.waitForBuild(jobName, buildNumber);
-
-        log.info('Build Finished: ' + result.result);
+        
         let resultBool = result.result === 'SUCCESS';
         return Promise.resolve({ passed: resultBool, url: result.url, buildMessage: `${jobName} #${buildNumber} - ${result.result}` });  // todo handle results
     }
