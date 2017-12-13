@@ -46,7 +46,7 @@ export class ExecutorDocker extends Executor {
 
             });
 
-            return container.logs({
+            container.logs({
                 follow: true,
                 stdout: true,
                 stderr: true
