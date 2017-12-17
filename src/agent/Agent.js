@@ -159,10 +159,10 @@ export class Agent {
                 } else {
                     if (desiredState === 'disable') {
                         pendingQueueHandler.stop();
-                        log.debug('Queue Processing Stopped');
+                        log.info('Queue Processing Stopped');
                     } else {
                         pendingQueueHandler.start();
-                        log.debug('Queue Processing Started');
+                        log.info('Queue Processing Started');
                     }
                 }
             } catch (error) {
@@ -213,6 +213,7 @@ export class Agent {
                     if (attrs.ghAgentGroup !== AGENT_GROUP) {
                         log.info(`agentGroup mismatch - event: '${attrs.ghAgentGroup}' agent: '${AGENT_GROUP}' skipping..`);
                         Utils.setSqsMessageTimeout(process.env.GTM_SQS_PENDING_QUEUE, message.ReceiptHandle, 5);
+                        done(new Error); // Re-Queue Messages that don't match our Agent Group
                         return;
                     }
 

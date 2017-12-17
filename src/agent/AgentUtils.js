@@ -215,4 +215,15 @@ export class Utils {
             console.log(line);
         });
     }
+
+    static templateReplace(varDict, template) {
+        let templateStr = JSON.stringify(template);
+        for(let key in varDict) {
+            let re = new RegExp(key,'g');
+            log.info(`Replacing ${key} with ${varDict[key]}`);
+            templateStr = templateStr.replace(re, varDict[key]);
+        }
+        console.debug(templateStr);
+        return JSON.parse(templateStr);
+    }
 }
