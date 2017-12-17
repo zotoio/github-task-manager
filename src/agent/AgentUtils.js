@@ -127,7 +127,7 @@ export class Utils {
                 ReceiptHandle: messageHandle,
                 VisibilityTimeout: timeoutValue
             }).promise();
-        }).then(function(data) {
+        }).then(function (data) {
             log.info('SQS Heartbeat Sent. (' + timeoutValue + 's) ' + JSON.stringify(data));
         });
     }
@@ -214,5 +214,32 @@ export class Utils {
         bannerData.forEach(function (line) {
             console.log(line);
         });
+    }
+
+    /**
+     * Replace Template Strings within Objects
+     * @param {Object} varDict - Source for Template Variables
+     * @param {Object} template - Object to Replace Template Strings Within
+     */
+    static templateReplace(varDict, template) {
+        let templateStr = JSON.stringify(template);
+        for (let key in varDict) {
+            let re = new RegExp(key, 'g');
+            log.info(`Replacing ${key} with ${varDict[key]}`);
+            templateStr = templateStr.replace(re, varDict[key]);
+        }
+        console.debug(templateStr);
+        return JSON.parse(templateStr);
+    }
+
+    /**
+     * Create a Templating Object from a Configuration Object
+     * @param {Object} obj - EventData Object to Return Variables From
+     */
+    static createBasicTemplate(obj) {
+        return {
+            '##GHPRNUM##': obj.pull_request.number,
+            '##GHREPONAME##': obj.repository.name
+        };
     }
 }

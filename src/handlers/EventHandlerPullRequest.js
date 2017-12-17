@@ -19,6 +19,8 @@ export class EventHandlerPullRequest extends EventHandler {
         log.info('Pull Request: ' + this.eventData.pull_request.number);
         log.info('---------------------------------');
 
+        this.tasks = Utils.templateReplace(Utils.createBasicTemplate(this.eventData), this.tasks);
+
         // first set each pr check to pending
         let that = this;
         return this.setIntialTaskState(this).then(() => {
@@ -60,7 +62,7 @@ export class EventHandlerPullRequest extends EventHandler {
             }));
 
         });
-
+        
         return Promise.all(promises);
     }
 

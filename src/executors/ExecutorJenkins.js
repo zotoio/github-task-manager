@@ -86,8 +86,10 @@ export class ExecutorJenkins extends Executor {
     async executeTask(task) {
 
         let jobName = this.taskNameToBuild(task.context);
-        if (jobName == null)
+        if (jobName == null) {
+            await Utils.timeout(4000);
             return 'NO_MATCHING_TASK';
+        }
 
         let buildParams = this.createJenkinsBuildParams(task);
         log.debug(buildParams);
