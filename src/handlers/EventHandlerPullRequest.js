@@ -19,7 +19,7 @@ export class EventHandlerPullRequest extends EventHandler {
         log.info('Pull Request: ' + this.eventData.pull_request.number);
         log.info('---------------------------------');
 
-        this.tasks = Utils.templateReplace({'##GHPRNUM##': this.eventData.pull_request.number, '##GHREPONAME##': this.eventData.repository.name}, this.tasks);
+        this.tasks = Utils.templateReplace(Utils.createBasicTemplate(this.eventData), this.tasks);
 
         // first set each pr check to pending
         let that = this;
