@@ -6,7 +6,6 @@ import { default as json } from 'format-json';
 let log = Utils.logger();
 
 export class EventHandler extends Plugin {
-
     constructor(eventData) {
         super();
 
@@ -21,7 +20,7 @@ export class EventHandler extends Plugin {
         // Handle Older Task Format
         try {
             this.tasks = this.taskConfig[this.eventType].tasks;
-        } catch(error) {
+        } catch (error) {
             log.error('No Tasks Defined for Event Type ' + this.eventType);
             log.debug(error);
             this.tasks = {};
@@ -33,9 +32,7 @@ export class EventHandler extends Plugin {
         log.info('Event Type: ' + this.eventType);
         log.info('Tasks: ' + json.plain(this.tasks));
         log.debug(eventData);
-
     }
-
 }
 
 requireDir('../handlers');

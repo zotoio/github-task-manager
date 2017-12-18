@@ -5,7 +5,6 @@ import { default as json } from 'format-json';
 let log = Utils.logger();
 
 export class ExecutorTeamCity extends Executor {
-
     constructor(eventData) {
         super(eventData);
         this.options = this.getOptions();
@@ -18,7 +17,6 @@ export class ExecutorTeamCity extends Executor {
             username: 'user',
             password: 'pass'
         });*/
-
     }
 
     run(fn) {
@@ -49,9 +47,8 @@ export class ExecutorTeamCity extends Executor {
     async executeTask(task) {
         log.info('TeamCity Build Finished');
         log.debug(task);
-        return {passed: true, url: 'https://www.jetbrains.com/teamcity'};
+        return { passed: true, url: 'https://www.jetbrains.com/teamcity' };
     }
-
 }
 
 Executor.register('TeamCity', ExecutorTeamCity);

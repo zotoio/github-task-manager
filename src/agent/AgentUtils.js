@@ -17,7 +17,6 @@ let sns = new AWS.SNS({ apiVersion: '2010-03-31' });
 require('babel-polyfill');
 
 export class Utils {
-
     static agentId() {
         return AgentLogger.AGENT_ID;
     }
@@ -47,8 +46,16 @@ export class Utils {
         return pullRequestData;
     }
 
-    static maskString(plaintext, desiredLength = 12, visibleChars = 5, maskChar = '*') {
-        let maskLength = Math.min(plaintext.length - visibleChars, desiredLength);
+    static maskString(
+        plaintext,
+        desiredLength = 12,
+        visibleChars = 5,
+        maskChar = '*'
+    ) {
+        let maskLength = Math.min(
+            plaintext.length - visibleChars,
+            desiredLength
+        );
         return maskChar.repeat(maskLength) + plaintext.slice(-5);
     }
 
@@ -74,9 +81,15 @@ export class Utils {
      */
     static createStatus(eventData, state, context, description, url) {
         return {
-            owner: eventData.repository.owner.login ? eventData.repository.owner.login : 'Default_Owner',
-            repo: eventData.repository.name ? eventData.repository.name : 'Default_Repository',
-            sha: eventData.pull_request.head.sha ? eventData.pull_request.head.sha : 'Missing SHA',
+            owner: eventData.repository.owner.login
+                ? eventData.repository.owner.login
+                : 'Default_Owner',
+            repo: eventData.repository.name
+                ? eventData.repository.name
+                : 'Default_Repository',
+            sha: eventData.pull_request.head.sha
+                ? eventData.pull_request.head.sha
+                : 'Missing SHA',
             state: state,
             target_url: url ? url : 'http://neko.ac', //todo
             description: description,
@@ -90,8 +103,10 @@ export class Utils {
 
         // if exact key not found try splitting comma delimited and check each subkey
         if (!result) {
-            Object.keys(cases).forEach((k) => {
-                let subKeys = k.split(',').map((i) => { return i.trim(); });
+            Object.keys(cases).forEach(k => {
+                let subKeys = k.split(',').map(i => {
+                    return i.trim();
+                });
                 if (subKeys.includes(key)) {
                     result = cases[k];
                 }
@@ -107,9 +122,12 @@ export class Utils {
      * @param {String} queueName - Name of Queue in Current AWS Account
      */
     static async getQueueUrl(queueName) {
-        return sqs.getQueueUrl({ QueueName: queueName }).promise().then((data) => {
-            return Promise.resolve(data.QueueUrl);
-        });
+        return sqs
+            .getQueueUrl({ QueueName: queueName })
+            .promise()
+            .then(data => {
+                return Promise.resolve(data.QueueUrl);
+            });
     }
 
     /**
@@ -120,28 +138,45 @@ export class Utils {
      */
     static async setSqsMessageTimeout(queueName, messageHandle, timeoutValue) {
         log.debug(`Setting SQS Message Timeout to ${timeoutValue} Seconds`);
-        return Utils.getQueueUrl(queueName).then(function (queueUrl) {
-            log.debug(`Queue URL: ${queueUrl}, Message Handle: ${messageHandle}, Timeout: ${timeoutValue}`);
-            return sqs.changeMessageVisibility({
-                QueueUrl: queueUrl,
-                ReceiptHandle: messageHandle,
-                VisibilityTimeout: timeoutValue
-            }).promise();
-        }).then(function (data) {
-            log.info('SQS Heartbeat Sent. (' + timeoutValue + 's) ' + JSON.stringify(data));
-        });
+        return Utils.getQueueUrl(queueName)
+            .then(function(queueUrl) {
+                log.debug(
+                    `Queue URL: ${queueUrl}, Message Handle: ${messageHandle}, Timeout: ${timeoutValue}`
+                );
+                return sqs
+                    .changeMessageVisibility({
+                        QueueUrl: queueUrl,
+                        ReceiptHandle: messageHandle,
+                        VisibilityTimeout: timeoutValue
+                    })
+                    .promise();
+            })
+            .then(function(data) {
+                log.info(
+                    'SQS Heartbeat Sent. (' +
+                        timeoutValue +
+                        's) ' +
+                        JSON.stringify(data)
+                );
+            });
     }
 
-    static async postResultsAndTrigger(sqsQueueName, results, snsQueueName, message) {
-        return Utils.getQueueUrl(sqsQueueName).then(function (sqsQueueUrl) {
-            let params = {
-                MessageBody: JSON.stringify(results),
-                QueueUrl: sqsQueueUrl,
-                DelaySeconds: 0
-            };
-            return Promise.resolve(params);
-        })
-            .then((params) => {
+    static async postResultsAndTrigger(
+        sqsQueueName,
+        results,
+        snsQueueName,
+        message
+    ) {
+        return Utils.getQueueUrl(sqsQueueName)
+            .then(function(sqsQueueUrl) {
+                let params = {
+                    MessageBody: JSON.stringify(results),
+                    QueueUrl: sqsQueueUrl,
+                    DelaySeconds: 0
+                };
+                return Promise.resolve(params);
+            })
+            .then(params => {
                 return sqs.sendMessage(params).promise();
             })
             .then(() => {
@@ -151,8 +186,7 @@ export class Utils {
 
                 return sns.createTopic(params).promise();
             })
-            .then((data) => {
-
+            .then(data => {
                 let topicArn = data.TopicArn;
                 let params = {
                     Message: message,
@@ -160,15 +194,15 @@ export class Utils {
                 };
                 return Promise.resolve(params);
             })
-            .then((params) => {
+            .then(params => {
                 return sns.publish(params).promise();
             })
-            .then((data) => {
-                log.info('Published Message \'' + message + '\' to Queue');
+            .then(data => {
+                log.info(`Published Message '${message}' to Queue`);
                 log.debug(data);
                 return Promise.resolve(true);
             })
-            .catch((e) => {
+            .catch(e => {
                 log.error(e);
                 throw e;
             });
@@ -211,7 +245,7 @@ export class Utils {
             '                                    /____/                    '
         ];
         /* eslint-enable */
-        bannerData.forEach(function (line) {
+        bannerData.forEach(function(line) {
             console.log(line);
         });
     }

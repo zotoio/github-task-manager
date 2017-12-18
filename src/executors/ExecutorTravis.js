@@ -5,7 +5,6 @@ import { default as json } from 'format-json';
 let log = Utils.logger();
 
 export class ExecutorTravis extends Executor {
-
     constructor(eventData) {
         super(eventData);
         this.options = this.getOptions();
@@ -16,7 +15,6 @@ export class ExecutorTravis extends Executor {
         this.travis = new Travis({
             version: '2.0.0'
         });
-
     }
 
     run(fn) {
@@ -24,19 +22,21 @@ export class ExecutorTravis extends Executor {
     }
 
     async executeForPullRequest(task) {
-
         log.info(`travis options: ${json.plain(task.options)}`);
 
-        this.travis.authenticate({
-            github_token: process.env.GTM_GITHUB_TOKEN
-        }, function (err) {
-            if (err) {
-                log.error(err);
-                return;
-            }
+        this.travis.authenticate(
+            {
+                github_token: process.env.GTM_GITHUB_TOKEN
+            },
+            function(err) {
+                if (err) {
+                    log.error(err);
+                    return;
+                }
 
-            log.info('logged in to travis');
-        });
+                log.info('logged in to travis');
+            }
+        );
 
         let result = true;
         log.info('Build Finished: ' + result);
@@ -46,9 +46,8 @@ export class ExecutorTravis extends Executor {
     async executeTask(task) {
         log.info('Travis Build Finished');
         log.debug(task);
-        return {passed: true, url: 'https://travis-ci.org'};
+        return { passed: true, url: 'https://travis-ci.org' };
     }
-
 }
 
 Executor.register('Travis', ExecutorTravis);

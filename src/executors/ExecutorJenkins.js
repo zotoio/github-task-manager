@@ -4,7 +4,6 @@ import { Utils } from '../agent/AgentUtils';
 let log = Utils.logger();
 
 export class ExecutorJenkins extends Executor {
-
     constructor(eventData) {
         super(eventData);
         this.options = this.getOptions();
@@ -13,14 +12,14 @@ export class ExecutorJenkins extends Executor {
             baseUrl: Utils.formatBasicAuth(
                 this.options.GTM_JENKINS_USER,
                 this.options.GTM_JENKINS_TOKEN,
-                this.options.GTM_JENKINS_URL),
-            crumbIssuer: true, promisify: true
+                this.options.GTM_JENKINS_URL
+            ),
+            crumbIssuer: true,
+            promisify: true
         });
-
     }
 
     taskNameToBuild(context) {
-
         let desiredTask = context;
         console.debug(desiredTask);
 
@@ -45,33 +44,49 @@ export class ExecutorJenkins extends Executor {
             let maxRetries = 600;
             let tries = 0;
             while (!exists && tries++ < maxRetries) {
-                exists = await this.jenkins.build.get(buildName, buildNumber).then(function () {
-                    log.info(`Build ${buildName} #${buildNumber} Started!`);
-                    return true;
-                }, async function () {
-                    log.debug(`Build ${buildName} #${buildNumber} Hasn't Started: ${tries}`);
-                    await Utils.timeout(10000);
-                    return false;
-                });
+                exists = await this.jenkins.build
+                    .get(buildName, buildNumber)
+                    .then(
+                        function() {
+                            log.info(
+                                `Build ${buildName} #${buildNumber} Started!`
+                            );
+                            return true;
+                        },
+                        async function() {
+                            log.debug(
+                                `Build ${buildName} #${buildNumber} Hasn't Started: ${tries}`
+                            );
+                            await Utils.timeout(10000);
+                            return false;
+                        }
+                    );
             }
             exists ? resolve(true) : reject();
         });
-
     }
 
     async waitForBuild(buildName, buildNumber) {
-        let buildDict = await this.jenkins.build.get(buildName, buildNumber).then(function (data) {
-            return data;
-        });
+        let buildDict = await this.jenkins.build
+            .get(buildName, buildNumber)
+            .then(function(data) {
+                return data;
+            });
         let tries = 1;
         while (buildDict.result === null) {
             await Utils.timeout(5000);
-            buildDict = await this.jenkins.build.get(buildName, buildNumber).then(function (data) {
-                log.debug('Waiting for Build \'' + buildName + '\' to Finish: ' + tries++);
-                return data;
-            });
+            buildDict = await this.jenkins.build
+                .get(buildName, buildNumber)
+                .then(function(data) {
+                    log.debug(
+                        `Waiting for Build '${buildName}' to Finish: ${tries++}`
+                    );
+                    return data;
+                });
         }
-        log.info(`Build Finished: ${buildName} #${buildNumber} - ${buildDict.result}`);
+        log.info(
+            `Build Finished: ${buildName} #${buildNumber} - ${buildDict.result}`
+        );
         return buildDict;
     }
 
@@ -84,7 +99,6 @@ export class ExecutorJenkins extends Executor {
     }
 
     async executeTask(task) {
-
         let jobName = this.taskNameToBuild(task.context);
         if (jobName == null) {
             await Utils.timeout(4000);
@@ -95,15 +109,21 @@ export class ExecutorJenkins extends Executor {
         log.debug(buildParams);
 
         log.info('Starting Jenkins Job: ' + jobName);
-        let buildNumber = await this.jenkins.job.build({ name: jobName, parameters: buildParams });
+        let buildNumber = await this.jenkins.job.build({
+            name: jobName,
+            parameters: buildParams
+        });
         let buildExists = await this.waitForBuildToExist(jobName, buildNumber);
         console.debug(buildExists);
         let result = await this.waitForBuild(jobName, buildNumber);
-        
-        let resultBool = result.result === 'SUCCESS';
-        return Promise.resolve({ passed: resultBool, url: result.url, message: `${jobName} #${buildNumber} - ${result.result}` });  // todo handle results
-    }
 
+        let resultBool = result.result === 'SUCCESS';
+        return Promise.resolve({
+            passed: resultBool,
+            url: result.url,
+            message: `${jobName} #${buildNumber} - ${result.result}`
+        }); // todo handle results
+    }
 }
 
 Executor.register('Jenkins', ExecutorJenkins);
