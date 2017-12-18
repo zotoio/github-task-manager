@@ -81,15 +81,9 @@ export class Utils {
      */
     static createStatus(eventData, state, context, description, url) {
         return {
-            owner: eventData.repository.owner.login
-                ? eventData.repository.owner.login
-                : 'Default_Owner',
-            repo: eventData.repository.name
-                ? eventData.repository.name
-                : 'Default_Repository',
-            sha: eventData.pull_request.head.sha
-                ? eventData.pull_request.head.sha
-                : 'Missing SHA',
+            owner: eventData.repository.owner.login || 'Default_Owner',
+            repo: eventData.repository.name || 'Default_Repository',
+            sha: eventData.pull_request.head.sha || 'Missing SHA',
             state: state,
             target_url: url ? url : 'http://neko.ac', //todo
             description: description,
@@ -153,10 +147,9 @@ export class Utils {
             })
             .then(function(data) {
                 log.info(
-                    'SQS Heartbeat Sent. (' +
-                        timeoutValue +
-                        's) ' +
-                        JSON.stringify(data)
+                    `SQS Heartbeat Sent. (${timeoutValue}'s) ${JSON.stringify(
+                        data
+                    )}`
                 );
             });
     }
