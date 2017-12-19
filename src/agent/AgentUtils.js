@@ -16,6 +16,9 @@ AWS.config.update({ region: process.env.GTM_AWS_REGION });
 
 if (process.env.AWS_PROXY) {
     AWS.config.update({
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        sessionToken: process.env.AWS_SECURITY_TOKEN,
         httpOptions: {
             agent: proxy(process.env.AWS_PROXY)
         }
