@@ -32,7 +32,7 @@ function create(agentId) {
         }
     });
 
-    let log = bunyan.createLogger({
+    return bunyan.createLogger({
         name: agentId.substring(0, 7),
         streams: [
             {
@@ -44,10 +44,6 @@ function create(agentId) {
             }
         ]
     });
-
-    LOG = log;
-
-    return LOG;
 }
 
 function log() {
@@ -111,7 +107,7 @@ function stopAllStreams() {
 
 function stopStream(group) {
     if (STREAM[group]) {
-        log().info(`closing stream: ${group}`);
+        console.log(`closing stream: ${group}`);
         STREAM[group].close();
         STREAM[group] = null;
     }
