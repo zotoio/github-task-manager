@@ -5,7 +5,6 @@ let GitHubApi = require('github');
 let crypto = require('crypto');
 
 function connect(context) {
-
     let githubOptions = {
         host: process.env.GTM_GITHUB_HOST || 'api.github.com',
         debug: process.env.GTM_GITHUB_DEBUG || false,
@@ -18,8 +17,10 @@ function connect(context) {
 
     let token = process.env.GTM_GITHUB_TOKEN;
     if (context) {
-        token = (process.env['GTM_GITHUB_TOKEN_' + (context).toUpperCase().replace('-', '_')])
-            || process.env.GTM_GITHUB_TOKEN;
+        token =
+            process.env[
+                'GTM_GITHUB_TOKEN_' + context.toUpperCase().replace('-', '_')
+            ] || process.env.GTM_GITHUB_TOKEN;
     }
 
     github.authenticate({
@@ -28,15 +29,16 @@ function connect(context) {
     });
 
     return github;
-
 }
 
 function signRequestBody(key, body) {
-    return `sha1=${crypto.createHmac('sha1', key).update(body, 'utf-8').digest('hex')}`;
+    return `sha1=${crypto
+        .createHmac('sha1', key)
+        .update(body, 'utf-8')
+        .digest('hex')}`;
 }
 
 function invalidHook(event) {
-
     let err = null;
     let errMsg = null;
     const token = process.env.GTM_GITHUB_WEBHOOK_SECRET;
@@ -50,7 +52,7 @@ function invalidHook(event) {
         {
             name: 'github secret',
             check: typeof token !== 'string',
-            msg: 'Must provide a \'GITHUB_WEBHOOK_SECRET\' env variable'
+            msg: `Must provide a 'GITHUB_WEBHOOK_SECRET' env variable`
         },
         {
             name: 'X-Hub-Signature',
@@ -70,12 +72,12 @@ function invalidHook(event) {
         {
             name: 'X-Hub-Signature signing',
             check: sig !== calculatedSig,
-            msg: 'X-Hub-Signature incorrect. Github webhook token doesn\'t match'
+            msg: `X-Hub-Signature incorrect. Github webhook token doesn't match`
         }
     ];
 
     try {
-        validators.forEach((v) => {
+        validators.forEach(v => {
             if (v.check) {
                 errMsg = v.msg;
                 throw new Error(errMsg);
@@ -91,7 +93,6 @@ function invalidHook(event) {
 }
 
 function decodeFileResponse(fileResponse) {
-
     console.log(json.plain(fileResponse));
     let buff = new Buffer(fileResponse.data.content, 'base64');
     let content = JSON.parse(buff.toString('ascii'));
@@ -100,20 +101,16 @@ function decodeFileResponse(fileResponse) {
 }
 
 async function getFile(params) {
-
     let github = connect();
 
-    return new Promise(
-        (resolve, reject) => {
-            try {
-                let response = github.repos.getContent(params);
-                return resolve(response);
-
-            } catch (err) {
-                return reject(err);
-            }
+    return new Promise((resolve, reject) => {
+        try {
+            let response = github.repos.getContent(params);
+            return resolve(response);
+        } catch (err) {
+            return reject(err);
         }
-    );
+    });
 }
 
 async function updateGitHubPullRequest(message, done) {
@@ -127,10 +124,10 @@ async function updateGitHubPullRequest(message, done) {
 }
 
 module.exports = {
-    'connect': connect,
-    'signRequestBody': signRequestBody,
-    'invalidHook': invalidHook,
-    'decodeFileResponse': decodeFileResponse,
-    'getFile': getFile,
-    'updateGitHubPullRequest': updateGitHubPullRequest
+    connect: connect,
+    signRequestBody: signRequestBody,
+    invalidHook: invalidHook,
+    decodeFileResponse: decodeFileResponse,
+    getFile: getFile,
+    updateGitHubPullRequest: updateGitHubPullRequest
 };

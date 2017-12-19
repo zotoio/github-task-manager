@@ -1,7 +1,7 @@
-import {Executor} from '../agent/Executor';
-import {Utils} from '../agent/AgentUtils';
-import {default as rp} from 'request-promise-native';
-import {default as json} from 'format-json';
+import { Executor } from '../agent/Executor';
+import { Utils } from '../agent/AgentUtils';
+import { default as rp } from 'request-promise-native';
+import { default as json } from 'format-json';
 
 let log = Utils.logger();
 
@@ -31,15 +31,12 @@ let log = Utils.logger();
  */
 
 export class ExecutorHttp extends Executor {
-
     constructor(eventData) {
         super(eventData);
         this.options = this.getOptions();
-
     }
 
     async executeTask(task) {
-
         let har = task.options.har;
 
         log.info(`Starting http request..`);
@@ -49,42 +46,44 @@ export class ExecutorHttp extends Executor {
             resolveWithFullResponse: true,
             har: har
         })
-            .then((response) => {
+            .then(response => {
                 log.info(json.plain(response));
 
                 if (this.validate(task, response)) {
                     return Promise.resolve({
                         passed: true,
                         message: 'Request completed',
-                        url: 'http://www.softwareishard.com/blog/har-12-spec/#request'
+                        url:
+                            'http://www.softwareishard.com/blog/har-12-spec/#request'
                     });
-
                 } else {
                     return Promise.reject({
                         passed: false,
                         message: 'Response validation failed',
-                        url: 'http://www.softwareishard.com/blog/har-12-spec/#request'
+                        url:
+                            'http://www.softwareishard.com/blog/har-12-spec/#request'
                     });
                 }
             })
 
-            .catch((e) => {
+            .catch(e => {
                 log.error(e.message);
                 return Promise.reject({
                     passed: false,
                     message: e.message,
-                    url: 'http://www.softwareishard.com/blog/har-12-spec/#request'
+                    url:
+                        'http://www.softwareishard.com/blog/har-12-spec/#request'
                 });
             });
-
     }
 
     validate(task, response) {
-
         let valid = true;
 
-        if (task.options.validator && task.options.validator.type === 'bodyJson') {
-
+        if (
+            task.options.validator &&
+            task.options.validator.type === 'bodyJson'
+        ) {
             log.info('validating response: bodyJson');
 
             try {
@@ -95,18 +94,18 @@ export class ExecutorHttp extends Executor {
 
                 log.info(`checking ${objectCheckRef} === ${objectCheckVal}`);
 
-                valid = (objectCheckRef.split('.').reduce((o, i) => o[i], bodyObj) === objectCheckVal);
-
+                valid =
+                    objectCheckRef
+                        .split('.')
+                        .reduce((o, i) => o[i], bodyObj) === objectCheckVal;
             } catch (e) {
                 log.error('http bodyJson validation failed', e);
                 valid = false;
             }
-
         }
 
         return valid;
     }
-
 }
 
 Executor.register('Http', ExecutorHttp);

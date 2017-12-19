@@ -3,17 +3,17 @@
         "es6": true,
         "node": true
     },
-    "extends": "eslint:recommended",
+    "extends": [
+        "eslint:recommended",
+        "plugin:prettier/recommended"
+    ],
     "parserOptions": {
         "sourceType": "module",
         "ecmaVersion": 2017
     },
     "rules": {
         "no-console": 0,
-        "indent": [
-            "error",
-            4
-        ],
+        "indent": "off",
         "linebreak-style": [
             "error",
             "unix"

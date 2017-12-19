@@ -3,7 +3,6 @@ import { default as EventEmitter } from 'events';
 let log = AgentLogger.log();
 
 export class Plugin extends EventEmitter {
-
     constructor() {
         super();
         return this;
@@ -23,17 +22,23 @@ export class Plugin extends EventEmitter {
     }
 
     static register(clazzname, clazz) {
-        if (!(this.isRegistered(clazzname) &&
-            clazz.prototype instanceof this)) {
+        if (
+            !(this.isRegistered(clazzname) && clazz.prototype instanceof this)
+        ) {
             this.registeredTypes.set(clazzname, clazz);
             log.info('Registered ' + this.name + ': ' + clazzname);
         } else {
-            log.error('Cannot Register ' + clazzname + ', Invalid Type. Must be a subclass of ' + this.name);
+            log.error(
+                'Cannot Register ' +
+                    clazzname +
+                    ', Invalid Type. Must be a subclass of ' +
+                    this.name
+            );
         }
     }
 
     /**
-     * 
+     *
      * @param {string} clazzname - Class Name to Create
      * @param {*} options - Object of Options to pass into Class
      */
@@ -48,5 +53,4 @@ export class Plugin extends EventEmitter {
         let instance = new clazz(...options);
         return instance;
     }
-
 }

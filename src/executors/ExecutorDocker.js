@@ -1,12 +1,11 @@
-import {Executor} from '../agent/Executor';
-import {Utils} from '../agent/AgentUtils';
-import {default as Docker} from 'dockerode';
-import {default as stream} from 'stream';
+import { Executor } from '../agent/Executor';
+import { Utils } from '../agent/AgentUtils';
+import { default as Docker } from 'dockerode';
+import { default as stream } from 'stream';
 
 let log = Utils.logger();
 
 export class ExecutorDocker extends Executor {
-
     constructor(eventData) {
         super(eventData);
         this.options = this.getOptions();
@@ -20,11 +19,14 @@ export class ExecutorDocker extends Executor {
     }
 
     async executeTask(task) {
-
         let image = task.options.image;
         let command = task.options.command;
 
-        log.info(`Starting local docker container '${image}' to run: ${command.join(' ')}`);
+        log.info(
+            `Starting local docker container '${image}' to run: ${command.join(
+                ' '
+            )}`
+        );
 
         let docker = new Docker();
 
@@ -32,64 +34,70 @@ export class ExecutorDocker extends Executor {
          * Get logs from running container
          */
         function containerLogs(container) {
-
             let logBuffer = [];
 
             // create a single stream for stdin and stdout
             let logStream = new stream.PassThrough();
-            logStream.on('data', function (chunk) {
-                logBuffer.push(chunk.toString('utf8'));  // todo find a better way
+            logStream.on('data', function(chunk) {
+                logBuffer.push(chunk.toString('utf8')); // todo find a better way
                 if (logBuffer.length % 100 === 0) {
                     log.info(logBuffer.reverse().join(''));
                     logBuffer = [];
                 }
-
             });
 
-            container.logs({
-                follow: true,
-                stdout: true,
-                stderr: true
-            }, function (err, stream) {
-                if (err) {
-                    return log.error(err.message);
-                }
-                container.modem.demuxStream(stream, logStream, logStream);
-                stream.on('end', function () {
-                    log.info(logBuffer.reverse().join(''));
-                    logBuffer = [];
-                    logStream.end('!stop!');
-                });
+            container.logs(
+                {
+                    follow: true,
+                    stdout: true,
+                    stderr: true
+                },
+                function(err, stream) {
+                    if (err) {
+                        return log.error(err.message);
+                    }
+                    container.modem.demuxStream(stream, logStream, logStream);
+                    stream.on('end', function() {
+                        log.info(logBuffer.reverse().join(''));
+                        logBuffer = [];
+                        logStream.end('!stop!');
+                    });
 
-                /*setTimeout(function () {
+                    /*setTimeout(function () {
                     stream.destroy();
                 }, 2000);*/
-            });
+                }
+            );
         }
 
-        return docker.createContainer({
-            Image: image,
-            Cmd: command,
-        })
-            .then((container) => {
+        return docker
+            .createContainer({
+                Image: image,
+                Cmd: command
+            })
+            .then(container => {
                 return container.start({});
             })
 
-            .then((container) => {
+            .then(container => {
                 return containerLogs(container);
             })
 
             .then(() => {
-                return Promise.resolve({passed: true, url: 'https://docker.com'});
+                return Promise.resolve({
+                    passed: true,
+                    url: 'https://docker.com'
+                });
             })
 
-            .catch((e) => {
+            .catch(e => {
                 log.error(e.message);
-                return Promise.reject({passed: false, url: 'https://docker.com'});
+                return Promise.reject({
+                    passed: false,
+                    url: 'https://docker.com'
+                });
             });
-
     }
-
 }
 
 Executor.register('Docker', ExecutorDocker);

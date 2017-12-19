@@ -9,7 +9,6 @@ let log = Utils.logger();
  * Create an Executor to run Builds, Deploys, and Tests
  */
 export class Executor extends Plugin {
-
     /**
      * Initialise the CI Executor
      * @param {String} executorType - Class Name to Create
@@ -33,7 +32,6 @@ export class Executor extends Plugin {
         log.info('----------------------------');
         log.debug('Task Config: ' + json.plain(this.taskConfig));
         log.debug(eventData);
-
     }
 
     /**
@@ -48,7 +46,6 @@ export class Executor extends Plugin {
         // Override in Implementation
         // This will need to be a promise so we can chain and get results back
     }
-
 }
 
 requireDir('../executors');

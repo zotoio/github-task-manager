@@ -5,7 +5,6 @@ let consumer = require('sqs-consumer');
 let githubUtils = require('../gtmGithubUtils.js');
 
 async function handle(event, context, callback) {
-
     /* eslint-disable */
     console.log('---------------------------------');
     console.log(`Github-Results: `);
@@ -14,10 +13,9 @@ async function handle(event, context, callback) {
     /* eslint-enable */
 
     try {
-
         let consumer = await getQueue();
 
-        consumer.on('error', (err) => {
+        consumer.on('error', err => {
             console.log(err.message);
             throw err;
         });
@@ -28,24 +26,21 @@ async function handle(event, context, callback) {
             const response = {
                 statusCode: 200,
                 body: JSON.stringify({
-                    input: event,
-                }),
+                    input: event
+                })
             };
             return callback(null, response);
         });
 
         consumer.start();
-
-
     } catch (e) {
         console.log(e);
         return callback(null, {
             statusCode: 401,
-            headers: {'Content-Type': 'text/plain'},
-            body: e.message,
+            headers: { 'Content-Type': 'text/plain' },
+            body: e.message
         });
     }
-
 }
 
 async function getQueue() {
@@ -56,9 +51,7 @@ async function getQueue() {
     });
 }
 
-
-
 module.exports = {
-    'handle': handle,
-    'getQueue': getQueue
+    handle: handle,
+    getQueue: getQueue
 };

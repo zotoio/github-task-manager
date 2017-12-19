@@ -6,7 +6,7 @@ let integrationConfig = {
 };
 
 // trigger config build before describe blocks
-before( (done) => {
+before(done => {
     // placeholder
 
     done();
@@ -17,4 +17,3 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 module.exports.urlPrefix = integrationUrlPrefix;
 module.exports.config = integrationConfig;
-
