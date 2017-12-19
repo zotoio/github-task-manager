@@ -107,6 +107,7 @@
     "highlight.js": "^9.12.0",
     "jenkins": "^0.20.1",
     "nunjucks": "^3.0.1",
+    "proxy-agent": "^2.1.0",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5",
     "require-dir": "^0.3.2",
