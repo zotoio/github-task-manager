@@ -4,7 +4,7 @@
   "description": "receive github hook, notify agent, receive task results, notify github",
   "main": "index.js",
   "scripts": {
-    "build": "npm run lint && rimraf dist/ && babel ./src --out-dir dist/src --copy-files && babel ./test --out-dir dist/test --copy-files && babel ./*.js --out-dir dist/ --copy-files",
+    "build": "npm run lint && rimraf dist/ && babel ./src --out-dir dist/src --copy-files && babel ./test --out-dir dist/test --copy-files && babel ./*.js --out-dir dist/ --copy-files && npm run agent-build",
     "commit": "./node_modules/.bin/git-cz",
     "lint": "node ./node_modules/.bin/eslint ./src ./test --fix --ext=.js --ignore-pattern src/agent/static/ --ignore-pattern node_modules/ --ignore-pattern dist/ --ignore-pattern coverage/ --quiet",
     "test": "npm run build && cross-env NODE_ENV=test nyc ./node_modules/.bin/mocha --timeout 10000 --require babel-core/register --require babel-polyfill './dist/test/**/*.spec.js'",
@@ -15,7 +15,7 @@
     "sls-logs-hook": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubHook -t",
     "sls-logs-results": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubResults -t",
     "agent": "node dist/src/agent/startAgent.js",
-    "agent-build": "npm run build && node ./dist/src/agent/sass.js && cp ./src/agent/static/*.js ./dist/src/agent/static/",
+    "agent-build": "node ./dist/src/agent/sass.js && cp ./src/agent/static/*.js ./dist/src/agent/static/",
     "docker-build": "docker build -t github-task-manager --no-cache .",
     "docker-start": "docker-compose up -d",
     "docker-hub-run": "docker pull wyvern8/github-task-manager:latest && docker run --env-file ./.env wyvern8/github-task-manager:latest",
