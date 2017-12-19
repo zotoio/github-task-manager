@@ -11,6 +11,7 @@ import { default as hljs } from 'highlight.js';
 import { EventHandler } from './EventHandler';
 import { Utils } from './AgentUtils';
 import { default as json } from 'format-json';
+import { default as GtmGithubHook } from '../serverless/gtmGithubHook/gtmGithubHook.js';
 
 let log = AgentLogger.log();
 dotenv.config();
@@ -97,6 +98,20 @@ export class Agent {
 
         app.get('/', (req, res) => {
             res.render('index.html', { globalProperties: systemConfig });
+        });
+
+        app.post('/hook', (req, res) => {
+            let callback = (err, details) => {
+                if (err) {
+                    log.error(details);
+                    res.statusMessage = details.body;
+                    res.status(details.statusCode).end();
+                } else {
+                    res.json(details);
+                }
+            };
+
+            GtmGithubHook.listener(req, null, callback);
         });
 
         app.get('/event_test/', (req, res) => {
