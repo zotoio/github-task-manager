@@ -1,9 +1,9 @@
 import { Executor } from '../agent/Executor';
-import { Utils } from '../agent/AgentUtils';
+import { AgentUtils } from '../agent/AgentUtils';
 import { default as Docker } from 'dockerode';
 import { default as stream } from 'stream';
 
-let log = Utils.logger();
+let log = AgentUtils.logger();
 
 export class ExecutorDocker extends Executor {
     constructor(eventData) {

@@ -1,9 +1,9 @@
 'use strict';
 import requireDir from 'require-dir';
 import { Plugin } from './Plugin';
-import { Utils } from './AgentUtils';
+import { AgentUtils } from './AgentUtils';
 let json = require('format-json');
-let log = Utils.logger();
+let log = AgentUtils.logger();
 
 /**
  * Create an Executor to run Builds, Deploys, and Tests

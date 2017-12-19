@@ -1,9 +1,9 @@
 import { Executor } from '../agent/Executor';
-import { Utils } from '../agent/AgentUtils';
+import { AgentUtils } from '../agent/AgentUtils';
 import { default as rp } from 'request-promise-native';
 import { default as json } from 'format-json';
 
-let log = Utils.logger();
+let log = AgentUtils.logger();
 
 /**
  * Sample .githubTaskManager.json task config

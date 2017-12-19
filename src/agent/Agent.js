@@ -9,7 +9,7 @@ import { default as expressNunjucks } from 'express-nunjucks';
 import { default as Consumer } from 'sqs-consumer';
 import { default as hljs } from 'highlight.js';
 import { EventHandler } from './EventHandler';
-import { Utils } from './AgentUtils';
+import { AgentUtils } from './AgentUtils';
 import { default as json } from 'format-json';
 import { default as GtmGithubHook } from '../serverless/gtmGithubHook/gtmGithubHook.js';
 
@@ -115,7 +115,7 @@ export class Agent {
         });
 
         app.get('/event_test/', (req, res) => {
-            let event = Utils.samplePullRequestEvent();
+            let event = AgentUtils.samplePullRequestEvent();
             systemConfig.event.current = event;
             let result = EventHandler.create('pull_request').handleEvent(event);
             if (result !== true) log.info('Event was not Handled');
@@ -153,14 +153,14 @@ export class Agent {
         });
 
         app.get('/stream/filter/:group/:stream', (req, res) => {
-            Utils.stream(req.params.group, req.params.stream);
+            AgentUtils.stream(req.params.group, req.params.stream);
             res.json({ group: req.params.group, stream: req.params.stream });
         });
 
         app.get('/stream/keepalive', (req, res) => {
             let ip =
                 req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-            Utils.registerActivity(ip);
+            AgentUtils.registerActivity(ip);
             if (req) res.end();
         });
 
@@ -211,7 +211,7 @@ export class Agent {
     consumeQueue() {
         let that = this;
 
-        Utils.getQueueUrl(process.env.GTM_SQS_PENDING_QUEUE).then(function(
+        AgentUtils.getQueueUrl(process.env.GTM_SQS_PENDING_QUEUE).then(function(
             data
         ) {
             pendingUrl = data;
@@ -247,7 +247,7 @@ export class Agent {
                                 attrs.ghAgentGroup
                             }' agent: '${AGENT_GROUP}' skipping..`
                         );
-                        Utils.setSqsMessageTimeout(
+                        AgentUtils.setSqsMessageTimeout(
                             process.env.GTM_SQS_PENDING_QUEUE,
                             message.ReceiptHandle,
                             5
@@ -265,7 +265,7 @@ export class Agent {
                         done();
                     } else {
                         let loopTimer = setInterval(function() {
-                            Utils.setSqsMessageTimeout(
+                            AgentUtils.setSqsMessageTimeout(
                                 process.env.GTM_SQS_PENDING_QUEUE,
                                 message.ReceiptHandle,
                                 30
@@ -409,8 +409,8 @@ export class Agent {
         });
 
         app.listen(process.env.GTM_AGENT_PORT, function() {
-            Utils.printBanner();
-            log.info('AGENT_ID: ' + Utils.agentId());
+            AgentUtils.printBanner();
+            log.info('AGENT_ID: ' + AgentUtils.agentId());
             log.info('AGENT_GROUP: ' + AGENT_GROUP);
             log.info(
                 'GitHub Task Manager Agent Running on Port ' +
@@ -419,11 +419,13 @@ export class Agent {
             log.info('Runmode: ' + runmode);
             log.info(
                 'AWS Access Key ID: ' +
-                    Utils.maskString(process.env.GTM_AGENT_AWS_ACCESS_KEY_ID)
+                    AgentUtils.maskString(
+                        process.env.GTM_AGENT_AWS_ACCESS_KEY_ID
+                    )
             );
             log.info(
                 'AWS Access Key: ' +
-                    Utils.maskString(
+                    AgentUtils.maskString(
                         process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY
                     )
             );
@@ -435,7 +437,7 @@ export class Agent {
                 ? 'Stopped'
                 : 'Running';
             systemConfig.pendingQueue.enabled = !pendingQueueHandler.stopped;
-            systemConfig.agentId = Utils.agentId();
+            systemConfig.agentId = AgentUtils.agentId();
         });
     }
 
@@ -445,10 +447,10 @@ export class Agent {
      */
     startLogStream(group) {
         // start cloudwatch streams
-        Utils.stream(group);
+        AgentUtils.stream(group);
 
         // Server Sent Events stream hooked to cloudwatch
-        app.get(`/stream/${group}`, Utils.sse()[group].init);
+        app.get(`/stream/${group}`, AgentUtils.sse()[group].init);
     }
 
     /**
@@ -456,14 +458,14 @@ export class Agent {
      * @param group
      */
     stopStream(group) {
-        Utils.stopStream(group);
+        AgentUtils.stopStream(group);
     }
 
     /**
      * stop all log streams
      */
     stopAllStreams() {
-        Utils.stopAllStreams();
+        AgentUtils.stopAllStreams();
     }
 
     /**

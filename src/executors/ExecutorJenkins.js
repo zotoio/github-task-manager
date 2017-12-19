@@ -1,7 +1,7 @@
 import { default as JenkinsLib } from 'jenkins';
 import { Executor } from '../agent/Executor';
-import { Utils } from '../agent/AgentUtils';
-let log = Utils.logger();
+import { AgentUtils } from '../agent/AgentUtils';
+let log = AgentUtils.logger();
 
 export class ExecutorJenkins extends Executor {
     constructor(eventData) {
@@ -9,7 +9,7 @@ export class ExecutorJenkins extends Executor {
         this.options = this.getOptions();
 
         this.jenkins = JenkinsLib({
-            baseUrl: Utils.formatBasicAuth(
+            baseUrl: AgentUtils.formatBasicAuth(
                 this.options.GTM_JENKINS_USER,
                 this.options.GTM_JENKINS_TOKEN,
                 this.options.GTM_JENKINS_URL
@@ -57,7 +57,7 @@ export class ExecutorJenkins extends Executor {
                             log.debug(
                                 `Build ${buildName} #${buildNumber} Hasn't Started: ${tries}`
                             );
-                            await Utils.timeout(10000);
+                            await AgentUtils.timeout(10000);
                             return false;
                         }
                     );
@@ -74,7 +74,7 @@ export class ExecutorJenkins extends Executor {
             });
         let tries = 1;
         while (buildDict.result === null) {
-            await Utils.timeout(5000);
+            await AgentUtils.timeout(5000);
             buildDict = await this.jenkins.build
                 .get(buildName, buildNumber)
                 .then(function(data) {
@@ -101,7 +101,7 @@ export class ExecutorJenkins extends Executor {
     async executeTask(task) {
         let jobName = this.taskNameToBuild(task.context);
         if (jobName == null) {
-            await Utils.timeout(4000);
+            await AgentUtils.timeout(4000);
             return 'NO_MATCHING_TASK';
         }
 

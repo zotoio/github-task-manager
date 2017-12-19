@@ -29,7 +29,7 @@ let sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 let sns = new AWS.SNS({ apiVersion: '2010-03-31' });
 require('babel-polyfill');
 
-export class Utils {
+export class AgentUtils {
     static agentId() {
         return AgentLogger.AGENT_ID;
     }
@@ -145,7 +145,7 @@ export class Utils {
      */
     static async setSqsMessageTimeout(queueName, messageHandle, timeoutValue) {
         log.debug(`Setting SQS Message Timeout to ${timeoutValue} Seconds`);
-        return Utils.getQueueUrl(queueName)
+        return AgentUtils.getQueueUrl(queueName)
             .then(function(queueUrl) {
                 log.debug(
                     `Queue URL: ${queueUrl}, Message Handle: ${messageHandle}, Timeout: ${timeoutValue}`
@@ -173,7 +173,7 @@ export class Utils {
         snsQueueName,
         message
     ) {
-        return Utils.getQueueUrl(sqsQueueName)
+        return AgentUtils.getQueueUrl(sqsQueueName)
             .then(function(sqsQueueUrl) {
                 let params = {
                     MessageBody: JSON.stringify(results),

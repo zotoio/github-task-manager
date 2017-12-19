@@ -1,8 +1,8 @@
 import { default as Travis } from 'travis-ci';
 import { Executor } from '../agent/Executor';
-import { Utils } from '../agent/AgentUtils';
+import { AgentUtils } from '../agent/AgentUtils';
 import { default as json } from 'format-json';
-let log = Utils.logger();
+let log = AgentUtils.logger();
 
 export class ExecutorTravis extends Executor {
     constructor(eventData) {

@@ -1,7 +1,7 @@
 import { EventHandler } from '../agent/EventHandler';
 import { Executor } from '../agent/Executor';
-import { Utils } from '../agent/AgentUtils';
-let log = Utils.logger();
+import { AgentUtils } from '../agent/AgentUtils';
+let log = AgentUtils.logger();
 
 export class EventHandlerPullRequest extends EventHandler {
     async handleEvent() {
@@ -17,8 +17,8 @@ export class EventHandlerPullRequest extends EventHandler {
         log.info('Pull Request: ' + this.eventData.pull_request.number);
         log.info('---------------------------------');
 
-        this.tasks = Utils.templateReplace(
-            Utils.createBasicTemplate(this.eventData),
+        this.tasks = AgentUtils.templateReplace(
+            AgentUtils.createBasicTemplate(this.eventData),
             this.tasks
         );
 
@@ -40,7 +40,7 @@ export class EventHandlerPullRequest extends EventHandler {
                 initialDesc = 'Unknown Executor: ' + task.executor;
             }
 
-            let status = Utils.createStatus(
+            let status = AgentUtils.createStatus(
                 event.eventData,
                 initialState,
                 `${task.executor}: ${task.context}`,
@@ -49,7 +49,7 @@ export class EventHandlerPullRequest extends EventHandler {
             );
 
             promises.push(
-                Utils.postResultsAndTrigger(
+                AgentUtils.postResultsAndTrigger(
                     process.env.GTM_SQS_RESULTS_QUEUE,
                     status,
                     process.env.GTM_SNS_RESULTS_TOPIC,
@@ -90,7 +90,7 @@ export class EventHandlerPullRequest extends EventHandler {
                     .executeTask(task)
                     .then(taskResult => {
                         if (taskResult === 'NO_MATCHING_TASK') {
-                            status = Utils.createStatus(
+                            status = AgentUtils.createStatus(
                                 event.eventData,
                                 'error',
                                 `${task.executor}: ${task.context}`,
@@ -103,7 +103,7 @@ export class EventHandlerPullRequest extends EventHandler {
                                 : 'Task Completed with Errors';
                             let taskResultMessage =
                                 taskResult.message || defaultResultMessage;
-                            status = Utils.createStatus(
+                            status = AgentUtils.createStatus(
                                 event.eventData,
                                 taskResult.passed ? 'success' : 'error',
                                 `${task.executor}: ${task.context}`,
@@ -114,7 +114,7 @@ export class EventHandlerPullRequest extends EventHandler {
                         return status;
                     })
                     .then(status => {
-                        return Utils.postResultsAndTrigger(
+                        return AgentUtils.postResultsAndTrigger(
                             process.env.GTM_SQS_RESULTS_QUEUE,
                             status,
                             process.env.GTM_SNS_RESULTS_TOPIC,
@@ -126,14 +126,14 @@ export class EventHandlerPullRequest extends EventHandler {
                         );
                     })
                     .catch(() => {
-                        status = Utils.createStatus(
+                        status = AgentUtils.createStatus(
                             event.eventData,
                             'error',
                             task.context,
                             'Task execution failure'
                         );
 
-                        return Utils.postResultsAndTrigger(
+                        return AgentUtils.postResultsAndTrigger(
                             process.env.GTM_SQS_RESULTS_QUEUE,
                             status,
                             process.env.GTM_SNS_RESULTS_TOPIC,

@@ -1,9 +1,9 @@
 'use strict';
 import requireDir from 'require-dir';
 import { Plugin } from './Plugin';
-import { Utils } from './AgentUtils';
+import { AgentUtils } from './AgentUtils';
 import { default as json } from 'format-json';
-let log = Utils.logger();
+let log = AgentUtils.logger();
 
 export class EventHandler extends Plugin {
     constructor(eventData) {

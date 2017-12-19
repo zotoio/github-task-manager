@@ -1,6 +1,6 @@
 import { Executor } from '../agent/Executor';
-import { Utils } from '../agent/AgentUtils';
-let log = Utils.logger();
+import { AgentUtils } from '../agent/AgentUtils';
+let log = AgentUtils.logger();
 
 export class ExecutorPing extends Executor {
     constructor(eventData) {
@@ -14,7 +14,7 @@ export class ExecutorPing extends Executor {
         let promises = [];
 
         for (let i = 1; i <= count; i++) {
-            let status = Utils.createStatus(
+            let status = AgentUtils.createStatus(
                 this.eventData,
                 'pending',
                 'diagnostic',
@@ -22,7 +22,7 @@ export class ExecutorPing extends Executor {
             );
 
             promises.push(
-                Utils.postResultsAndTrigger(
+                AgentUtils.postResultsAndTrigger(
                     process.env.GTM_SQS_RESULTS_QUEUE,
                     status,
                     process.env.GTM_SNS_RESULTS_TOPIC,
@@ -32,7 +32,7 @@ export class ExecutorPing extends Executor {
                 })
             );
 
-            await Utils.timeout(3000);
+            await AgentUtils.timeout(3000);
         }
 
         return Promise.all(promises).then(() => {
