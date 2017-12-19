@@ -83,13 +83,14 @@ a starting point k8s manifest is in ./k8s/k8s-gtm-agent.yml
 
 
 ## Plugins
-Task executors for Jenkins, Teamcity and Travis are in progress. Custom task executors can be added by.. **todo**
+Task executors for Jenkins, Teamcity, Travis, Http, Docker are in progress. Custom task executors can be added by adding this project as a dependency, and registering new Executors and EventHandlers.  Please see https://github.com/wyvern8/gtm-agent for an example that you can fork and modify as required while still using this project as the core.
 
-Executors contain the logic to run tasks against a given system type, and format the results.
+- Executors contain the logic to run tasks against a given system type, and format the results.
+- EventHandlers are used to map Github events to specific functionality such as pull requests.
 
 ## Contributing
 
-Fork this repository and work on your enhancements, then send a pull request.
+Fork this repository and work on your enhancements, then send a pull request.  If you build custom plugins that may be useful to others in your forked gtm-agent, please let us know and may be able to assist wwith backporting to this project.
 
 Use commitizen for conventional commit messages via `git cz` instead of `git commit`.  
 To setup if not already installed:
