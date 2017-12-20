@@ -62,12 +62,13 @@ describe('gtmGithubUtils', function() {
     describe('updateGitHubPullRequest', function() {
         it('should throw exception when not logged in', async function() {
             let message = {
-                Body: '{"context": "test"}'
+                Body:
+                    '{"context": "test", "eventData": { "ghEventId": "abc", "ghEventType": "pull_request"}}'
             };
 
             let actual;
             try {
-                actual = await githubUtils.updateGitHubPullRequest(message);
+                actual = await githubUtils.handleEventTaskResult(message);
                 console.log(actual);
             } catch (e) {
                 return assert.equal(
