@@ -5,6 +5,19 @@ import { default as stream } from 'stream';
 
 let log = AgentUtils.logger();
 
+/**
+ * Sample .githubTaskManager.json task config
+ *
+ {
+   "executor": "Docker",
+   "context": "run",
+   "options": {
+     "image": "node:8",
+     "command": ["/bin/ls", "-ltr", "/bin"]
+   }
+ }
+ */
+
 export class ExecutorDocker extends Executor {
     constructor(eventData) {
         super(eventData);
