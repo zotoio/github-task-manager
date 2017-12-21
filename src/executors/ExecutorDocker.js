@@ -83,11 +83,39 @@ export class ExecutorDocker extends Executor {
             );
         }
 
-        return docker
-            .createContainer({
-                Image: image,
-                Cmd: command
+        function pullImage(image) {
+            return new Promise((resolve, reject) => {
+                docker.pull(image, function(err, stream) {
+                    if (err) {
+                        log.error(err.message);
+                        reject(err);
+                    }
+
+                    docker.modem.followProgress(stream, onFinished, onProgress);
+
+                    function onFinished(err, output) {
+                        if (err) {
+                            log.error(err.message);
+                            reject(err);
+                        }
+                        resolve(output);
+                    }
+
+                    function onProgress(event) {
+                        log.info(event);
+                    }
+                });
+            });
+        }
+
+        return pullImage(image)
+            .then(() => {
+                return docker.createContainer({
+                    Image: image,
+                    Cmd: command
+                });
             })
+
             .then(container => {
                 return container.start({});
             })
