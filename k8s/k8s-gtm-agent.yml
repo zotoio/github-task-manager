@@ -4,6 +4,7 @@ kind: ConfigMap
 metadata:
   name: gtm-agent-configmap
 data:
+  DOCKER_HOST: tcp://localhost:2375
   GTM_AWS_REGION: ap-southeast-2
   GTM_SQS_PENDING_QUEUE: gtmPendingQueue
   GTM_SQS_RESULTS_QUEUE: gtmResultsQueue
@@ -40,6 +41,13 @@ spec:
                 name: gtm-agent-configmap
           ports:
             - containerPort: 9091
+
+        - name: docker-in-docker
+          image: docker:dind
+          securityContext:
+            privileged: true
+          ports:
+            - containerPort: 2375
 
 ---
 kind: Service
