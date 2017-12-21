@@ -3,6 +3,7 @@ services:
   agent:
     image: "node:8"
     user: "node"
+    privileged: true
     working_dir: /home/node/app
     environment:
       - NODE_ENV=development
@@ -25,7 +26,6 @@ services:
       - GTM_GITHUB_OWNER=${GTM_GITHUB_OWNER}
     volumes:
       - ./:/home/node/app
-      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "${GTM_AGENT_PORT}:${GTM_AGENT_PORT}"
     command: "npm run agent"
