@@ -209,6 +209,8 @@ export class Agent {
      * connect to SQS pending queue and consume messages
      */
     consumeQueue() {
+        log.info('Connecting to inbound SQS queue..');
+
         let that = this;
 
         AgentUtils.getQueueUrl(process.env.GTM_SQS_PENDING_QUEUE).then(function(
