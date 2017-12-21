@@ -92,15 +92,22 @@ export class AgentUtils {
      * @param {string} context - Content Name to Display in GitHub
      * @param {string} description - Short Description to Display in GitHub
      */
-    static createStatus(eventData, state, context, description, url) {
+    static createPullRequestStatus(
+        eventData,
+        state,
+        context,
+        description,
+        url
+    ) {
         return {
             owner: eventData.repository.owner.login || 'Default_Owner',
             repo: eventData.repository.name || 'Default_Repository',
             sha: eventData.pull_request.head.sha || 'Missing SHA',
             state: state,
-            target_url: url ? url : 'http://neko.ac', //todo
+            target_url: url ? url : 'http:s//neko.ac', //todo
             description: description,
-            context: context
+            context: context,
+            eventData: eventData
         };
     }
 

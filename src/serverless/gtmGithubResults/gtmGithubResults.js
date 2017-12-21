@@ -47,7 +47,7 @@ async function getQueue() {
     return await consumer.create({
         queueUrl: process.env.SQS_RESULTS_QUEUE_URL,
         waitTimeSeconds: 10,
-        handleMessage: githubUtils.updateGitHubPullRequest
+        handleMessage: githubUtils.handleEventTaskResult
     });
 }
 

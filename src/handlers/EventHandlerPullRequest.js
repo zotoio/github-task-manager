@@ -40,7 +40,7 @@ export class EventHandlerPullRequest extends EventHandler {
                 initialDesc = 'Unknown Executor: ' + task.executor;
             }
 
-            let status = AgentUtils.createStatus(
+            let status = AgentUtils.createPullRequestStatus(
                 event.eventData,
                 initialState,
                 `${task.executor}: ${task.context}`,
@@ -90,7 +90,7 @@ export class EventHandlerPullRequest extends EventHandler {
                     .executeTask(task)
                     .then(taskResult => {
                         if (taskResult === 'NO_MATCHING_TASK') {
-                            status = AgentUtils.createStatus(
+                            status = AgentUtils.createPullRequestStatus(
                                 event.eventData,
                                 'error',
                                 `${task.executor}: ${task.context}`,
@@ -103,7 +103,7 @@ export class EventHandlerPullRequest extends EventHandler {
                                 : 'Task Completed with Errors';
                             let taskResultMessage =
                                 taskResult.message || defaultResultMessage;
-                            status = AgentUtils.createStatus(
+                            status = AgentUtils.createPullRequestStatus(
                                 event.eventData,
                                 taskResult.passed ? 'success' : 'error',
                                 `${task.executor}: ${task.context}`,
@@ -125,11 +125,12 @@ export class EventHandlerPullRequest extends EventHandler {
                             }`
                         );
                     })
-                    .catch(() => {
-                        status = AgentUtils.createStatus(
+                    .catch(e => {
+                        log.error(e);
+                        status = AgentUtils.createPullRequestStatus(
                             event.eventData,
                             'error',
-                            task.context,
+                            `${task.executor}: ${task.context}`,
                             'Task execution failure'
                         );
 
@@ -143,6 +144,7 @@ export class EventHandlerPullRequest extends EventHandler {
                         );
                     });
             } catch (e) {
+                log.error(e);
                 taskPromise = Promise.reject(e.message);
             }
 

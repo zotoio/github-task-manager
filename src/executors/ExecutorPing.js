@@ -2,6 +2,18 @@ import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
 let log = AgentUtils.logger();
 
+/**
+ * Sample .githubTaskManager.json task config
+ *
+  {
+    "executor": "Ping",
+    "context": "diagnostic",
+    "options": {
+      "count": 3
+    }
+  }
+ */
+
 export class ExecutorPing extends Executor {
     constructor(eventData) {
         super(eventData);
@@ -14,10 +26,10 @@ export class ExecutorPing extends Executor {
         let promises = [];
 
         for (let i = 1; i <= count; i++) {
-            let status = AgentUtils.createStatus(
+            let status = AgentUtils.createPullRequestStatus(
                 this.eventData,
                 'pending',
-                'diagnostic',
+                `${task.executor}: ${task.context}`,
                 `got ping ${i}`
             );
 

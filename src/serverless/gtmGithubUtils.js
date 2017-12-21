@@ -3,6 +3,10 @@
 let json = require('format-json');
 let GitHubApi = require('github');
 let crypto = require('crypto');
+let githubUpdaters = {
+    pull_request: updateGitHubPullRequest,
+    comment: updateGitHubComment
+};
 
 function connect(context) {
     let githubOptions = {
@@ -113,14 +117,44 @@ async function getFile(params) {
     });
 }
 
-async function updateGitHubPullRequest(message, done) {
-    let status = JSON.parse(message.Body);
-    console.log(status);
+async function updateGitHubPullRequest(status, done) {
+    console.log(
+        `updating github for pull_request event ${status.eventData.ghEventId}`
+    );
 
     let github = connect(status.context);
     return await github.repos.createStatus(status).then(() => {
         done();
     });
+}
+
+async function updateGitHubComment(status, done) {
+    console.log(
+        `updating github for comment event ${status.eventData.ghEventId}`
+    );
+
+    //let github = connect(status.context);
+    //return await github.repos.createStatus(status).then(() => {
+    done();
+    //});
+}
+
+async function handleEventTaskResult(message, done) {
+    let status = JSON.parse(message.Body);
+    console.log(status);
+
+    let updaterFunction = githubUpdaters[status.eventData.ghEventType];
+
+    if (updaterFunction) {
+        return updaterFunction(status, done);
+    } else {
+        console.error(
+            `gitub updates for event type '${
+                status.eventData.ghEventType
+            }' are not supported yet.`
+        );
+        done();
+    }
 }
 
 module.exports = {
@@ -129,5 +163,5 @@ module.exports = {
     invalidHook: invalidHook,
     decodeFileResponse: decodeFileResponse,
     getFile: getFile,
-    updateGitHubPullRequest: updateGitHubPullRequest
+    handleEventTaskResult: handleEventTaskResult
 };
