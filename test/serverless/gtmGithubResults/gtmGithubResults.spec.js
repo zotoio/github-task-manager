@@ -22,10 +22,7 @@ describe('gtmGithubResults', function() {
             try {
                 await githubResults.getQueue();
             } catch (e) {
-                assert.equal(
-                    'Missing SQS consumer option [queueUrl].',
-                    e.message
-                );
+                assert.equal('Missing SQS consumer option [queueUrl].', e.message);
             }
         });
     });

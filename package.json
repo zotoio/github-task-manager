@@ -18,6 +18,7 @@
     "agent-build": "node ./dist/src/agent/sass.js && cp ./src/agent/static/*.js ./dist/src/agent/static/",
     "docker-build": "docker build -t github-task-manager --no-cache .",
     "docker-start": "docker-compose up --force-recreate -d",
+    "docker-build-tail": "npm run build && docker-compose up --force-recreate",
     "docker-siblings": "docker run --rm --env-file ./.env --volume=\"/var/run/docker.sock:/var/run/docker.sock\" github-task-manager:latest",
     "docker-hub-run": "docker pull wyvern8/github-task-manager:latest && docker run --env-file ./.env wyvern8/github-task-manager:latest",
     "docker-local-logs": "docker-compose logs --tail=0 --follow",

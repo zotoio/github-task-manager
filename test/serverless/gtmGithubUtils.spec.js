@@ -62,8 +62,7 @@ describe('gtmGithubUtils', function() {
     describe('updateGitHubPullRequest', function() {
         it('should throw exception when not logged in', async function() {
             let message = {
-                Body:
-                    '{"context": "test", "eventData": { "ghEventId": "abc", "ghEventType": "pull_request"}}'
+                Body: '{"context": "test", "eventData": { "ghEventId": "abc", "ghEventType": "pull_request"}}'
             };
 
             let actual;
@@ -71,10 +70,7 @@ describe('gtmGithubUtils', function() {
                 actual = await githubUtils.handleEventTaskResult(message);
                 console.log(actual);
             } catch (e) {
-                return assert.equal(
-                    e.message,
-                    'OAuth2 authentication requires a token or key & secret to be set'
-                );
+                return assert.equal(e.message, 'OAuth2 authentication requires a token or key & secret to be set');
             }
         });
     });
@@ -86,10 +82,7 @@ describe('gtmGithubUtils', function() {
                 actual = await githubUtils.getFile();
                 console.log(actual);
             } catch (e) {
-                return assert.equal(
-                    'OAuth2 authentication requires a token or key & secret to be set',
-                    e.message
-                );
+                return assert.equal('OAuth2 authentication requires a token or key & secret to be set', e.message);
             }
         });
     });

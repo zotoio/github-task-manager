@@ -22,18 +22,11 @@ export class Plugin extends EventEmitter {
     }
 
     static register(clazzname, clazz) {
-        if (
-            !(this.isRegistered(clazzname) && clazz.prototype instanceof this)
-        ) {
+        if (!(this.isRegistered(clazzname) && clazz.prototype instanceof this)) {
             this.registeredTypes.set(clazzname, clazz);
             log.info('Registered ' + this.name + ': ' + clazzname);
         } else {
-            log.error(
-                'Cannot Register ' +
-                    clazzname +
-                    ', Invalid Type. Must be a subclass of ' +
-                    this.name
-            );
+            log.error('Cannot Register ' + clazzname + ', Invalid Type. Must be a subclass of ' + this.name);
         }
     }
 
