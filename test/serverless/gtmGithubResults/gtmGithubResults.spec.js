@@ -10,9 +10,14 @@ describe('gtmGithubResults', function() {
                 headers: { 'Content-Type': 'text/plain' }
             };
 
-            let actual = await githubResults.handle({}, null, () => {
-                return expected;
-            });
+            let actual;
+            try {
+                actual = await githubResults.handle({}, null, () => {
+                    return expected;
+                });
+            } catch (e) {
+                console.log(e.message);
+            }
             assert.equal(actual.statusCode, expected.statusCode);
         });
     });

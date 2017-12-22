@@ -44,7 +44,19 @@ describe('gtmGithubHook', function() {
     describe('handleEvent', function() {
         it('should fire', function(done) {
             let type = 'pull_request';
-            let body = { action: 'test' };
+            let body = {
+                pull_request: {
+                    ref: 'sha123',
+                    head: {
+                        repo: {
+                            name: 'code',
+                            owner: {
+                                login: 'bob'
+                            }
+                        }
+                    }
+                }
+            };
 
             gtmGithubHook.handleEvent(type, body);
             assert.equal(1, 1); //todo

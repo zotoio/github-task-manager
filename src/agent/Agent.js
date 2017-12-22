@@ -1,7 +1,6 @@
 'use strict';
 
 import 'babel-polyfill';
-import { default as dotenv } from 'dotenv';
 import { default as AgentLogger } from './AgentLogger';
 import { default as express } from 'express';
 import { default as expressNunjucks } from 'express-nunjucks';
@@ -14,7 +13,6 @@ import { default as json } from 'format-json';
 import { default as GtmGithubHook } from '../serverless/gtmGithubHook/gtmGithubHook.js';
 
 let log = AgentLogger.log();
-dotenv.config();
 
 // Setting up Instances
 const app = express();

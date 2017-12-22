@@ -3,13 +3,11 @@ import { default as bformat } from 'bunyan-format';
 import { default as createCWStream } from 'bunyan-cloudwatch';
 import { default as UUID } from 'uuid/v4';
 import { default as ExpressSSE } from 'express-sse';
-import { default as dotenv } from 'dotenv';
-dotenv.config();
 
 let SSE = [];
 let AGENT_ID = UUID();
 let STREAM = [];
-let LOG = create(AGENT_ID);
+let LOG = process.env.NODE_ENV === 'test' ? console : create(AGENT_ID);
 let STREAM_USER_LAST_ACTIVITY = Date.now();
 
 let logGroupMap = [];
@@ -18,6 +16,7 @@ logGroupMap['gtmGithubResults'] = '/aws/lambda/gtmGithubHook-dev-gtmGithubResult
 logGroupMap[process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP] = process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP;
 
 let CWLogFilterEventStream = require('smoketail').CWLogFilterEventStream;
+let janitorInterval;
 
 function create(agentId) {
     if (!agentId) console.warn('agentId is not set.');
@@ -29,6 +28,8 @@ function create(agentId) {
             region: process.env.GTM_AWS_REGION
         }
     });
+
+    janitorInterval = setInterval(streamJanitor, 60000);
 
     return bunyan.createLogger({
         name: agentId.substring(0, 7),
@@ -121,7 +122,6 @@ function streamJanitor() {
         clearInterval(janitorInterval);
     }
 }
-let janitorInterval = setInterval(streamJanitor, 60000);
 
 module.exports = {
     log: log,

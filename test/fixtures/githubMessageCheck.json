@@ -1,0 +1,22 @@
+{
+  "id": "id",
+  "body": "{\"sample\": \"message\"}",
+  "messageAttributes": {
+    "ghEventId": {
+      "DataType": "String",
+      "StringValue": "id"
+    },
+    "ghEventType": {
+      "DataType": "String",
+      "StringValue": "type"
+    },
+    "ghTaskConfig": {
+      "DataType": "String",
+      "StringValue": "{\"task\": \"config\"}"
+    },
+    "ghAgentGroup": {
+      "DataType": "String",
+      "StringValue": "group"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "Body": "{\"sample\": \"message\"}",
+  "ReceiptHandle": "handle",
+  "MessageAttributes": {
+    "ghEventId": {
+      "StringValue": "id"
+    },
+    "ghEventType": {
+      "StringValue": "type"
+    },
+    "ghTaskConfig": {
+      "StringValue": "{\"task\": \"config\"}"
+    },
+    "ghAgentGroup": {
+      "StringValue": "group"
+    },
+    "ghEventSignature": {
+      "StringValue": "sha1=cee03d54dc35650b903b0cdc38ebd49208b1efa4"
+    }
+  }
+}

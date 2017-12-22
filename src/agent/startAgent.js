@@ -1,3 +1,6 @@
+import { default as dotenv } from 'dotenv';
+dotenv.config();
+
 import { Agent } from './Agent';
 
 (() => {
