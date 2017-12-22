@@ -34,7 +34,7 @@ async function handle(event, context, callback) {
 
         consumer.start();
     } catch (e) {
-        console.log(e);
+        console.log(e.message);
         return callback(null, {
             statusCode: 401,
             headers: { 'Content-Type': 'text/plain' },

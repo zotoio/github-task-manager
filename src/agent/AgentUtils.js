@@ -1,7 +1,6 @@
 'use strict';
 
 const pullRequestData = require('./pullrequest.json');
-require('dotenv').config();
 const { URL } = require('url');
 import { default as AgentLogger } from './AgentLogger';
 let log = AgentLogger.log();

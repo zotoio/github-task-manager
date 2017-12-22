@@ -2,12 +2,10 @@
 
 import 'babel-polyfill';
 import { default as crypto } from 'crypto';
-import { default as dotenv } from 'dotenv';
 import { default as AgentLogger } from './AgentLogger';
 import { Agent } from './Agent';
 
 let log = AgentLogger.log();
-dotenv.config();
 
 /**
  * representation of an event generated from a github hook SQS message

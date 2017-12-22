@@ -1,0 +1,7 @@
+{
+  "ghEventId": "id",
+  "ghEventType": "type",
+  "ghAgentGroup": "group",
+  "ghTaskConfig": "{\"task\": \"config\"}",
+  "ghEventSignature": "sha1=cee03d54dc35650b903b0cdc38ebd49208b1efa4"
+}
