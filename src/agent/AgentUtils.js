@@ -59,16 +59,8 @@ export class AgentUtils {
         return pullRequestData;
     }
 
-    static maskString(
-        plaintext,
-        desiredLength = 12,
-        visibleChars = 5,
-        maskChar = '*'
-    ) {
-        let maskLength = Math.min(
-            plaintext.length - visibleChars,
-            desiredLength
-        );
+    static maskString(plaintext, desiredLength = 12, visibleChars = 5, maskChar = '*') {
+        let maskLength = Math.min(plaintext.length - visibleChars, desiredLength);
         return maskChar.repeat(maskLength) + plaintext.slice(-5);
     }
 
@@ -92,13 +84,7 @@ export class AgentUtils {
      * @param {string} context - Content Name to Display in GitHub
      * @param {string} description - Short Description to Display in GitHub
      */
-    static createPullRequestStatus(
-        eventData,
-        state,
-        context,
-        description,
-        url
-    ) {
+    static createPullRequestStatus(eventData, state, context, description, url) {
         return {
             owner: eventData.repository.owner.login || 'Default_Owner',
             repo: eventData.repository.name || 'Default_Repository',
@@ -154,9 +140,7 @@ export class AgentUtils {
         log.debug(`Setting SQS Message Timeout to ${timeoutValue} Seconds`);
         return AgentUtils.getQueueUrl(queueName)
             .then(function(queueUrl) {
-                log.debug(
-                    `Queue URL: ${queueUrl}, Message Handle: ${messageHandle}, Timeout: ${timeoutValue}`
-                );
+                log.debug(`Queue URL: ${queueUrl}, Message Handle: ${messageHandle}, Timeout: ${timeoutValue}`);
                 return sqs
                     .changeMessageVisibility({
                         QueueUrl: queueUrl,
@@ -166,20 +150,11 @@ export class AgentUtils {
                     .promise();
             })
             .then(function(data) {
-                log.info(
-                    `SQS Heartbeat Sent. (${timeoutValue}'s) ${JSON.stringify(
-                        data
-                    )}`
-                );
+                log.info(`SQS Heartbeat Sent. (${timeoutValue}'s) ${JSON.stringify(data)}`);
             });
     }
 
-    static async postResultsAndTrigger(
-        sqsQueueName,
-        results,
-        snsQueueName,
-        message
-    ) {
+    static async postResultsAndTrigger(sqsQueueName, results, snsQueueName, message) {
         return AgentUtils.getQueueUrl(sqsQueueName)
             .then(function(sqsQueueUrl) {
                 let params = {

@@ -44,49 +44,35 @@ export class ExecutorJenkins extends Executor {
             let maxRetries = 600;
             let tries = 0;
             while (!exists && tries++ < maxRetries) {
-                exists = await this.jenkins.build
-                    .get(buildName, buildNumber)
-                    .then(
-                        function() {
-                            log.info(
-                                `Build ${buildName} #${buildNumber} Started!`
-                            );
-                            return true;
-                        },
-                        async function() {
-                            log.debug(
-                                `Build ${buildName} #${buildNumber} Hasn't Started: ${tries}`
-                            );
-                            await AgentUtils.timeout(10000);
-                            return false;
-                        }
-                    );
+                exists = await this.jenkins.build.get(buildName, buildNumber).then(
+                    function() {
+                        log.info(`Build ${buildName} #${buildNumber} Started!`);
+                        return true;
+                    },
+                    async function() {
+                        log.debug(`Build ${buildName} #${buildNumber} Hasn't Started: ${tries}`);
+                        await AgentUtils.timeout(10000);
+                        return false;
+                    }
+                );
             }
             exists ? resolve(true) : reject();
         });
     }
 
     async waitForBuild(buildName, buildNumber) {
-        let buildDict = await this.jenkins.build
-            .get(buildName, buildNumber)
-            .then(function(data) {
-                return data;
-            });
+        let buildDict = await this.jenkins.build.get(buildName, buildNumber).then(function(data) {
+            return data;
+        });
         let tries = 1;
         while (buildDict.result === null) {
             await AgentUtils.timeout(5000);
-            buildDict = await this.jenkins.build
-                .get(buildName, buildNumber)
-                .then(function(data) {
-                    log.debug(
-                        `Waiting for Build '${buildName}' to Finish: ${tries++}`
-                    );
-                    return data;
-                });
+            buildDict = await this.jenkins.build.get(buildName, buildNumber).then(function(data) {
+                log.debug(`Waiting for Build '${buildName}' to Finish: ${tries++}`);
+                return data;
+            });
         }
-        log.info(
-            `Build Finished: ${buildName} #${buildNumber} - ${buildDict.result}`
-        );
+        log.info(`Build Finished: ${buildName} #${buildNumber} - ${buildDict.result}`);
         return buildDict;
     }
 
