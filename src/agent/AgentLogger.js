@@ -14,10 +14,8 @@ let STREAM_USER_LAST_ACTIVITY = Date.now();
 
 let logGroupMap = [];
 logGroupMap['gtmGithubHook'] = '/aws/lambda/gtmGithubHook-dev-gtmGithubHook';
-logGroupMap['gtmGithubResults'] =
-    '/aws/lambda/gtmGithubHook-dev-gtmGithubResults';
-logGroupMap[process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP] =
-    process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP;
+logGroupMap['gtmGithubResults'] = '/aws/lambda/gtmGithubHook-dev-gtmGithubResults';
+logGroupMap[process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP] = process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP;
 
 let CWLogFilterEventStream = require('smoketail').CWLogFilterEventStream;
 
@@ -52,10 +50,7 @@ function log() {
 
 // important - do not use log() in this function, or a cloudwatch loop will occur :)
 function stream(groupName, streamName) {
-    console.log(
-        `starting cloudwatch stream (groupName: ${groupName}, streamName: ${streamName ||
-            'ALL'})`
-    );
+    console.log(`starting cloudwatch stream (groupName: ${groupName}, streamName: ${streamName || 'ALL'})`);
 
     if (!SSE[groupName]) {
         SSE[groupName] = new ExpressSSE();
@@ -63,8 +58,7 @@ function stream(groupName, streamName) {
 
     let filterOpts = {
         logGroupName: logGroupMap[groupName],
-        logStreamNames:
-            streamName && streamName !== 'ALL' ? [streamName] : undefined,
+        logStreamNames: streamName && streamName !== 'ALL' ? [streamName] : undefined,
         startTime: Date.now(),
         follow: true
     };
@@ -121,14 +115,8 @@ function registerActivity(ip) {
 function streamJanitor() {
     let maxMinutesInactivity = 2;
     //console.log(`streamJanitor ${Date.now()}, ${STREAM_USER_LAST_ACTIVITY}`);
-    if (
-        Object.keys(STREAM).length > 0 &&
-        Date.now() - STREAM_USER_LAST_ACTIVITY >
-            maxMinutesInactivity * 60 * 1000
-    ) {
-        log().info(
-            `closing streams after no browsers detected for ${maxMinutesInactivity} minutes.`
-        );
+    if (Object.keys(STREAM).length > 0 && Date.now() - STREAM_USER_LAST_ACTIVITY > maxMinutesInactivity * 60 * 1000) {
+        log().info(`closing streams after no browsers detected for ${maxMinutesInactivity} minutes.`);
         stopAllStreams();
         clearInterval(janitorInterval);
     }

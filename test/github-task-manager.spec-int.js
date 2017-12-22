@@ -39,9 +39,7 @@ describe('GitHub Task Manager', () => {
                 },
                 gitdata: {
                     getReference: util.promisify(github.gitdata.getReference),
-                    createReference: util.promisify(
-                        github.gitdata.createReference
-                    )
+                    createReference: util.promisify(github.gitdata.createReference)
                 },
                 pullRequests: {
                     create: util.promisify(github.pullRequests.create)
@@ -96,9 +94,7 @@ describe('GitHub Task Manager', () => {
                         owner: process.env.GTM_GITHUB_OWNER,
                         repo: integration.config.testRepoName,
                         path: `${testName}.txt`,
-                        content: Buffer.from(testName.toString()).toString(
-                            'base64'
-                        ),
+                        content: Buffer.from(testName.toString()).toString('base64'),
                         message: `updated/${testName}.txt`,
                         branch: `refs/heads/${testName}`
                     });

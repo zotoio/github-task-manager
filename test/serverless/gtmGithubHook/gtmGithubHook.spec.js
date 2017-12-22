@@ -72,9 +72,7 @@ describe('gtmGithubHook', function() {
             sinon.stub(githubUtils, 'getFile').callsFake(() => {
                 return Promise.resolve({
                     data: {
-                        content: Buffer.from(JSON.stringify(config)).toString(
-                            'base64'
-                        )
+                        content: Buffer.from(JSON.stringify(config)).toString('base64')
                     }
                 });
             });
@@ -100,14 +98,8 @@ describe('gtmGithubHook', function() {
             };
 
             //gtmGithubHook.setUtils(githubUtils);
-            let actual = await gtmGithubHook.getTaskConfig(
-                'pull_request',
-                body
-            );
-            return assert.equal(
-                actual.pull_request.tasks[0].executor,
-                'jenkins'
-            );
+            let actual = await gtmGithubHook.getTaskConfig('pull_request', body);
+            return assert.equal(actual.pull_request.tasks[0].executor, 'jenkins');
         });
     });
 });

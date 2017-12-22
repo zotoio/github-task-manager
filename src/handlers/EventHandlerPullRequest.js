@@ -17,10 +17,7 @@ export class EventHandlerPullRequest extends EventHandler {
         log.info('Pull Request: ' + this.eventData.pull_request.number);
         log.info('---------------------------------');
 
-        this.tasks = AgentUtils.templateReplace(
-            AgentUtils.createBasicTemplate(this.eventData),
-            this.tasks
-        );
+        this.tasks = AgentUtils.templateReplace(AgentUtils.createBasicTemplate(this.eventData), this.tasks);
 
         // first set each pr check to pending
         let that = this;
@@ -53,9 +50,7 @@ export class EventHandlerPullRequest extends EventHandler {
                     process.env.GTM_SQS_RESULTS_QUEUE,
                     status,
                     process.env.GTM_SNS_RESULTS_TOPIC,
-                    `Pending for ${event.eventType} => ${task.executor}:${
-                        task.context
-                    } - Event ID: ${event.eventId}`
+                    `Pending for ${event.eventType} => ${task.executor}:${task.context} - Event ID: ${event.eventId}`
                 ).then(function() {
                     log.info(task);
                     log.info('-----------------------------');
@@ -74,12 +69,7 @@ export class EventHandlerPullRequest extends EventHandler {
                 return;
             }
             log.info('=================================');
-            log.info(
-                'Creating Executor for Task: ' +
-                    task.executor +
-                    ':' +
-                    task.context
-            );
+            log.info('Creating Executor for Task: ' + task.executor + ':' + task.context);
             let executor = Executor.create(task.executor, event.eventData);
 
             let status;
@@ -101,8 +91,7 @@ export class EventHandlerPullRequest extends EventHandler {
                             let defaultResultMessage = taskResult.passed
                                 ? 'Task Completed Successfully'
                                 : 'Task Completed with Errors';
-                            let taskResultMessage =
-                                taskResult.message || defaultResultMessage;
+                            let taskResultMessage = taskResult.message || defaultResultMessage;
                             status = AgentUtils.createPullRequestStatus(
                                 event.eventData,
                                 taskResult.passed ? 'success' : 'error',
@@ -118,11 +107,9 @@ export class EventHandlerPullRequest extends EventHandler {
                             process.env.GTM_SQS_RESULTS_QUEUE,
                             status,
                             process.env.GTM_SNS_RESULTS_TOPIC,
-                            `Result '${status.state}' for ${
-                                event.eventType
-                            } => ${task.executor}:${task.context} - Event ID: ${
-                                event.eventId
-                            }`
+                            `Result '${status.state}' for ${event.eventType} => ${task.executor}:${
+                                task.context
+                            } - Event ID: ${event.eventId}`
                         );
                     })
                     .catch(e => {
@@ -138,9 +125,9 @@ export class EventHandlerPullRequest extends EventHandler {
                             process.env.GTM_SQS_RESULTS_QUEUE,
                             status,
                             process.env.GTM_SNS_RESULTS_TOPIC,
-                            `Result 'error' for ${event.eventType} => ${
-                                task.executor
-                            }:${task.context} - Event ID: ${event.eventId}`
+                            `Result 'error' for ${event.eventType} => ${task.executor}:${task.context} - Event ID: ${
+                                event.eventId
+                            }`
                         );
                     });
             } catch (e) {

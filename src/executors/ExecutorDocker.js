@@ -10,9 +10,9 @@ let log = AgentUtils.logger();
  *
  {
    "executor": "Docker",
-   "context": "run",
+   "context": "run ls in latest alpine",
    "options": {
-     "image": "node:8",
+     "image": "alpine:latest",
      "command": ["/bin/ls", "-ltr", "/bin"]
    }
  }
@@ -35,11 +35,7 @@ export class ExecutorDocker extends Executor {
         let image = task.options.image;
         let command = task.options.command;
 
-        log.info(
-            `Starting local docker container '${image}' to run: ${command.join(
-                ' '
-            )}`
-        );
+        log.info(`Starting local docker container '${image}' to run: ${command.join(' ')}`);
 
         let docker = new Docker();
 

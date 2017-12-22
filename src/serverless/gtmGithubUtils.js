@@ -22,9 +22,7 @@ function connect(context) {
     let token = process.env.GTM_GITHUB_TOKEN;
     if (context) {
         token =
-            process.env[
-                'GTM_GITHUB_TOKEN_' + context.toUpperCase().replace('-', '_')
-            ] || process.env.GTM_GITHUB_TOKEN;
+            process.env['GTM_GITHUB_TOKEN_' + context.toUpperCase().replace('-', '_')] || process.env.GTM_GITHUB_TOKEN;
     }
 
     github.authenticate({
@@ -118,9 +116,7 @@ async function getFile(params) {
 }
 
 async function updateGitHubPullRequest(status, done) {
-    console.log(
-        `updating github for pull_request event ${status.eventData.ghEventId}`
-    );
+    console.log(`updating github for pull_request event ${status.eventData.ghEventId}`);
 
     let github = connect(status.context);
     return await github.repos.createStatus(status).then(() => {
@@ -129,9 +125,7 @@ async function updateGitHubPullRequest(status, done) {
 }
 
 async function updateGitHubComment(status, done) {
-    console.log(
-        `updating github for comment event ${status.eventData.ghEventId}`
-    );
+    console.log(`updating github for comment event ${status.eventData.ghEventId}`);
 
     //let github = connect(status.context);
     //return await github.repos.createStatus(status).then(() => {
@@ -148,11 +142,7 @@ async function handleEventTaskResult(message, done) {
     if (updaterFunction) {
         return updaterFunction(status, done);
     } else {
-        console.error(
-            `gitub updates for event type '${
-                status.eventData.ghEventType
-            }' are not supported yet.`
-        );
+        console.error(`gitub updates for event type '${status.eventData.ghEventType}' are not supported yet.`);
         done();
     }
 }

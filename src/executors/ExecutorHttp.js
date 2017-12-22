@@ -53,15 +53,13 @@ export class ExecutorHttp extends Executor {
                     return Promise.resolve({
                         passed: true,
                         message: 'Request completed',
-                        url:
-                            'http://www.softwareishard.com/blog/har-12-spec/#request'
+                        url: 'http://www.softwareishard.com/blog/har-12-spec/#request'
                     });
                 } else {
                     return Promise.reject({
                         passed: false,
                         message: 'Response validation failed',
-                        url:
-                            'http://www.softwareishard.com/blog/har-12-spec/#request'
+                        url: 'http://www.softwareishard.com/blog/har-12-spec/#request'
                     });
                 }
             })
@@ -71,8 +69,7 @@ export class ExecutorHttp extends Executor {
                 return Promise.reject({
                     passed: false,
                     message: e.message,
-                    url:
-                        'http://www.softwareishard.com/blog/har-12-spec/#request'
+                    url: 'http://www.softwareishard.com/blog/har-12-spec/#request'
                 });
             });
     }
@@ -80,10 +77,7 @@ export class ExecutorHttp extends Executor {
     validate(task, response) {
         let valid = true;
 
-        if (
-            task.options.validator &&
-            task.options.validator.type === 'bodyJson'
-        ) {
+        if (task.options.validator && task.options.validator.type === 'bodyJson') {
             log.info('validating response: bodyJson');
 
             try {
@@ -94,10 +88,7 @@ export class ExecutorHttp extends Executor {
 
                 log.info(`checking ${objectCheckRef} === ${objectCheckVal}`);
 
-                valid =
-                    objectCheckRef
-                        .split('.')
-                        .reduce((o, i) => o[i], bodyObj) === objectCheckVal;
+                valid = objectCheckRef.split('.').reduce((o, i) => o[i], bodyObj) === objectCheckVal;
             } catch (e) {
                 log.error('http bodyJson validation failed', e);
                 valid = false;
