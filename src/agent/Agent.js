@@ -1,7 +1,6 @@
 'use strict';
 
 import 'babel-polyfill';
-import { default as crypto } from 'crypto';
 import { default as dotenv } from 'dotenv';
 import { default as AgentLogger } from './AgentLogger';
 import { default as express } from 'express';
@@ -10,6 +9,7 @@ import { default as Consumer } from 'sqs-consumer';
 import { default as hljs } from 'highlight.js';
 import { EventHandler } from './EventHandler';
 import { AgentUtils } from './AgentUtils';
+import { Event } from './Event';
 import { default as json } from 'format-json';
 import { default as GtmGithubHook } from '../serverless/gtmGithubHook/gtmGithubHook.js';
 
@@ -28,18 +28,8 @@ systemConfig.agentGroup = AGENT_GROUP;
 let isDev;
 
 export class Agent {
-    /**
-     * list of required message attributes on SQS messages
-     * @returns {[string,string,string,string,string]}
-     */
-    static get requiredAttributes() {
-        return [
-            'ghEventId',
-            'ghEventType',
-            'ghAgentGroup',
-            'ghTaskConfig',
-            'ghEventSignature'
-        ];
+    static get systemConfig() {
+        return systemConfig;
     }
 
     /**
@@ -126,10 +116,7 @@ export class Agent {
         app.get('/process/', (req, res) => {
             let updatedEventData;
             if (systemConfig.event.current)
-                updatedEventData = hljs.highlight(
-                    'json',
-                    JSON.stringify(systemConfig.event.current, null, 4)
-                ).value;
+                updatedEventData = hljs.highlight('json', JSON.stringify(systemConfig.event.current, null, 4)).value;
             else updatedEventData = null;
             res.render('event.html', {
                 globalProperties: systemConfig,
@@ -158,8 +145,7 @@ export class Agent {
         });
 
         app.get('/stream/keepalive', (req, res) => {
-            let ip =
-                req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+            let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
             AgentUtils.registerActivity(ip);
             if (req) res.end();
         });
@@ -182,9 +168,7 @@ export class Agent {
             try {
                 let desiredState = req.params.desiredState;
                 if (!desiredState === 'enable' || !desiredState === 'disable') {
-                    log.debug(
-                        'Unknown State: ' + desiredState + '. Ignoring Request.'
-                    );
+                    log.debug('Unknown State: ' + desiredState + '. Ignoring Request.');
                 } else {
                     if (desiredState === 'disable') {
                         pendingQueueHandler.stop();
@@ -198,9 +182,7 @@ export class Agent {
                 log.error('Error Setting Queue State from Request');
             }
             systemConfig.pendingQueue.enabled = !pendingQueueHandler.stopped;
-            systemConfig.pendingQueue.state = pendingQueueHandler.stopped
-                ? 'Stopped'
-                : 'Running';
+            systemConfig.pendingQueue.state = pendingQueueHandler.stopped ? 'Stopped' : 'Running';
             res.json({ state: systemConfig.pendingQueue.state });
         });
     }
@@ -213,9 +195,7 @@ export class Agent {
 
         let that = this;
 
-        AgentUtils.getQueueUrl(process.env.GTM_SQS_PENDING_QUEUE).then(function(
-            data
-        ) {
+        AgentUtils.getQueueUrl(process.env.GTM_SQS_PENDING_QUEUE).then(function(data) {
             pendingUrl = data;
             systemConfig.pendingQueue = {};
             systemConfig.pendingQueue.url = pendingUrl;
@@ -223,46 +203,38 @@ export class Agent {
             pendingQueueHandler = Consumer.create({
                 queueUrl: pendingUrl,
                 region: process.env.GTM_AWS_REGION,
-                messageAttributeNames: Agent.requiredAttributes,
+                messageAttributeNames: Event.requiredAttributes,
 
                 handleMessage: async (message, done) => {
-                    log.info(
-                        '## == NEW EVENT =================================='
-                    );
-                    log.info('Received Event from Queue');
+                    log.info('## == NEW EVENT ==================================');
+                    log.info('Received Message from Pending Queue');
                     log.debug(`message: ${json.plain(message)}`);
 
-                    let attrs;
+                    let event;
                     try {
-                        attrs = that.validateMessage(message);
+                        event = new Event(message);
                     } catch (e) {
-                        log.error(e.message);
+                        log.error(e);
                         done(); //todo dead letter queue here rather than discard
                         return;
                     }
 
-                    let eventData = that.prepareEventData(message, attrs);
-
-                    if (attrs.ghAgentGroup !== AGENT_GROUP) {
+                    if (event.attrs.ghAgentGroup !== AGENT_GROUP) {
                         log.info(
                             `agentGroup mismatch - event: '${
-                                attrs.ghAgentGroup
+                                event.attrs.ghAgentGroup
                             }' agent: '${AGENT_GROUP}' skipping..`
                         );
-                        AgentUtils.setSqsMessageTimeout(
-                            process.env.GTM_SQS_PENDING_QUEUE,
-                            message.ReceiptHandle,
-                            5
-                        );
+                        AgentUtils.setSqsMessageTimeout(process.env.GTM_SQS_PENDING_QUEUE, message.ReceiptHandle, 5);
                         done(new Error()); // Re-Queue Messages that don't match our Agent Group
                         return;
                     }
 
-                    if (!EventHandler.isRegistered(attrs.ghEventType)) {
+                    if (!EventHandler.isRegistered(event.attrs.ghEventType)) {
                         log.error(
-                            `No Event Handler for Type: '${
-                                attrs.ghEventType
-                            }' (Event ID: ${attrs.ghEventId})`
+                            `No Event Handler for Type: '${event.attrs.ghEventType}' (Event ID: ${
+                                event.attrs.ghEventId
+                            })`
                         );
                         done();
                     } else {
@@ -276,19 +248,16 @@ export class Agent {
 
                         // handle the event and execute tasks
                         try {
-                            await EventHandler.create(
-                                attrs.ghEventType,
-                                eventData
-                            )
+                            await EventHandler.create(event.attrs.ghEventType, event.payload)
                                 .handleEvent()
                                 .then(() => {
                                     done();
                                     clearInterval(loopTimer);
                                     return Promise.resolve(
                                         log.info(
-                                            `### Event handled: type=${
-                                                attrs.ghEventType
-                                            } id=${attrs.ghEventId}}`
+                                            `### Event handled: type=${event.attrs.ghEventType} id=${
+                                                event.attrs.ghEventId
+                                            }}`
                                         )
                                     );
                                 });
@@ -306,101 +275,6 @@ export class Agent {
     }
 
     /**
-     * verify message attributes exist and check signing
-     * @param message
-     * @returns {{}} result attribute object
-     */
-    validateMessage(message) {
-        let result = {};
-
-        Agent.requiredAttributes.forEach(attr => {
-            try {
-                result[attr] = message.MessageAttributes[attr].StringValue;
-            } catch (TypeError) {
-                throw new Error(
-                    `No Message Attribute '${attr}' in Message - discarding Event!`
-                );
-            }
-        });
-
-        if (!this.checkEventSignature(result.ghEventSignature, message)) {
-            throw new Error('Event signature mismatch - discarding Event!');
-        } else {
-            log.info('Event signature verified. processing event..');
-        }
-
-        return result;
-    }
-
-    /**
-     * sign the event message, and check that github signature matches
-     * @param signature
-     * @param event
-     * @returns {boolean}
-     */
-    checkEventSignature(signature, event) {
-        let checkEvent = {
-            id: event.MessageAttributes.ghEventId.StringValue,
-            body: event.Body,
-            messageAttributes: {
-                ghEventId: {
-                    DataType: 'String',
-                    StringValue: event.MessageAttributes.ghEventId.StringValue
-                },
-                ghEventType: {
-                    DataType: 'String',
-                    StringValue: event.MessageAttributes.ghEventType.StringValue
-                },
-                ghTaskConfig: {
-                    DataType: 'String',
-                    StringValue:
-                        event.MessageAttributes.ghTaskConfig.StringValue
-                },
-                ghAgentGroup: {
-                    DataType: 'String',
-                    StringValue:
-                        event.MessageAttributes.ghAgentGroup.StringValue
-                }
-            }
-        };
-
-        log.debug(
-            `eventString for signature check: ${JSON.stringify(checkEvent)}`
-        );
-        let calculatedSig = `sha1=${crypto
-            .createHmac('sha1', process.env.GTM_GITHUB_WEBHOOK_SECRET)
-            .update(JSON.stringify(checkEvent), 'utf-8')
-            .digest('hex')}`;
-
-        if (calculatedSig !== signature) {
-            throw new Error(
-                `signature mismatch: ${calculatedSig} !== ${signature}`
-            );
-        }
-
-        return calculatedSig === signature;
-    }
-
-    /**
-     * create eventData object from message body, and attach message attributes
-     * @param message
-     * @param attrs
-     */
-    prepareEventData(message, attrs) {
-        let eventData = JSON.parse(message.Body);
-        eventData.ghEventId = attrs.ghEventId;
-        eventData.ghEventType = attrs.ghEventType;
-        eventData.ghTaskConfig = JSON.parse(attrs.ghTaskConfig);
-        eventData.ghAgentGroup = attrs.ghAgentGroup;
-        eventData.ghEventSignature = attrs.ghEventSignature;
-        eventData.MessageHandle = message.ReceiptHandle;
-
-        systemConfig.event.current = eventData;
-
-        return eventData;
-    }
-
-    /**
      * start express listener, and handle queue errors
      * @param pendingQueueHandler
      */
@@ -414,30 +288,15 @@ export class Agent {
             AgentUtils.printBanner();
             log.info('AGENT_ID: ' + AgentUtils.agentId());
             log.info('AGENT_GROUP: ' + AGENT_GROUP);
-            log.info(
-                'GitHub Task Manager Agent Running on Port ' +
-                    process.env.GTM_AGENT_PORT
-            );
+            log.info('GitHub Task Manager Agent Running on Port ' + process.env.GTM_AGENT_PORT);
             log.info('Runmode: ' + runmode);
-            log.info(
-                'AWS Access Key ID: ' +
-                    AgentUtils.maskString(
-                        process.env.GTM_AGENT_AWS_ACCESS_KEY_ID
-                    )
-            );
-            log.info(
-                'AWS Access Key: ' +
-                    AgentUtils.maskString(
-                        process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY
-                    )
-            );
+            log.info('AWS Access Key ID: ' + AgentUtils.maskString(process.env.GTM_AGENT_AWS_ACCESS_KEY_ID));
+            log.info('AWS Access Key: ' + AgentUtils.maskString(process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY));
             log.info('Pending Queue URL: ' + pendingUrl);
 
             pendingQueueHandler.start();
             log.info('Queue Processing Started');
-            systemConfig.pendingQueue.state = pendingQueueHandler.stopped
-                ? 'Stopped'
-                : 'Running';
+            systemConfig.pendingQueue.state = pendingQueueHandler.stopped ? 'Stopped' : 'Running';
             systemConfig.pendingQueue.enabled = !pendingQueueHandler.stopped;
             systemConfig.agentId = AgentUtils.agentId();
         });
