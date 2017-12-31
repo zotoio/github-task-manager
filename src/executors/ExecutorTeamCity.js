@@ -1,8 +1,8 @@
-//import { default as TeamCity } from 'teamcity-rest-api';
+import { default as TeamCity } from 'teamcity-rest-api';
 import { Executor } from '../agent/Executor';
-import { AgentUtils } from '../agent/AgentUtils';
+import { Utils } from '../agent/AgentUtils';
 import { default as json } from 'format-json';
-let log = AgentUtils.logger();
+let log = Utils.logger();
 
 export class ExecutorTeamCity extends Executor {
     constructor(eventData) {
@@ -12,11 +12,11 @@ export class ExecutorTeamCity extends Executor {
         this.runFunctions = {};
         this.runFunctions['pull_request'] = this.executeForPullRequest;
 
-        /*this.teamCity = TeamCity.create({
-            url: 'http://localhost:8111',
-            username: 'user',
-            password: 'pass'
-        });*/
+        this.teamCity = TeamCity.create({
+            url: this.options.GTM_TEAMCITY_URL,
+            username: this.options.GTM_TEAMCITY_USER,
+            password: this.options.GTM_TEAMCITY_PASSCODE
+        });
     }
 
     run(fn) {
@@ -24,30 +24,60 @@ export class ExecutorTeamCity extends Executor {
     }
 
     async executeForPullRequest(task) {
-        //let jobName = this.taskNameToBuild(taskName);
+        log.info('TeamCity Build Finished');
+        log.debug(task);
+        return { passed: true, url: this.options.GTM_TEAMCITY_URL + '/viewType.html?buildTypeId=' + jobName };
 
-        log.info(`teamcity options: ${json.plain(task.options)}`);
+    }
 
-        /*
-        let buildNodeObject = '<build>' +
-            '<buildType id="TestConfigId" />' +
+    createTeamCityBuildNode(task, jobName) {
+        var buildProperties = '';
+        for(var buildProperty in task.options) {
+            buildProperties = buildProperties + '<property name="' + buildProperty + '" value="' + task.options[buildProperty] + '"/>\n';
+        }
+
+        let buildNodeObject = '<build>\n' +
+            '<buildType id="' + jobName + '" />\n' +
+            '<properties>\n' +
+                buildProperties +  
+            '</properties>\n' + 
             '</build>';
 
-        this.teamCity.builds.startBuild(buildNodeObject)
-            .then(function(buildStatus) {
-                log.debug(buildStatus.id);
-            });
-            */
-
-        let result = true;
-        log.info('Build Finished: ' + result);
-        return { passed: result, url: 'https://www.jetbrains.com/teamcity' };
+        return buildNodeObject;
     }
 
     async executeTask(task) {
-        log.info('TeamCity Build Finished');
-        log.debug(task);
-        return { passed: true, url: 'https://www.jetbrains.com/teamcity' };
+
+        let jobName = task.context;
+
+        if (jobName == null) {
+            await Utils.timeout(4000);
+            return 'NO_MATCHING_TASK';
+        }
+
+        log.info('TeamCity Project[' + jobName + '] Started.');
+
+        let buildNode = this.createTeamCityBuildNode(task, jobName);
+        log.debug('TeamCity Project[' + jobName + '] buildNode : ' + buildNode);
+                
+        this.teamCity.builds.startBuild(buildNode)
+        .then(function(buildStatus) {
+                console.log(buildStatus.id);
+                this.teamCity.builds.get(buildStatus.id)
+                .then(function(_build) {
+                    while(!_build.state === 'finished') {
+                      console.log(_build.state);  
+                    }
+                    console.log(_build.statistics);
+                });
+        });
+
+        //to-do
+        //once build is finished, get the statistics from [this.options.GTM_TEAMCITY_URL + _build.statistics] and post the results
+
+        let result = true;
+        log.info('Build Finished: ' + result);
+        return { passed: result, url: this.options.GTM_TEAMCITY_URL + '/viewType.html?buildTypeId=' + jobName };
     }
 }
 

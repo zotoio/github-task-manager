@@ -14,11 +14,15 @@
         }
       },
       {
-        "executor": "teamcity",
-        "context": "a11y",
+        "executor": "TeamCity",
+        "context": "projectName",
         "options": {
-          "tags": [
-            "@a11y"
+          "build_tag" : "proj_wasX",
+          "build_env" : "env_dev",
+          "cuke_env" : "env_dev|staging|prod",
+          "cuke_tags" : [
+            "@proj_wasX",
+            "@proj_wasn"
           ]
         }
       },
