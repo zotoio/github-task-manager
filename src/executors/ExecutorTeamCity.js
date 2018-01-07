@@ -88,6 +88,7 @@ export class ExecutorTeamCity extends Executor {
         return buildDict;
     }
 
+    /*
     getBuildStatistics(statsUrl, buildName, buildNumber) {
 
         log.debug(statsUrl);
@@ -97,7 +98,7 @@ export class ExecutorTeamCity extends Executor {
             log.debug(body.url);
             log.debug(body.explanation);
         });
-    }
+    }*/
 }
 
 Executor.register('TeamCity', ExecutorTeamCity);
