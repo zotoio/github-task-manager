@@ -57,7 +57,7 @@ export class ExecutorTeamCity extends Executor {
             return 'NO_MATCHING_TASK';
         }
 
-        let buildNode = this.createTeamCityBuildNode(jTask, jobName);
+        let buildNode = this.createTeamCityBuildNode(task, jobName);
         
         let teamCityBuildId = await this.teamCity.builds.startBuild(buildNode);
         log.info(`TeamCity Project[${jobName}] with buildNumber : ${teamCityBuildId.id} Started.`);
