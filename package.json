@@ -14,7 +14,7 @@
     "sls-undeploy": "node ./node_modules/serverless/bin/serverless remove",
     "sls-logs-hook": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubHook -t",
     "sls-logs-results": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubResults -t",
-    "agent": "node dist/src/agent/startAgent.js",
+    "agent": "export $(cat .env | grep -v ^# | xargs) && node dist/src/agent/startAgent.js",
     "agent-build": "node ./dist/src/agent/sass.js && cp ./src/agent/static/*.js ./dist/src/agent/static/",
     "docker-build": "docker build -t github-task-manager --no-cache .",
     "docker-start": "docker-compose up --force-recreate -d",
