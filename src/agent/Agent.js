@@ -99,7 +99,13 @@ export class Agent {
                 }
             };
 
-            GtmGithubHook.listener(req, null, callback);
+            let virtualLambdaEvent = {
+                body: JSON.stringify(req.body),
+                headers: req.headers,
+                httpMethod: req.method
+            }
+
+            GtmGithubHook.listener(virtualLambdaEvent, null, callback);
         });
 
         app.get('/event_test/', (req, res) => {
