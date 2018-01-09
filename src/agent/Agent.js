@@ -3,6 +3,7 @@
 import 'babel-polyfill';
 import { default as AgentLogger } from './AgentLogger';
 import { default as express } from 'express';
+import { default as bodyParser } from 'body-parser';
 import { default as expressNunjucks } from 'express-nunjucks';
 import { default as Consumer } from 'sqs-consumer';
 import { default as hljs } from 'highlight.js';
@@ -78,6 +79,9 @@ export class Agent {
         // Configure Templates
         app.set('views', __dirname + '/templates');
 
+        // Configure Body Parser
+        app.use(bodyParser.json());
+
         // Init Nunjucks
         expressNunjucks(app, {
             watch: isDev,
@@ -103,11 +107,9 @@ export class Agent {
                 body: JSON.stringify(req.body),
                 headers: req.headers,
                 httpMethod: req.method
-            }
+            };
 
-            log.info('GITHUB Hook Sent to /hook');
-            log.info(JSON.stringify(req))
-            log.info(virtualLambdaEvent)
+            log.warn('Non-Lambda WebHook Received');
 
             GtmGithubHook.listener(virtualLambdaEvent, null, callback);
         });

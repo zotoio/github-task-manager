@@ -45,9 +45,9 @@ function invalidHook(event) {
     let errMsg = null;
     const token = process.env.GTM_GITHUB_WEBHOOK_SECRET;
     const headers = event.headers;
-    const sig = headers['X-Hub-Signature'];
-    const githubEvent = headers['X-GitHub-Event'];
-    const id = headers['X-GitHub-Delivery'];
+    const sig = headers['X-Hub-Signature'] || headers['x-hub-signature'];
+    const githubEvent = headers['X-GitHub-Event'] || headers['x-github-event'];
+    const id = headers['X-GitHub-Delivery'] || headers['x-github-delivery'];
     const calculatedSig = signRequestBody(token, event.body);
 
     let validators = [
