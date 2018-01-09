@@ -106,6 +106,7 @@ export class Agent {
             }
 
             log.info('GITHUB Hook Sent to /hook');
+            log.info(JSON.stringify(req))
             log.info(virtualLambdaEvent)
 
             GtmGithubHook.listener(virtualLambdaEvent, null, callback);
