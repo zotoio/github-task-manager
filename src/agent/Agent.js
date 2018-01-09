@@ -105,6 +105,9 @@ export class Agent {
                 httpMethod: req.method
             }
 
+            log.info('GITHUB Hook Sent to /hook');
+            log.info(virtualLambdaEvent)
+
             GtmGithubHook.listener(virtualLambdaEvent, null, callback);
         });
 
