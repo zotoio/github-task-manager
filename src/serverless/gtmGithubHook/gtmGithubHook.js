@@ -7,8 +7,8 @@ let Producer = require('sqs-producer');
 let githubUtils = require('../gtmGithubUtils.js');
 
 async function listener(event, context, callback) {
-    const githubEvent = event.headers['X-GitHub-Event'];
-    const githubSignature = event.headers['X-Hub-Signature'];
+    const githubEvent = event.headers['X-GitHub-Event'] || event.headers['x-github-event'];
+    const githubSignature = event.headers['X-Hub-Signature'] || event.headers['x-hub-signature'];
 
     let err = githubUtils.invalidHook(event);
     if (err) {
