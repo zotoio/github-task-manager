@@ -24,8 +24,10 @@ function create(agentId) {
 
     let CWLogOptions = {
         region: process.env.GTM_AWS_REGION
-    }
+    };
 
+    // If we're running behind a proxy, assume we're also using IAM Roles for auth
+    // TODO: AWS_PROXY should become IAM_ENABLED and defer proxy values to env
     if (process.env.AWS_PROXY) {
         CWLogOptions = {
             region: process.env.GTM_AWS_REGION,
@@ -35,7 +37,7 @@ function create(agentId) {
             httpOptions: {
                 agent: proxy(process.env.AWS_PROXY)
             }
-        }
+        };
     }
 
     let stream = createCWStream({
