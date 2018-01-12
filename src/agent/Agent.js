@@ -104,7 +104,7 @@ export class Agent {
             };
 
             let virtualLambdaEvent = {
-                body: JSON.stringify(req.body),
+                body: req.body,
                 headers: req.headers,
                 httpMethod: req.method
             };

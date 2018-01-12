@@ -3,6 +3,7 @@ import { default as bformat } from 'bunyan-format';
 import { default as createCWStream } from 'bunyan-cloudwatch';
 import { default as UUID } from 'uuid/v4';
 import { default as ExpressSSE } from 'express-sse';
+import { default as proxy } from 'proxy-agent';
 
 let SSE = [];
 let AGENT_ID = UUID();
@@ -21,12 +22,28 @@ let janitorInterval;
 function create(agentId) {
     if (!agentId) console.warn('agentId is not set.');
 
+    let CWLogOptions = {
+        region: process.env.GTM_AWS_REGION
+    };
+
+    // If we're running behind a proxy, assume we're also using IAM Roles for auth
+    // TODO: AWS_PROXY should become IAM_ENABLED and defer proxy values to env
+    if (process.env.AWS_PROXY) {
+        CWLogOptions = {
+            region: process.env.GTM_AWS_REGION,
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+            sessionToken: process.env.AWS_SECURITY_TOKEN,
+            httpOptions: {
+                agent: proxy(process.env.AWS_PROXY)
+            }
+        };
+    }
+
     let stream = createCWStream({
         logGroupName: process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP || 'gtmAgent',
         logStreamName: 'AGENT_ID=' + agentId,
-        cloudWatchLogsOptions: {
-            region: process.env.GTM_AWS_REGION
-        }
+        cloudWatchLogsOptions: CWLogOptions
     });
 
     janitorInterval = setInterval(streamJanitor, 60000);
