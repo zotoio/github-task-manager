@@ -32,7 +32,7 @@ export class Agent {
     }
 
     /**
-     * start agent
+     * Start Agent
      */
     start() {
         process.on('unhandledRejection', (reason, p) => {
