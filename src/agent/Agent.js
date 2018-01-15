@@ -3,6 +3,7 @@
 import 'babel-polyfill';
 import { default as AgentLogger } from './AgentLogger';
 import { default as express } from 'express';
+import { default as bodyParser } from 'body-parser';
 import { default as expressNunjucks } from 'express-nunjucks';
 import { default as Consumer } from 'sqs-consumer';
 import { default as hljs } from 'highlight.js';
@@ -31,7 +32,7 @@ export class Agent {
     }
 
     /**
-     * start agent
+     * Start Agent
      */
     start() {
         process.on('unhandledRejection', (reason, p) => {
@@ -39,14 +40,20 @@ export class Agent {
             // application specific logging, throwing an error, or other logic here
         });
 
-        if (
-            !process.env.GTM_AGENT_AWS_ACCESS_KEY_ID ||
-            !process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY ||
-            !process.env.GTM_GITHUB_WEBHOOK_SECRET
-        ) {
-            log.error(
-                '### ERROR ### Environment Variables GTM_GITHUB_WEBHOOK_SECRET, GTM_AGENT_AWS_ACCESS_KEY_ID, or GTM_AGENT_AWS_SECRET_ACCESS_KEY Missing!'
-            );
+        if (!process.env.IAM_ENABLED) {
+            if (
+                !process.env.GTM_AGENT_AWS_ACCESS_KEY_ID ||
+                !process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY
+            ) {
+                log.error(
+                    '### ERROR ### Environment Variables GTM_AGENT_AWS_ACCESS_KEY_ID, or GTM_AGENT_AWS_SECRET_ACCESS_KEY Missing!'
+                );
+                process.exit(1);
+            }
+        }
+        
+        if (!process.env.GTM_GITHUB_WEBHOOK_SECRET) {
+            log.error('### ERROR ### Environment Variable GTM_GITHUB_WEBHOOK_SECRET missing!');
             process.exit(1);
         }
 
@@ -78,6 +85,9 @@ export class Agent {
         // Configure Templates
         app.set('views', __dirname + '/templates');
 
+        // Configure Body Parser
+        app.use(bodyParser.json());
+
         // Init Nunjucks
         expressNunjucks(app, {
             watch: isDev,
@@ -99,7 +109,15 @@ export class Agent {
                 }
             };
 
-            GtmGithubHook.listener(req, null, callback);
+            let virtualLambdaEvent = {
+                body: JSON.stringify(req.body),
+                headers: req.headers,
+                httpMethod: req.method
+            };
+
+            log.warn('Non-Lambda WebHook Received');
+
+            GtmGithubHook.listener(virtualLambdaEvent, null, callback);
         });
 
         app.get('/event_test/', (req, res) => {
@@ -288,8 +306,10 @@ export class Agent {
             log.info('AGENT_GROUP: ' + AGENT_GROUP);
             log.info('GitHub Task Manager Agent Running on Port ' + process.env.GTM_AGENT_PORT);
             log.info('Runmode: ' + runmode);
-            log.info('AWS Access Key ID: ' + AgentUtils.maskString(process.env.GTM_AGENT_AWS_ACCESS_KEY_ID));
-            log.info('AWS Access Key: ' + AgentUtils.maskString(process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY));
+            if (!process.env.IAM_ENABLED) {
+                log.info('AWS Access Key ID: ' + AgentUtils.maskString(process.env.GTM_AGENT_AWS_ACCESS_KEY_ID));
+                log.info('AWS Access Key: ' + AgentUtils.maskString(process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY));
+            }
             log.info('Pending Queue URL: ' + pendingUrl);
 
             pendingQueueHandler.start();
