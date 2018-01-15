@@ -5,23 +5,20 @@ const { URL } = require('url');
 import { default as AgentLogger } from './AgentLogger';
 let log = AgentLogger.log();
 
-// due to serverless .env issue
-process.env.AWS_ACCESS_KEY_ID = process.env.GTM_AGENT_AWS_ACCESS_KEY_ID;
-process.env.AWS_SECRET_ACCESS_KEY = process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY;
-
 const AWS = require('aws-sdk');
 const proxy = require('proxy-agent');
 AWS.config.update({ region: process.env.GTM_AWS_REGION });
 
-if (process.env.AWS_PROXY) {
+if (process.env.IAM_ENABLED) {
     AWS.config.update({
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-        sessionToken: process.env.AWS_SECURITY_TOKEN,
         httpOptions: {
-            agent: proxy(process.env.AWS_PROXY)
+            agent: proxy(process.env.HTTP_PROXY)
         }
     });
+} else {
+    // due to serverless .env issue
+    process.env.AWS_ACCESS_KEY_ID = process.env.GTM_AGENT_AWS_ACCESS_KEY_ID;
+    process.env.AWS_SECRET_ACCESS_KEY = process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY;
 }
 
 let sqs = new AWS.SQS({ apiVersion: '2012-11-05' });

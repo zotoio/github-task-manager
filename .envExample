@@ -19,3 +19,4 @@ GTM_JENKINS_URL=<redacted>
 GTM_TEAMCITY_USER=<redacted>
 GTM_TEAMCITY_PASSCODE=<redacted>
 GTM_TEAMCITY_URL=<redacted>
+IAM_ENABLED=<true|undefined>

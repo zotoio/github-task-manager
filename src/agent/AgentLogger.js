@@ -26,16 +26,14 @@ function create(agentId) {
         region: process.env.GTM_AWS_REGION
     };
 
-    // If we're running behind a proxy, assume we're also using IAM Roles for auth
-    // TODO: AWS_PROXY should become IAM_ENABLED and defer proxy values to env
-    if (process.env.AWS_PROXY) {
+    if (process.env.IAM_ENABLED) {
         CWLogOptions = {
             region: process.env.GTM_AWS_REGION,
-            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-            sessionToken: process.env.AWS_SECURITY_TOKEN,
+            //accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            //secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+            //sessionToken: process.env.AWS_SECURITY_TOKEN,
             httpOptions: {
-                agent: proxy(process.env.AWS_PROXY)
+                agent: proxy(process.env.HTTP_PROXY)
             }
         };
     }
