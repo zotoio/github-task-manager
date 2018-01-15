@@ -55,9 +55,13 @@ export class AgentUtils {
         return pullRequestData;
     }
 
-    static maskString(plaintext, desiredLength = 12, visibleChars = 5, maskChar = '*') {
-        let maskLength = Math.min(plaintext.length - visibleChars, desiredLength);
-        return maskChar.repeat(maskLength) + plaintext.slice(-5);
+    static maskString(plaintext = null, desiredLength = 12, visibleChars = 5, maskChar = '*') {
+        if (plaintext != null && plaintext.length > 0) {
+            let maskLength = Math.min(plaintext.length - visibleChars, desiredLength);
+            return maskChar.repeat(maskLength) + plaintext.slice(-5);
+        } else {
+            return '';
+        }
     }
 
     /**

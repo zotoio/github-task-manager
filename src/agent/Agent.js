@@ -306,8 +306,10 @@ export class Agent {
             log.info('AGENT_GROUP: ' + AGENT_GROUP);
             log.info('GitHub Task Manager Agent Running on Port ' + process.env.GTM_AGENT_PORT);
             log.info('Runmode: ' + runmode);
-            log.info('AWS Access Key ID: ' + AgentUtils.maskString(process.env.GTM_AGENT_AWS_ACCESS_KEY_ID));
-            log.info('AWS Access Key: ' + AgentUtils.maskString(process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY));
+            if (!process.env.IAM_ENABLED) {
+                log.info('AWS Access Key ID: ' + AgentUtils.maskString(process.env.GTM_AGENT_AWS_ACCESS_KEY_ID));
+                log.info('AWS Access Key: ' + AgentUtils.maskString(process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY));
+            }
             log.info('Pending Queue URL: ' + pendingUrl);
 
             pendingQueueHandler.start();
