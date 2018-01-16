@@ -8,13 +8,16 @@ export class ExecutorJenkins extends Executor {
         super(eventData);
         this.options = this.getOptions();
 
+        // If set, this will return bool:true, else bool:false
+        let useCsrf = this.options.GTM_JENKINS_CSRF === 'true';
+
         this.jenkins = JenkinsLib({
             baseUrl: AgentUtils.formatBasicAuth(
                 this.options.GTM_JENKINS_USER,
                 this.options.GTM_JENKINS_TOKEN,
                 this.options.GTM_JENKINS_URL
             ),
-            crumbIssuer: true,
+            crumbIssuer: useCsrf,
             promisify: true
         });
     }
