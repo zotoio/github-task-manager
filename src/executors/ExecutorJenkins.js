@@ -8,6 +8,7 @@ export class ExecutorJenkins extends Executor {
         super(eventData);
         this.options = this.getOptions();
 
+        // If set, this will return bool:true, else bool:false
         let useCsrf = this.options.GTM_JENKINS_CSRF === 'true';
 
         this.jenkins = JenkinsLib({
