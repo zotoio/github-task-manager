@@ -22,18 +22,46 @@ export class ExecutorDocker extends Executor {
     constructor(eventData) {
         super(eventData);
         this.options = this.getOptions();
-
-        this.runFunctions = {};
-        this.runFunctions['push'] = this.executeTask;
     }
 
-    run(fn) {
-        return this.runFunctions[fn];
+    validateImage(image) {
+        let valid = false;
+        if (
+            !this.options.GTM_DOCKER_IMAGE_WHITELIST ||
+            this.options.GTM_DOCKER_IMAGE_WHITELIST.split(',').includes(image)
+        ) {
+            valid = true;
+        }
+        return valid;
     }
 
     async executeTask(task) {
         let image = task.options.image;
         let command = task.options.command;
+        let env = task.options.env || [];
+
+        if (
+            command &&
+            (!this.options.GTM_DOCKER_COMMANDS_ALLOWED || this.options.GTM_DOCKER_COMMANDS_ALLOWED !== 'true')
+        ) {
+            let message = `docker image commands are not allowed with the current configuration.`;
+            log.error(message);
+            return Promise.reject({
+                passed: false,
+                url: 'https://github.com/apocas/dockerode',
+                message: message
+            });
+        }
+
+        if (!this.validateImage(image)) {
+            let message = `image '${image} is not whitelisted.`;
+            log.error(message);
+            return Promise.reject({
+                passed: false,
+                url: 'https://github.com/apocas/dockerode',
+                message: message
+            });
+        }
 
         log.info(`Starting local docker container '${image}' to run: ${command.join(' ')}`);
 
@@ -71,10 +99,6 @@ export class ExecutorDocker extends Executor {
                         logBuffer = [];
                         logStream.end('!stop!');
                     });
-
-                    /*setTimeout(function () {
-                    stream.destroy();
-                }, 2000);*/
                 }
             );
         }
@@ -108,7 +132,8 @@ export class ExecutorDocker extends Executor {
             .then(() => {
                 return docker.createContainer({
                     Image: image,
-                    Cmd: command
+                    Cmd: command,
+                    Env: env
                 });
             })
 
@@ -123,7 +148,7 @@ export class ExecutorDocker extends Executor {
             .then(() => {
                 return Promise.resolve({
                     passed: true,
-                    url: 'https://docker.com'
+                    url: 'https://github.com/apocas/dockerode'
                 });
             })
 
@@ -131,7 +156,7 @@ export class ExecutorDocker extends Executor {
                 log.error(e.message);
                 return Promise.reject({
                     passed: false,
-                    url: 'https://docker.com'
+                    url: 'https://github.com/apocas/dockerode'
                 });
             });
     }
