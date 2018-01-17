@@ -13,7 +13,11 @@ let log = AgentUtils.logger();
    "context": "run ls in latest alpine",
    "options": {
      "image": "alpine:latest",
-     "command": ["/bin/ls", "-ltr", "/bin"]
+     "command": ["/bin/ls", "-ltr", "/bin"],
+     "env: [
+        "myvar=myval",
+        "var2=val2"
+     ]
    }
  }
  */
