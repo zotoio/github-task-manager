@@ -34,22 +34,30 @@ export class ExecutorTeamCity extends Executor {
 
     createTeamCityBuildNode(task, jobName) {
         var buildProperties = '';
-        for(var buildProperty in task.options) {
-            buildProperties = buildProperties + '<property name="' + buildProperty + '" value="' + task.options[buildProperty] + '"/>\n';
+        for (var buildProperty in task.options) {
+            buildProperties =
+                buildProperties +
+                '<property name="' +
+                buildProperty +
+                '" value="' +
+                task.options[buildProperty] +
+                '"/>\n';
         }
 
-        let buildNodeObject = '<build>\n' +
-            '<buildType id="' + jobName + '" />\n' +
+        let buildNodeObject =
+            '<build>\n' +
+            '<buildType id="' +
+            jobName +
+            '" />\n' +
             '<properties>\n' +
-                buildProperties +  
-            '</properties>\n' + 
+            buildProperties +
+            '</properties>\n' +
             '</build>';
 
         return buildNodeObject;
     }
 
     async executeTask(task) {
-
         let jobName = task.context;
 
         if (jobName == null) {
@@ -58,19 +66,22 @@ export class ExecutorTeamCity extends Executor {
         }
 
         let buildNode = this.createTeamCityBuildNode(task, jobName);
-        
+
         let teamCityBuildId = await this.teamCity.builds.startBuild(buildNode);
         log.info(`TeamCity Project[${jobName}] with buildNumber : ${teamCityBuildId.id} Started.`);
 
         let completedBuild = await this.waitForBuildToComplete(jobName, teamCityBuildId.id);
-        log.info(`TeamCity Project[${jobName}] with buildNumber : #${teamCityBuildId.id} finished with status : ${completedBuild.status}`);
+        log.info(
+            `TeamCity Project[${jobName}] with buildNumber : #${teamCityBuildId.id} finished with status : ${
+                completedBuild.status
+            }`
+        );
 
         //TO-DO: parse the following parameters from the statistics result xml feed, "FailedTestCount", "PassedTestCount", "TotalTestCount"
         //let stats = this.getBuildStatistics(this.options.GTM_TEAMCITY_URL+completedBuild.statistics, jobName, teamCityBuildId.id);
 
         let result = completedBuild.status === 'SUCCESS';
         return { passed: result, url: completedBuild.buildType.webUrl };
-
     }
 
     async waitForBuildToComplete(buildName, buildNumber) {
