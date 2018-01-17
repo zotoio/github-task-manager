@@ -55,6 +55,7 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_TASK_CONFIG_FILENAME | filename in repo to look for for task config - default is .githubTaskManager |
 |GTM_AWS_ACCESS_KEY_ID | aws key id - for agent only |
 |GTM_AWS_SECRET_ACCESS_KEY | aws secret - for agent only |
+|AWS_PROXY|URL of proxy to use for network requests. Optional|
 
 - run: `npm run sls-deploy` - note that this will create aws re$ources..
 - capture the hook url output in console and add to github repo pull request conf
