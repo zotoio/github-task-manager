@@ -2,6 +2,8 @@ import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
 import { default as Docker } from 'dockerode';
 import { default as stream } from 'stream';
+import { default as fs } from 'fs';
+import appRoot from 'app-root-path';
 
 let log = AgentUtils.logger();
 
@@ -30,11 +32,25 @@ export class ExecutorDocker extends Executor {
 
     validateImage(image) {
         let valid = false;
-        if (
-            !this.options.GTM_DOCKER_IMAGE_WHITELIST ||
-            this.options.GTM_DOCKER_IMAGE_WHITELIST.split(',').includes(image)
-        ) {
-            valid = true;
+        let imageList = this.options.GTM_DOCKER_IMAGE_WHITELIST
+            ? this.options.GTM_DOCKER_IMAGE_WHITELIST.split(',')
+            : [];
+
+        imageList = this.options.GTM_DOCKER_IMAGE_WHITELIST_FILE
+            ? fs
+                  .readFileSync(appRoot + '/' + this.options.GTM_DOCKER_IMAGE_WHITELIST_FILE, 'utf-8')
+                  .toString()
+                  .split('\n')
+            : imageList;
+
+        if (imageList && imageList.length > 0) {
+            imageList.forEach(imagePattern => {
+                let pattern = new RegExp(imagePattern.trim());
+                if (pattern.test(image)) {
+                    log.info(`matched whitelist image pattern '${imagePattern.trim()}'`);
+                    valid = true;
+                }
+            });
         }
         return valid;
     }
