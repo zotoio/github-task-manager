@@ -19,7 +19,7 @@ export class EventHandlerPullRequest extends EventHandler {
 
         this.tasks = AgentUtils.templateReplace(AgentUtils.createBasicTemplate(this.eventData), this.tasks);
 
-        return handleTasks(this);
+        return this.handleTasks(this);
     }
 
     async handleTasks(event) {
