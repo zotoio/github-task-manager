@@ -20,4 +20,7 @@ GTM_JENKINS_CSRF=<true|false>
 GTM_TEAMCITY_USER=<redacted>
 GTM_TEAMCITY_PASSCODE=<redacted>
 GTM_TEAMCITY_URL=<redacted>
+GTM_DOCKER_IMAGE_WHITELIST=alpine:*,bash:latest
+GTM_DOCKER_IMAGE_WHITELIST_FILE=.dockerImageWhitelistExample
+GTM_DOCKER_COMMANDS_ALLOWED=true
 IAM_ENABLED=<true|undefined>

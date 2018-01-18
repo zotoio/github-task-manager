@@ -69,3 +69,5 @@ typings/
 .DS_Store
 
 *.out
+
+.dockerImageWhitelist

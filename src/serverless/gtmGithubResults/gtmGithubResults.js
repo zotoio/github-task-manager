@@ -48,13 +48,12 @@ async function handle(event, context, callback) {
 }
 
 async function getQueue() {
-    
     let awsOptions = {
         queueUrl: process.env.SQS_RESULTS_QUEUE_URL,
         waitTimeSeconds: 10,
         handleMessage: githubUtils.handleEventTaskResult
     };
-    
+
     if (process.env.AWS_PROXY) {
         AWS.config.update({
             httpOptions: {
@@ -64,7 +63,6 @@ async function getQueue() {
     }
 
     return await consumer.create(awsOptions);
-    
 }
 
 module.exports = {

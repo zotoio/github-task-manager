@@ -2,6 +2,8 @@ import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
 import { default as Docker } from 'dockerode';
 import { default as stream } from 'stream';
+import { default as fs } from 'fs';
+import appRoot from 'app-root-path';
 
 let log = AgentUtils.logger();
 
@@ -13,7 +15,11 @@ let log = AgentUtils.logger();
    "context": "run ls in latest alpine",
    "options": {
      "image": "alpine:latest",
-     "command": ["/bin/ls", "-ltr", "/bin"]
+     "command": ["/bin/ls", "-ltr", "/bin"],
+     "env: [
+        "myvar=myval",
+        "var2=val2"
+     ]
    }
  }
  */
@@ -22,18 +28,60 @@ export class ExecutorDocker extends Executor {
     constructor(eventData) {
         super(eventData);
         this.options = this.getOptions();
-
-        this.runFunctions = {};
-        this.runFunctions['push'] = this.executeTask;
     }
 
-    run(fn) {
-        return this.runFunctions[fn];
+    validateImage(image) {
+        let valid = false;
+        let imageList = this.options.GTM_DOCKER_IMAGE_WHITELIST
+            ? this.options.GTM_DOCKER_IMAGE_WHITELIST.split(',')
+            : [];
+
+        imageList = this.options.GTM_DOCKER_IMAGE_WHITELIST_FILE
+            ? fs
+                  .readFileSync(appRoot + '/' + this.options.GTM_DOCKER_IMAGE_WHITELIST_FILE, 'utf-8')
+                  .toString()
+                  .split('\n')
+            : imageList;
+
+        if (imageList && imageList.length > 0) {
+            imageList.forEach(imagePattern => {
+                let pattern = new RegExp(imagePattern.trim());
+                if (pattern.test(image)) {
+                    log.info(`matched whitelist image pattern '${imagePattern.trim()}'`);
+                    valid = true;
+                }
+            });
+        }
+        return valid;
     }
 
     async executeTask(task) {
         let image = task.options.image;
         let command = task.options.command;
+        let env = task.options.env || [];
+
+        if (
+            command &&
+            (!this.options.GTM_DOCKER_COMMANDS_ALLOWED || this.options.GTM_DOCKER_COMMANDS_ALLOWED !== 'true')
+        ) {
+            let message = `docker image commands are not allowed with the current configuration.`;
+            log.error(message);
+            return Promise.reject({
+                passed: false,
+                url: 'https://github.com/apocas/dockerode',
+                message: message
+            });
+        }
+
+        if (!this.validateImage(image)) {
+            let message = `image '${image} is not whitelisted.`;
+            log.error(message);
+            return Promise.reject({
+                passed: false,
+                url: 'https://github.com/apocas/dockerode',
+                message: message
+            });
+        }
 
         log.info(`Starting local docker container '${image}' to run: ${command.join(' ')}`);
 
@@ -71,10 +119,6 @@ export class ExecutorDocker extends Executor {
                         logBuffer = [];
                         logStream.end('!stop!');
                     });
-
-                    /*setTimeout(function () {
-                    stream.destroy();
-                }, 2000);*/
                 }
             );
         }
@@ -108,7 +152,8 @@ export class ExecutorDocker extends Executor {
             .then(() => {
                 return docker.createContainer({
                     Image: image,
-                    Cmd: command
+                    Cmd: command,
+                    Env: env
                 });
             })
 
@@ -123,7 +168,7 @@ export class ExecutorDocker extends Executor {
             .then(() => {
                 return Promise.resolve({
                     passed: true,
-                    url: 'https://docker.com'
+                    url: 'https://github.com/apocas/dockerode'
                 });
             })
 
@@ -131,7 +176,7 @@ export class ExecutorDocker extends Executor {
                 log.error(e.message);
                 return Promise.reject({
                     passed: false,
-                    url: 'https://docker.com'
+                    url: 'https://github.com/apocas/dockerode'
                 });
             });
     }
