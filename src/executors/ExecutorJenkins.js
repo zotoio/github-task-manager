@@ -87,6 +87,24 @@ export class ExecutorJenkins extends Executor {
         };
     }
 
+    async buildNumberfromQueue(queueId) {
+        let queueData = await this.jenkins.queue.item(queueId).then(function(data) {
+            return data;
+        });
+        while (!queueData.executable) {
+            try {
+                log.info(`Build Not Ready: ${queueData.why}`);
+            } catch(error) {
+                log.warn(`Build Not Ready: No Reason Provided. Retrying in 3 seconds...`)
+            }
+            await AgentUtils.timeout(3000);
+            queueData = await this.jenkins.queue.item(queueId).then(function(data) {
+                return data;
+            });
+        }
+        return queueData.executable.number;
+    }
+
     async executeTask(task) {
         let jobName = this.taskNameToBuild(task.context);
         if (jobName == null) {
@@ -98,10 +116,11 @@ export class ExecutorJenkins extends Executor {
         log.debug(buildParams);
 
         log.info('Starting Jenkins Job: ' + jobName);
-        let buildNumber = await this.jenkins.job.build({
+        let queueNumber = await this.jenkins.job.build({
             name: jobName,
             parameters: buildParams
         });
+        let buildNumber = await this.buildNumberfromQueue(queueNumber);
         let buildExists = await this.waitForBuildToExist(jobName, buildNumber);
         console.debug(buildExists);
         let result = await this.waitForBuild(jobName, buildNumber);
