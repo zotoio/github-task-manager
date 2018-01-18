@@ -4,6 +4,9 @@ let json = require('format-json');
 let consumer = require('sqs-consumer');
 let githubUtils = require('../gtmGithubUtils.js');
 let proxy = require('proxy-agent');
+let AWS = require('aws-sdk');
+
+AWS.config.update({ region: process.env.GTM_AWS_REGION });
 
 async function handle(event, context, callback) {
     /* eslint-disable */
@@ -53,9 +56,11 @@ async function getQueue() {
     };
     
     if (process.env.AWS_PROXY) {
-        awsOptions.httpOptions = {
-            agent: proxy(process.env.AWS_PROXY)
-        };
+        AWS.config.update({
+            httpOptions: {
+                agent: proxy(process.env.AWS_PROXY)
+            }
+        });
     }
 
     return await consumer.create(awsOptions);
