@@ -75,7 +75,7 @@ export class EventHandlerPullRequest extends EventHandler {
             // Check for Sub-Tasks and Wait for Completion
             if (task.tasks) {
                 log.info(`Task ${task.executor}:${task.context} has Sub-Tasks. Waiting for Completion before Continuing.`);
-                await handleTasks(task).then(() => {
+                await this.handleTasks(task).then(() => {
                     log.info(`Sub-Tasks for ${task.executor}:${task.context} Completed.`)
                 });
             }
