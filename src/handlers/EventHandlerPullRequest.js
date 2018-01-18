@@ -19,11 +19,13 @@ export class EventHandlerPullRequest extends EventHandler {
 
         this.tasks = AgentUtils.templateReplace(AgentUtils.createBasicTemplate(this.eventData), this.tasks);
 
-        // first set each pr check to pending
-        let that = this;
-        return this.setIntialTaskState(this).then(() => {
-            return that.processTasks(that);
-        });
+        return handleTasks(this);
+    }
+
+    async handleTasks(event) {
+        return this.setIntialTaskState(event).then(() => {
+            return this.processTasks(event);
+        })
     }
 
     async setIntialTaskState(event) {
@@ -65,9 +67,19 @@ export class EventHandlerPullRequest extends EventHandler {
         let promises = [];
 
         event.tasks.forEach(async task => {
+
             if (!Executor.isRegistered(task.executor)) {
                 return;
             }
+
+            // Check for Sub-Tasks and Wait for Completion
+            if (task.tasks) {
+                log.info(`Task ${task.executor}:${task.context} has Sub-Tasks. Waiting for Completion before Continuing.`);
+                await handleTasks(task).then(() => {
+                    log.info(`Sub-Tasks for ${task.executor}:${task.context} Completed.`)
+                });
+            }
+
             log.info('=================================');
             log.info('Creating Executor for Task: ' + task.executor + ':' + task.context);
             let executor = Executor.create(task.executor, event.eventData);
