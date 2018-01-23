@@ -2,6 +2,7 @@
 
 const pullRequestData = require('./pullrequest.json');
 const { URL } = require('url');
+const crypto = require('crypto');
 import { default as AgentLogger } from './AgentLogger';
 let log = AgentLogger.log();
 
@@ -55,6 +56,13 @@ export class AgentUtils {
         return pullRequestData;
     }
 
+    /**
+     * Create a Text Mask for a String
+     * @param {*} plaintext - Input String
+     * @param {*} desiredLength - Length of Masked Output
+     * @param {*} visibleChars - Number of Visible Characters to Show
+     * @param {*} maskChar - Character to use as Mask
+     */
     static maskString(plaintext = null, desiredLength = 12, visibleChars = 5, maskChar = '*') {
         if (plaintext != null && plaintext.length > 0) {
             let maskLength = Math.min(plaintext.length - visibleChars, desiredLength);
@@ -62,6 +70,19 @@ export class AgentUtils {
         } else {
             return '';
         }
+    }
+
+    /**
+     * Create an MD5 Hash of an Input Object or String
+     * @param {Object} input - Object or String to Hash
+     * @param {String} salt - String for Additional Salt
+     */
+    static createMd5Hash(input, salt = null, length = 6) {
+        return crypto
+            .createHash('md5')
+            .update(JSON.stringify(input) + salt)
+            .digest('hex')
+            .slice(0, length);
     }
 
     /**
@@ -263,5 +284,17 @@ export class AgentUtils {
             '##GHPRNUM##': obj.pull_request.number,
             '##GHREPONAME##': obj.repository.name
         };
+    }
+
+    /**
+     * Add GitHub Event Data from Parent Event to Child Event
+     * @param {Object} sourceEvent 
+     * @param {Object} destEvent 
+     */
+    static mergeGitHubEvents(sourceEvent, destEvent) {
+        return Object.assign(destEvent, {
+            eventData: sourceEvent.eventData,
+            eventType: sourceEvent.eventType
+        });
     }
 }

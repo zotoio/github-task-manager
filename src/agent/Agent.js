@@ -41,17 +41,14 @@ export class Agent {
         });
 
         if (!process.env.IAM_ENABLED) {
-            if (
-                !process.env.GTM_AGENT_AWS_ACCESS_KEY_ID ||
-                !process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY
-            ) {
+            if (!process.env.GTM_AGENT_AWS_ACCESS_KEY_ID || !process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY) {
                 log.error(
                     '### ERROR ### Environment Variables GTM_AGENT_AWS_ACCESS_KEY_ID, or GTM_AGENT_AWS_SECRET_ACCESS_KEY Missing!'
                 );
                 process.exit(1);
             }
         }
-        
+
         if (!process.env.GTM_GITHUB_WEBHOOK_SECRET) {
             log.error('### ERROR ### Environment Variable GTM_GITHUB_WEBHOOK_SECRET missing!');
             process.exit(1);
