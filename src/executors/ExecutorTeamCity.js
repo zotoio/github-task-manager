@@ -139,10 +139,10 @@ export class ExecutorTeamCity extends Executor {
             parsedJSON = result;
         });
 
-        let totalTestCount,
-            passedTestCount,
-            failedTestCount,
-            count = 0;
+        let totalTestCount;
+        let passedTestCount;
+        let failedTestCount;
+        let count = 0;
 
         while (count++ < Object.keys(parsedJSON.properties.property).length - 1) {
             totalTestCount =
