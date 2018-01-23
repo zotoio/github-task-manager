@@ -92,7 +92,7 @@ TODO: Provide Variables
 ### Agent Homepage
 The GTM Agent provides an information page summarising the ongoing operation of the agent. The page is available on port 9091 by default.
 
-<image src="https://storage.googleapis.com/github-bin/gtm-agent-homepage.png">
+<image src="gtm-agent-homepage.png">
 
 ## Plugins
 Task executors for Jenkins, Teamcity, Travis, Http, Docker are in progress. Custom task executors can be added by adding this project as a dependency, and registering new Executors and EventHandlers.  Please see https://github.com/wyvern8/gtm-agent for an example that you can fork and modify as required while still using this project as the core.
