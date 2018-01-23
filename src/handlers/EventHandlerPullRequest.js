@@ -25,7 +25,7 @@ export class EventHandlerPullRequest extends EventHandler {
     async handleTasks(event) {
         return this.setIntialTaskState(event).then(() => {
             return this.processTasks(event);
-        })
+        });
     }
 
     async setIntialTaskState(event) {
@@ -34,15 +34,25 @@ export class EventHandlerPullRequest extends EventHandler {
         event.tasks.forEach(async task => {
             let initialState = 'pending';
             let initialDesc = 'Task Execution in Progress';
+            let eventContext = `${task.executor}: ${task.context} (${task.hash})`;
+
             if (!Executor.isRegistered(task.executor)) {
                 initialState = 'error';
                 initialDesc = 'Unknown Executor: ' + task.executor;
             }
 
+            if (!event.hash) {
+                log.info('No Parent Hash Found. Creating Child Hash');
+                task.hash = AgentUtils.createMd5Hash(task);
+            } else {
+                log.info('Parent Hash Found. Appending to Child Hash');
+                task.hash = AgentUtils.createMd5Hash(task, event.hash);
+            }
+
             let status = AgentUtils.createPullRequestStatus(
                 event.eventData,
                 initialState,
-                `${task.executor}: ${task.context}`,
+                eventContext,
                 initialDesc,
                 'https://github.com' // fails if not an https url
             );
@@ -67,16 +77,19 @@ export class EventHandlerPullRequest extends EventHandler {
         let promises = [];
 
         event.tasks.forEach(async task => {
-
             if (!Executor.isRegistered(task.executor)) {
                 return;
             }
 
+            let eventContext = `${task.executor}: ${task.context} (${task.hash})`;
+
             // Check for Sub-Tasks and Wait for Completion
             if (task.tasks) {
-                log.info(`Task ${task.executor}:${task.context} has Sub-Tasks. Waiting for Completion before Continuing.`);
-                await this.handleTasks(task).then(() => {
-                    log.info(`Sub-Tasks for ${task.executor}:${task.context} Completed.`)
+                log.info(
+                    `Task ${task.executor}:${task.context} has Sub-Tasks. Waiting for Completion before Continuing.`
+                );
+                await this.handleTasks(AgentUtils.mergeGitHubEvents(event, task)).then(() => {
+                    log.info(`Sub-Tasks for ${task.executor}:${task.context} Completed.`);
                 });
             }
 
@@ -95,7 +108,7 @@ export class EventHandlerPullRequest extends EventHandler {
                             status = AgentUtils.createPullRequestStatus(
                                 event.eventData,
                                 'error',
-                                `${task.executor}: ${task.context}`,
+                                eventContext,
                                 'Unknown Task Type: ' + task.context,
                                 'https://kuro.neko.ac'
                             );
@@ -107,7 +120,7 @@ export class EventHandlerPullRequest extends EventHandler {
                             status = AgentUtils.createPullRequestStatus(
                                 event.eventData,
                                 taskResult.passed ? 'success' : 'error',
-                                `${task.executor}: ${task.context}`,
+                                eventContext,
                                 taskResultMessage,
                                 taskResult.url
                             );
@@ -129,7 +142,7 @@ export class EventHandlerPullRequest extends EventHandler {
                         status = AgentUtils.createPullRequestStatus(
                             event.eventData,
                             'error',
-                            `${task.executor}: ${task.context}`,
+                            eventContext,
                             'Task execution failure'
                         );
 
