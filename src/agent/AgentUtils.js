@@ -25,6 +25,7 @@ if (process.env.IAM_ENABLED) {
 let sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 let sns = new AWS.SNS({ apiVersion: '2010-03-31' });
 require('babel-polyfill');
+const safeJsonStringify = require('safe-json-stringify');
 
 export class AgentUtils {
     static agentId() {
@@ -104,14 +105,17 @@ export class AgentUtils {
      * @param {string} state - Current Task State (pending, passed, failed)
      * @param {string} context - Content Name to Display in GitHub
      * @param {string} description - Short Description to Display in GitHub
+     * @param {string} url - Link to more detail
+     *
      */
     static createPullRequestStatus(eventData, state, context, description, url) {
         return {
             owner: eventData.repository.owner.login || 'Default_Owner',
             repo: eventData.repository.name || 'Default_Repository',
             sha: eventData.pull_request.head.sha || 'Missing SHA',
+            number: eventData.pull_request.number,
             state: state,
-            target_url: url ? url : 'http:s//neko.ac', //todo
+            target_url: url ? url : 'https://github.com/wyvern8/github-task-manager',
             description: description,
             context: context,
             eventData: eventData
@@ -179,7 +183,7 @@ export class AgentUtils {
         return AgentUtils.getQueueUrl(sqsQueueName)
             .then(function(sqsQueueUrl) {
                 let params = {
-                    MessageBody: JSON.stringify(results),
+                    MessageBody: safeJsonStringify(results),
                     QueueUrl: sqsQueueUrl,
                     DelaySeconds: 0
                 };
@@ -297,4 +301,8 @@ export class AgentUtils {
             eventType: sourceEvent.eventType
         });
     }
+
+    /**
+     * ^^ required ?
+     */
 }
