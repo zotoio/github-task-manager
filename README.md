@@ -82,6 +82,12 @@ note that these k8s npm script inject vars from .env into the manifest
 
 a starting point k8s manifest is in ./k8s/k8s-gtm-agent.yml
 
+## Agent Configuration
+
+### Running the Agent
+The agent uses environment variables to configure itself as well as any executors running within it. The below environment variables are required for basic operation of the GTM Agent.
+
+TODO: Provide Variables
 
 ## Plugins
 Task executors for Jenkins, Teamcity, Travis, Http, Docker are in progress. Custom task executors can be added by adding this project as a dependency, and registering new Executors and EventHandlers.  Please see https://github.com/wyvern8/gtm-agent for an example that you can fork and modify as required while still using this project as the core.
