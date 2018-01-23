@@ -11,11 +11,16 @@
     <link rel="stylesheet" href="/static/skeleton.css">
     <link rel="stylesheet" href="/static/skeleton-tabs.css">
     <link rel="stylesheet" href="/static/main.css">
+    <!-- Page Logo -->
+    <link rel="shortcut icon" href="/static/gtm-logo.png">
 </head>
 
 <body>
     <nav>
-        <a class="branding" href="/">GitHub Task Manager Agent</a>
+        <a class="branding" href="/">
+            <img class="branding_icon" src="/static/gtm-logo.png">
+            GitHub Task Manager Agent
+        </a>
         <a href="/process">Most Recent Payload</a>
         <a>Queue Statistics</a>
         <a href="#" id="agentToggleBtn" class="u-pull-right"><span id="agentStateBtn">{{ 'Disable' if globalProperties.pendingQueue.enabled else 'Enable' }}</span> Agent</a>

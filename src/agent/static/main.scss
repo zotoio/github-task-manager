@@ -1,5 +1,5 @@
 // Variables
-$nav-height: 40px;
+$nav-height: 50px;
 
 // Global Styles
 * {
@@ -9,6 +9,7 @@ $nav-height: 40px;
 body {
     font-family: 'Avenir Next', 'Helvetica Neue Light', helvetica, Arial, sans-serif;
     font-weight: 300;
+    background: #f8f8f8;
 }
 
 .stream {
@@ -26,14 +27,15 @@ nav {
     width: 100%;
     height: $nav-height;
     line-height: $nav-height;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid #dfdfdf;
     margin-bottom: 15px;
+    background: #fff;
 
     a {
         color: #666;
         text-decoration: none;
         padding: 0 10px;
-        margin-left: 6px;
+        margin-left: 4px;
 
         &:first-child {
             margin-left: none;
@@ -46,7 +48,14 @@ nav {
     }
 
     a.branding {
-        font-size: 18px;
+        font-size: 17px;
+        color: #333;
+
+        .branding_icon {
+            width: 24px;
+            height: 24px;
+            vertical-align: text-bottom;
+        }
     }
 }
 
@@ -79,8 +88,41 @@ nav {
 
 // States
 .state_green {
-    color: #4e944e;
+    border-radius: 3px;
+    padding: 2px 4px;
+    color: #3c763d;
+    background: #dff0d8;
+    border: 1px solid #d6e9c6;
 }
 .state_red {
-    color: #944e4e;
+    border-radius: 3px;
+    padding: 2px 4px;
+    color: #a94442;
+    background: #f2dede;
+    border: 1px solid #ebccd1;
+}
+
+// Tab Controls
+.tabcontrols {
+    margin: 0;
+    padding: 0;
+
+    .tab-nav {
+        margin-bottom: 0;
+
+        li {
+            a.button {
+                background: #fff;
+                border-bottom: 1px solid #bbb;
+            }
+        }
+    }
+
+    .tab-content {
+        background: #fff;
+        padding: 10px;
+        padding-top: 15px;
+        border: 1px solid #bbb;
+        border-top: none;
+    }
 }

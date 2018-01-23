@@ -7,36 +7,38 @@
     <div>Pending Queue State: <span class="{{ 'state_green' if globalProperties.pendingQueue.enabled else 'state_red' }}">{{ globalProperties.pendingQueue.state }}</span></div>
 </div>
 
-<ul class="tab-nav">
-    <li>
-        <a class="button" href="#gtmGithubHook">Github Hook</a>
-    </li>
-    <li>
-        <a class="button active" href="#gtmAgent">Agents</a>
-    </li>
-    <li>
-        <a class="button" href="#gtmGithubResults">Github Results</a>
-    </li>
-</ul>
+<div class="tabcontrols">
+    <ul class="tab-nav">
+        <li>
+            <a class="button" href="#gtmGithubHook">Github Hook</a>
+        </li>
+        <li>
+            <a class="button active" href="#gtmAgent">Agents</a>
+        </li>
+        <li>
+            <a class="button" href="#gtmGithubResults">Github Results</a>
+        </li>
+    </ul>
 
-<div class="tab-content">
-    <div class="tab-pane" id="gtmGithubHook">
-        <button id="logstream_gtmGithubHook" onClick="swapLogstream('gtmGithubHook')">start logstream</button>
-        <button id="follow_gtmGithubHook" onClick="swapFollow('gtmGithubHook')">stop following</button>
-        <div id="stream_gtmGithubHook" class="stream"></div>
-    </div>
-    <div class="tab-pane active" id="gtmAgent">
-        <button id="logstream_gtmAgent" onClick="swapLogstream('gtmAgent')">start logstream</button>
-        <button id="follow_gtmAgent" onClick="swapFollow('gtmAgent')">stop following</button>
-        <select id="agentFilter" onChange="setAgentFilter(this)">
-            <option value="ALL">All in group</option>
-        </select>
-        <div id="stream_gtmAgent" class="stream"></div>
-    </div>
-    <div class="tab-pane" id="gtmGithubResults">
-        <button id="logstream_gtmGithubResults" onClick="swapLogstream('gtmGithubResults')">start logstream</button>
-        <button id="follow_gtmGithubResults" onClick="swapFollow('gtmGithubResults')">stop following</button>
-        <div id="stream_gtmGithubResults" class="stream"></div>
+    <div class="tab-content">
+        <div class="tab-pane" id="gtmGithubHook">
+            <button id="logstream_gtmGithubHook" onClick="swapLogstream('gtmGithubHook')">start logstream</button>
+            <button id="follow_gtmGithubHook" onClick="swapFollow('gtmGithubHook')">stop following</button>
+            <div id="stream_gtmGithubHook" class="stream"></div>
+        </div>
+        <div class="tab-pane active" id="gtmAgent">
+            <button id="logstream_gtmAgent" onClick="swapLogstream('gtmAgent')">start logstream</button>
+            <button id="follow_gtmAgent" onClick="swapFollow('gtmAgent')">stop following</button>
+            <select id="agentFilter" onChange="setAgentFilter(this)">
+                <option value="ALL">All in group</option>
+            </select>
+            <div id="stream_gtmAgent" class="stream"></div>
+        </div>
+        <div class="tab-pane" id="gtmGithubResults">
+            <button id="logstream_gtmGithubResults" onClick="swapLogstream('gtmGithubResults')">start logstream</button>
+            <button id="follow_gtmGithubResults" onClick="swapFollow('gtmGithubResults')">stop following</button>
+            <div id="stream_gtmGithubResults" class="stream"></div>
+        </div>
     </div>
 </div>
 
