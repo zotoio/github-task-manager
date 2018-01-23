@@ -288,8 +288,8 @@ export class AgentUtils {
 
     /**
      * Add GitHub Event Data from Parent Event to Child Event
-     * @param {Object} sourceEvent 
-     * @param {Object} destEvent 
+     * @param {Object} sourceEvent - Parent GitHub Event
+     * @param {Object} destEvent - Child GitHub Event to Add Required Members
      */
     static mergeGitHubEvents(sourceEvent, destEvent) {
         return Object.assign(destEvent, {
