@@ -1,5 +1,6 @@
 // Variables
 $nav-height: 50px;
+$highlight-color: #ed8d32;
 
 // Global Styles
 * {
@@ -27,15 +28,16 @@ nav {
     width: 100%;
     height: $nav-height;
     line-height: $nav-height;
-    border-bottom: 1px solid #dfdfdf;
+    border-bottom: 1px solid #ececec;
     margin-bottom: 15px;
     background: #fff;
 
     a {
-        color: #666;
+        color: #777;
         text-decoration: none;
         padding: 0 10px;
         margin-left: 4px;
+        font-size: 14px;
 
         &:first-child {
             margin-left: none;
@@ -78,6 +80,7 @@ nav {
     h3 {
         margin-top: 20px;
         margin-bottom: 15px;
+        color: #444;
     }
 }
 
@@ -89,14 +92,14 @@ nav {
 // States
 .state_green {
     border-radius: 3px;
-    padding: 2px 4px;
+    padding: 2px 5px;
     color: #3c763d;
     background: #dff0d8;
     border: 1px solid #d6e9c6;
 }
 .state_red {
     border-radius: 3px;
-    padding: 2px 4px;
+    padding: 2px 5px;
     color: #a94442;
     background: #f2dede;
     border: 1px solid #ebccd1;
