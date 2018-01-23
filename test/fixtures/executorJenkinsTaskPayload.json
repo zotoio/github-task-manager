@@ -1,0 +1,18 @@
+{
+  "sample": "message",
+  "ghEventId": "id",
+  "ghEventType": "type",
+  "ghTaskConfig": {
+    "tasks": {
+                "executor": "jenkins",
+                "context": "functional",
+                "options": {
+                    "tags": ["@smoke"],
+                    "browsers": ["chrome"]
+                }
+            }
+  },
+  "ghAgentGroup": "group",
+  "ghEventSignature": "sha1=cee03d54dc35650b903b0cdc38ebd49208b1efa4",
+  "MessageHandle": "handle"
+}

@@ -1,4 +1,6 @@
 import { default as TeamCity } from 'teamcity-rest-api';
+import { default as x2j } from 'xml2js';
+import { default as rp } from 'request-promise-native';
 import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
 let log = AgentUtils.logger();
@@ -34,53 +36,73 @@ export class ExecutorTeamCity extends Executor {
 
     createTeamCityBuildNode(task, jobName) {
         var buildProperties = '';
-        for(var buildProperty in task.options) {
-            buildProperties = buildProperties + '<property name="' + buildProperty + '" value="' + task.options[buildProperty] + '"/>\n';
+        for (var buildProperty in task.options) {
+            buildProperties =
+                buildProperties +
+                '<property name="' +
+                buildProperty +
+                '" value="' +
+                task.options[buildProperty] +
+                '"/>\n';
         }
 
-        let buildNodeObject = '<build>\n' +
-            '<buildType id="' + jobName + '" />\n' +
+        let buildNodeObject =
+            '<build>\n' +
+            '<buildType id="' +
+            jobName +
+            '" />\n' +
             '<properties>\n' +
-                buildProperties +  
-            '</properties>\n' + 
+            buildProperties +
+            '</properties>\n' +
             '</build>';
 
         return buildNodeObject;
     }
 
     async executeTask(task) {
-
         let jobName = task.context;
 
-        if (jobName == null) {
+        if (jobName == undefined) {
             await AgentUtils.timeout(4000);
             return 'NO_MATCHING_TASK';
         }
 
         let buildNode = this.createTeamCityBuildNode(task, jobName);
-        
+
         let teamCityBuildId = await this.teamCity.builds.startBuild(buildNode);
         log.info(`TeamCity Project[${jobName}] with buildNumber : ${teamCityBuildId.id} Started.`);
 
         let completedBuild = await this.waitForBuildToComplete(jobName, teamCityBuildId.id);
-        log.info(`TeamCity Project[${jobName}] with buildNumber : #${teamCityBuildId.id} finished with status : ${completedBuild.status}`);
+        log.info(
+            `TeamCity Project[${jobName}] with buildNumber : #${teamCityBuildId.id} finished with status : ${
+                completedBuild.status
+            }`
+        );
 
-        //TO-DO: parse the following parameters from the statistics result xml feed, "FailedTestCount", "PassedTestCount", "TotalTestCount"
-        //let stats = this.getBuildStatistics(this.options.GTM_TEAMCITY_URL+completedBuild.statistics, jobName, teamCityBuildId.id);
+        let statisticsUrl = AgentUtils.formatBasicAuth(
+            this.options.GTM_TEAMCITY_USER,
+            this.options.GTM_TEAMCITY_PASSCODE,
+            `${this.options.GTM_TEAMCITY_URL}/app/rest/builds/id:${teamCityBuildId.id}/statistics`
+        );
+
+        let statistics = await this.getBuildStatistics(statisticsUrl);
+        let parsedResult = this.createResultObject(statistics);
+        parsedResult.testResultsUrl = `${this.options.GTM_TEAMCITY_URL}/viewLog.html?buildId=${
+            teamCityBuildId.id
+        }&tab=buildResultsDiv&buildTypeId=${teamCityBuildId.id}`;
 
         let result = completedBuild.status === 'SUCCESS';
-        return { passed: result, url: completedBuild.buildType.webUrl };
-
+        return { passed: result, url: completedBuild.buildType.webUrl, message: parsedResult };
     }
 
     async waitForBuildToComplete(buildName, buildNumber) {
         let buildDict = await this.teamCity.builds.get(buildNumber);
-
+        let maxRetries = 600;
         let tries = 1;
-        while (buildDict.state !== 'finished') {
+        while (buildDict.state !== 'finished' && tries++ < maxRetries) {
             await AgentUtils.timeout(5000);
             buildDict = await this.teamCity.builds.get(buildNumber).then(function(data) {
-                log.debug(`Waiting for Build '${buildName}' to Finish: ${tries++}`);
+                log.debug(`Waiting for Build '${buildName}' to Finish: ${tries}`);
                 return data;
             });
         }
@@ -88,17 +110,61 @@ export class ExecutorTeamCity extends Executor {
         return buildDict;
     }
 
-    /*
-    getBuildStatistics(statsUrl, buildName, buildNumber) {
+    async getBuildStatistics(statisticsUrl) {
+        log.debug(`Starting http request.. : ${statisticsUrl}`);
 
-        log.debug(statsUrl);
+        let tries = 1;
+        let maxRetries = 100;
+        let resultData;
+        resultData = await rp(statisticsUrl);
 
-        request(statsUrl, { json: true }, (err, res, body) => {
-            if (err) { return log.error(err); }
-            log.debug(body.url);
-            log.debug(body.explanation);
+        while (!resultData.includes('SuccessRate') && tries++ < maxRetries) {
+            await AgentUtils.timeout(3000);
+            resultData = await rp(statisticsUrl).then(function(data) {
+                return data;
+            });
+        }
+
+        if (resultData !== null) {
+            return resultData;
+        }
+    }
+
+    createResultObject(statistics) {
+        let resultObject = {};
+        let parser = new x2j.Parser();
+
+        let parsedJSON;
+        parser.parseString(statistics, function(err, result) {
+            parsedJSON = result;
         });
-    }*/
+
+        let totalTestCount,
+            passedTestCount,
+            failedTestCount,
+            count = 0;
+
+        while (count++ < Object.keys(parsedJSON.properties.property).length - 1) {
+            totalTestCount =
+                parsedJSON.properties.property[count].$.name === 'TotalTestCount'
+                    ? parsedJSON.properties.property[count].$.value
+                    : totalTestCount;
+            passedTestCount =
+                parsedJSON.properties.property[count].$.name === 'PassedTestCount'
+                    ? parsedJSON.properties.property[count].$.value
+                    : passedTestCount;
+            failedTestCount =
+                parsedJSON.properties.property[count].$.name === 'FailedTestCount'
+                    ? parsedJSON.properties.property[count].$.value
+                    : failedTestCount;
+        }
+
+        resultObject.TotalTestCount = totalTestCount !== undefined ? totalTestCount : 0;
+        resultObject.PassedTestCount = passedTestCount !== undefined ? passedTestCount : 0;
+        resultObject.FailedTestCount = failedTestCount !== undefined ? failedTestCount : 0;
+
+        return resultObject;
+    }
 }
 
 Executor.register('TeamCity', ExecutorTeamCity);
