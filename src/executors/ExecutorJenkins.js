@@ -94,8 +94,8 @@ export class ExecutorJenkins extends Executor {
         while (!queueData.executable) {
             try {
                 log.info(`Build Not Ready: ${queueData.why}`);
-            } catch(error) {
-                log.warn(`Build Not Ready: No Reason Provided. Retrying in 3 seconds...`)
+            } catch (error) {
+                log.warn(`Build Not Ready: No Reason Provided. Retrying in 3 seconds...`);
             }
             await AgentUtils.timeout(3000);
             queueData = await this.jenkins.queue.item(queueId).then(function(data) {

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<properties count="14">
+<property name="ArtifactsSize" value="35869"/>
+<property name="BuildDuration" value="36158"/>
+<property name="BuildDurationNetTime" value="26806"/>
+<property name="buildStageDuration:artifactsPublishing" value="402"/>
+<property name="buildStageDuration:buildFinishing" value="60"/>
+<property name="buildStageDuration:buildStepRUNNER_1" value="26806"/>
+<property name="buildStageDuration:firstStepPreparation" value="23"/>
+<property name="buildStageDuration:sourcesUpdate" value="6798"/>
+<property name="BuildTestStatus" value="3"/>
+<property name="FailedTestCount" value="1"/>
+<property name="PassedTestCount" value="17"/>
+<property name="SuccessRate" value="0"/>
+<property name="TimeSpentInQueue" value="16"/>
+<property name="TotalTestCount" value="18"/>
+</properties>
