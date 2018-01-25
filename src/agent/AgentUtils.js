@@ -2,6 +2,7 @@
 
 const pullRequestData = require('./pullrequest.json');
 const { URL } = require('url');
+const crypto = require('crypto');
 import { default as AgentLogger } from './AgentLogger';
 let log = AgentLogger.log();
 
@@ -24,6 +25,7 @@ if (process.env.IAM_ENABLED) {
 let sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 let sns = new AWS.SNS({ apiVersion: '2010-03-31' });
 require('babel-polyfill');
+const safeJsonStringify = require('safe-json-stringify');
 
 export class AgentUtils {
     static agentId() {
@@ -55,6 +57,13 @@ export class AgentUtils {
         return pullRequestData;
     }
 
+    /**
+     * Create a Text Mask for a String
+     * @param {*} plaintext - Input String
+     * @param {*} desiredLength - Length of Masked Output
+     * @param {*} visibleChars - Number of Visible Characters to Show
+     * @param {*} maskChar - Character to use as Mask
+     */
     static maskString(plaintext = null, desiredLength = 12, visibleChars = 5, maskChar = '*') {
         if (plaintext != null && plaintext.length > 0) {
             let maskLength = Math.min(plaintext.length - visibleChars, desiredLength);
@@ -62,6 +71,19 @@ export class AgentUtils {
         } else {
             return '';
         }
+    }
+
+    /**
+     * Create an MD5 Hash of an Input Object or String
+     * @param {Object} input - Object or String to Hash
+     * @param {String} salt - String for Additional Salt
+     */
+    static createMd5Hash(input, salt = null, length = 6) {
+        return crypto
+            .createHash('md5')
+            .update(JSON.stringify(input) + salt)
+            .digest('hex')
+            .slice(0, length);
     }
 
     /**
@@ -83,14 +105,17 @@ export class AgentUtils {
      * @param {string} state - Current Task State (pending, passed, failed)
      * @param {string} context - Content Name to Display in GitHub
      * @param {string} description - Short Description to Display in GitHub
+     * @param {string} url - Link to more detail
+     *
      */
     static createPullRequestStatus(eventData, state, context, description, url) {
         return {
             owner: eventData.repository.owner.login || 'Default_Owner',
             repo: eventData.repository.name || 'Default_Repository',
             sha: eventData.pull_request.head.sha || 'Missing SHA',
+            number: eventData.pull_request.number,
             state: state,
-            target_url: url ? url : 'http:s//neko.ac', //todo
+            target_url: url ? url : 'https://github.com/wyvern8/github-task-manager',
             description: description,
             context: context,
             eventData: eventData
@@ -158,7 +183,7 @@ export class AgentUtils {
         return AgentUtils.getQueueUrl(sqsQueueName)
             .then(function(sqsQueueUrl) {
                 let params = {
-                    MessageBody: JSON.stringify(results),
+                    MessageBody: safeJsonStringify(results),
                     QueueUrl: sqsQueueUrl,
                     DelaySeconds: 0
                 };
@@ -264,4 +289,20 @@ export class AgentUtils {
             '##GHREPONAME##': obj.repository.name
         };
     }
+
+    /**
+     * Add GitHub Event Data from Parent Event to Child Event
+     * @param {Object} sourceEvent - Parent GitHub Event
+     * @param {Object} destEvent - Child GitHub Event to Add Required Members
+     */
+    static mergeGitHubEvents(sourceEvent, destEvent) {
+        return Object.assign(destEvent, {
+            eventData: sourceEvent.eventData,
+            eventType: sourceEvent.eventType
+        });
+    }
+
+    /**
+     * ^^ required ?
+     */
 }

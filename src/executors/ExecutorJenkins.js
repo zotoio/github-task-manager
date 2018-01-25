@@ -94,8 +94,8 @@ export class ExecutorJenkins extends Executor {
         while (!queueData.executable) {
             try {
                 log.info(`Build Not Ready: ${queueData.why}`);
-            } catch(error) {
-                log.warn(`Build Not Ready: No Reason Provided. Retrying in 3 seconds...`)
+            } catch (error) {
+                log.warn(`Build Not Ready: No Reason Provided. Retrying in 3 seconds...`);
             }
             await AgentUtils.timeout(3000);
             queueData = await this.jenkins.queue.item(queueId).then(function(data) {
@@ -126,11 +126,20 @@ export class ExecutorJenkins extends Executor {
         let result = await this.waitForBuild(jobName, buildNumber);
 
         let resultBool = result.result === 'SUCCESS';
-        return Promise.resolve({
+
+        let resultSummary = {
             passed: resultBool,
             url: result.url,
-            message: `${jobName} #${buildNumber} - ${result.result}`
-        }); // todo handle results
+            message: `${jobName} #${buildNumber} - ${result.result}`,
+            meta: {
+                jobName: jobName,
+                buildNumber: buildNumber
+            }
+        };
+
+        task.results = resultSummary;
+
+        return Promise.resolve(resultSummary); // todo handle results
     }
 }
 

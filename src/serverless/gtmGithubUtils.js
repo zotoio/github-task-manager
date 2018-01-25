@@ -1,7 +1,8 @@
 'use strict';
 
 let json = require('format-json');
-let GitHubApi = require('github');
+//let GitHubApi = require('github');
+let GitHubApi = require('@octokit/rest');
 let crypto = require('crypto');
 let githubUpdaters = {
     pull_request: updateGitHubPullRequest,
@@ -116,12 +117,36 @@ async function getFile(params) {
 }
 
 async function updateGitHubPullRequest(status, done) {
+    if (status.context === 'COMMENT_ONLY') {
+        return await addGitHubPullRequestComment(status, done);
+    } else {
+        return await updateGitHubPullRequestStatus(status, done);
+    }
+}
+
+async function updateGitHubPullRequestStatus(status, done) {
     console.log(`updating github for pull_request event ${status.eventData.ghEventId}`);
 
     let github = connect(status.context);
     return await github.repos.createStatus(status).then(() => {
         done();
     });
+}
+
+async function addGitHubPullRequestComment(status, done) {
+    console.log(`add comment on pull_request completion ${status.eventData.ghEventId}`);
+
+    let github = connect();
+    return await github.pullRequests
+        .createComment({
+            owner: status.owner,
+            repo: status.repo,
+            number: parseInt(status.number),
+            body: status.description
+        })
+        .then(() => {
+            done();
+        });
 }
 
 async function updateGitHubComment(status, done) {
