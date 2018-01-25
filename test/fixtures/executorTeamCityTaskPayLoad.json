@@ -1,0 +1,22 @@
+{
+  "sample": "message",
+  "ghEventId": "id",
+  "ghEventType": "type",
+  "ghTaskConfig": {
+    "task": {
+              "executor": "TeamCity",
+              "context": "Gameoflife_Build",
+              "options": {
+                "build_tag" : "proj_wasX",
+                "cuke_env" : "env_dev",
+                "cuke_tags" : [
+                  "@proj_wasX",
+                  "@proj_wasn"
+                ]
+              }
+            }
+  },
+  "ghAgentGroup": "group",
+  "ghEventSignature": "sha1=cee03d54dc35650b903b0cdc38ebd49208b1efa4",
+  "MessageHandle": "handle"
+}
