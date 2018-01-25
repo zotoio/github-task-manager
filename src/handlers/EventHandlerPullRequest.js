@@ -20,8 +20,8 @@ export class EventHandlerPullRequest extends EventHandler {
         this.tasks = AgentUtils.templateReplace(AgentUtils.createBasicTemplate(this.eventData), this.tasks);
 
         return this.handleTasks(this, this).then(() => {
-            return Promise.resolve(true);
-            //return this.addPullRequestComment(this);
+            //return Promise.resolve(true);
+            return this.addPullRequestComment(this);
         });
     }
 
@@ -42,15 +42,32 @@ export class EventHandlerPullRequest extends EventHandler {
         });
     }
 
+    /**
+     * <details>
+     * <summary>TestResult A : PASS</summary>
+     * <p>
+     * this is a summary of the result with a <a href="https://www.google.com.au">link</a> to more info.
+     * </p>
+     * </details>
+     * @param task
+     * @param depth
+     * @param commentBody
+     * @returns {*}
+     */
     static buildEventSummary(task, depth, commentBody) {
-        if (task.results && task.results.message) {
-            commentBody += `${task.results.message}<br/>\n`;
-
+        if (!task.disabled && task.results && task.results.message) {
+            commentBody += `<summary>${task.executor} : ${task.context} (${task.hash}) ${
+                task.results.message
+            }</summary>\n`;
+            commentBody += `<p>${task.results.url} : TODO details..`;
             if (task.tasks) {
-                task.tasks.forEach(async task => {
-                    commentBody += EventHandlerPullRequest.buildEventSummary(task, depth++, commentBody);
+                commentBody += `<details>`;
+                task.tasks.forEach(subtask => {
+                    commentBody = EventHandlerPullRequest.buildEventSummary(subtask, depth++, commentBody);
                 });
+                commentBody += `</details>`;
             }
+            commentBody += `</p>`;
         }
         return commentBody;
     }
@@ -58,10 +75,10 @@ export class EventHandlerPullRequest extends EventHandler {
     async addPullRequestComment(event) {
         let commentBody = '';
         event.tasks.forEach(task => {
-            commentBody += EventHandlerPullRequest.buildEventSummary(task, 0, '');
+            commentBody += `<details>${EventHandlerPullRequest.buildEventSummary(task, 0, '')}</details>`;
         });
 
-        if (commentBody !== '') commentBody = 'no comment';
+        if (commentBody === '') commentBody = 'no comment';
         log.info(`adding PR comment: ${commentBody}`);
 
         let status = AgentUtils.createPullRequestStatus(event.eventData, 'N/A', 'COMMENT_ONLY', commentBody);
@@ -82,6 +99,10 @@ export class EventHandlerPullRequest extends EventHandler {
 
         if (parent.tasks) {
             parent.tasks.forEach(async task => {
+                if (task.disabled) {
+                    return;
+                }
+
                 let initialState = 'pending';
                 let initialDesc = 'Task Execution in Progress';
 
@@ -132,7 +153,7 @@ export class EventHandlerPullRequest extends EventHandler {
 
         if (parent.tasks) {
             parent.tasks.forEach(async task => {
-                if (!Executor.isRegistered(task.executor)) {
+                if (task.disabled || !Executor.isRegistered(task.executor)) {
                     return;
                 }
 
@@ -210,22 +231,18 @@ export class EventHandlerPullRequest extends EventHandler {
         }
 
         return Promise.all(promises).then(() => {
-            if (parent && parent.tasks && !parent.tasks[0].results) {
-                log.info(`Task ${parent.executor || 'root'}:${parent.context || 'root'} has Sub-Tasks. Processing..`);
-
-                let promises = [];
-                parent.tasks.forEach(async task => {
+            let promises = [];
+            parent.tasks.forEach(async newParent => {
+                if (!newParent.disabled && newParent.tasks) {
+                    log.info(`Task ${newParent.executor}:${newParent.context} has Sub-Tasks. Processing..`);
                     promises.push(
-                        event.handleTasks(event, task).then(() => {
-                            log.info(
-                                `Sub-Tasks for ${parent.executor || 'root'}:${parent.context || 'root'} Completed.`
-                            );
+                        event.handleTasks(event, newParent).then(() => {
+                            log.info(`Sub-Tasks for ${newParent.executor}:${newParent.context} Completed.`);
                         })
                     );
-                });
-
-                return Promise.all(promises);
-            }
+                }
+            });
+            return Promise.all(promises);
         });
     }
 }
