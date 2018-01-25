@@ -66,21 +66,29 @@ export class ExecutorDocker extends Executor {
         ) {
             let message = `docker image commands are not allowed with the current configuration.`;
             log.error(message);
-            return Promise.reject({
+            let resultSummary = {
                 passed: false,
                 url: 'https://github.com/apocas/dockerode',
                 message: message
-            });
+            };
+
+            task.results = resultSummary;
+
+            return Promise.resolve(resultSummary); // todo handle results
         }
 
         if (!this.validateImage(image)) {
-            let message = `image '${image} is not whitelisted.`;
+            let message = `image '${image}' is not whitelisted.`;
             log.error(message);
-            return Promise.reject({
+            let resultSummary = {
                 passed: false,
                 url: 'https://github.com/apocas/dockerode',
                 message: message
-            });
+            };
+
+            task.results = resultSummary;
+
+            return Promise.resolve(resultSummary); // todo handle results
         }
 
         log.info(`Starting local docker container '${image}' to run: ${command.join(' ')}`);
@@ -166,17 +174,23 @@ export class ExecutorDocker extends Executor {
             })
 
             .then(() => {
-                return Promise.resolve({
+                let resultSummary = {
                     passed: true,
-                    url: 'https://github.com/apocas/dockerode'
-                });
+                    url: 'https://github.com/apocas/dockerode',
+                    message: `execution completed.`
+                };
+
+                task.results = resultSummary;
+
+                return Promise.resolve(resultSummary); // todo handle results
             })
 
             .catch(e => {
                 log.error(e.message);
                 return Promise.reject({
                     passed: false,
-                    url: 'https://github.com/apocas/dockerode'
+                    url: 'https://github.com/apocas/dockerode',
+                    message: e.message
                 });
             });
     }

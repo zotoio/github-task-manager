@@ -126,11 +126,20 @@ export class ExecutorJenkins extends Executor {
         let result = await this.waitForBuild(jobName, buildNumber);
 
         let resultBool = result.result === 'SUCCESS';
-        return Promise.resolve({
+
+        let resultSummary = {
             passed: resultBool,
             url: result.url,
-            message: `${jobName} #${buildNumber} - ${result.result}`
-        }); // todo handle results
+            message: `${jobName} #${buildNumber} - ${result.result}`,
+            meta: {
+                jobName: jobName,
+                buildNumber: buildNumber
+            }
+        };
+
+        task.results = resultSummary;
+
+        return Promise.resolve(resultSummary); // todo handle results
     }
 }
 
