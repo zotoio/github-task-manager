@@ -19,45 +19,49 @@ export class EventHandlerPullRequest extends EventHandler {
 
         this.tasks = AgentUtils.templateReplace(AgentUtils.createBasicTemplate(this.eventData), this.tasks);
 
-        return this.handleTasks(this, this, true);
+        return this.handleTasks(this, this).then(() => {
+            return Promise.resolve(true);
+            //return this.addPullRequestComment(this);
+        });
     }
 
     /**
      * 1. set all PR status to 'pending'
-     * 2. process all tasks and update each PR check status
-     * 3. post a summary as a PR comment
+     * 2. wait a few seconds to allow SQS events to set status.  update when FIFO SQS available
+     * 3. process all tasks and update each PR check status
      *
      * @param event - the current event being processed
      * @param parent - current task, which is also the parent of the 'tasks' array if defined
-     * @param addComment whether to process event task results in a comment (top level of recursion only)
      * @returns {Promise<T>}
      */
-    async handleTasks(event, parent, addComment) {
+    async handleTasks(event, parent) {
         return this.setIntialTaskState(event, parent).then(() => {
-            return this.processTasks(event, parent).then(() => {
-                if (addComment) return this.addPullRequestComment(event);
+            return AgentUtils.timeout(4000).then(() => {
+                return this.processTasks(event, parent);
             });
         });
     }
 
-    static buildEventSummary(task, commentBody) {
+    static buildEventSummary(task, depth, commentBody) {
         if (task.results && task.results.message) {
-            commentBody += `${task.results.message}<br/>`;
-        }
-        if (task.tasks) {
-            task.tasks.forEach(async task => {
-                commentBody += EventHandlerPullRequest.buildEventSummary(task, commentBody);
-            });
+            commentBody += `${task.results.message}<br/>\n`;
+
+            if (task.tasks) {
+                task.tasks.forEach(async task => {
+                    commentBody += EventHandlerPullRequest.buildEventSummary(task, depth++, commentBody);
+                });
+            }
         }
         return commentBody;
     }
 
     async addPullRequestComment(event) {
-        let commentBody = EventHandlerPullRequest.buildEventSummary(
-            event,
-            `Result for ${event.eventType} => Event ID: ${event.eventId}<br/>`
-        );
+        let commentBody = '';
+        event.tasks.forEach(task => {
+            commentBody += EventHandlerPullRequest.buildEventSummary(task, 0, '');
+        });
 
+        if (commentBody !== '') commentBody = 'no comment';
         log.info(`adding PR comment: ${commentBody}`);
 
         let status = AgentUtils.createPullRequestStatus(event.eventData, 'N/A', 'COMMENT_ONLY', commentBody);
@@ -206,7 +210,7 @@ export class EventHandlerPullRequest extends EventHandler {
         }
 
         return Promise.all(promises).then(() => {
-            if (parent && parent.tasks) {
+            if (parent && parent.tasks && !parent.tasks[0].results) {
                 log.info(`Task ${parent.executor || 'root'}:${parent.context || 'root'} has Sub-Tasks. Processing..`);
 
                 let promises = [];
