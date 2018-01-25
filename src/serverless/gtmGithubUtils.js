@@ -1,7 +1,8 @@
 'use strict';
 
 let json = require('format-json');
-let GitHubApi = require('github');
+//let GitHubApi = require('github');
+let GitHubApi = require('@octokit/rest');
 let crypto = require('crypto');
 let githubUpdaters = {
     pull_request: updateGitHubPullRequest,
@@ -137,7 +138,12 @@ async function addGitHubPullRequestComment(status, done) {
 
     let github = connect();
     return await github.pullRequests
-        .createComment({ owner: status.owner, repo: status.repo, number: status.number, body: status.description })
+        .createComment({
+            owner: status.owner,
+            repo: status.repo,
+            number: parseInt(status.number),
+            body: status.description
+        })
         .then(() => {
             done();
         });
