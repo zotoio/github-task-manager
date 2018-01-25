@@ -121,6 +121,10 @@
     "teamcity-rest-api": "0.0.8",
     "travis-ci": "^2.1.1",
     "uuid": "^3.1.0",
-    "webpack": "^3.10.0"
+    "webpack": "^3.10.0",
+    "xml2js": "^0.4.19",
+    "node-static": "^0.7.10",
+    "http": "^0.0.0",
+    "jsontoxml": "^0.1.0"
   }
 }

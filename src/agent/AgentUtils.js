@@ -24,6 +24,7 @@ if (process.env.IAM_ENABLED) {
 
 let sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 let sns = new AWS.SNS({ apiVersion: '2010-03-31' });
+import { default as x2j } from 'xml2js';
 require('babel-polyfill');
 const safeJsonStringify = require('safe-json-stringify');
 
@@ -290,19 +291,12 @@ export class AgentUtils {
         };
     }
 
-    /**
-     * Add GitHub Event Data from Parent Event to Child Event
-     * @param {Object} sourceEvent - Parent GitHub Event
-     * @param {Object} destEvent - Child GitHub Event to Add Required Members
-     */
-    static mergeGitHubEvents(sourceEvent, destEvent) {
-        return Object.assign(destEvent, {
-            eventData: sourceEvent.eventData,
-            eventType: sourceEvent.eventType
+    static xmlToJson(xml) {
+        let parser = new x2j.Parser();
+
+        return parser.parseString(xml, function(err, result) {
+            return result;
         });
     }
 
-    /**
-     * ^^ required ?
-     */
 }
