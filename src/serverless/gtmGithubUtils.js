@@ -135,14 +135,26 @@ async function updateGitHubPullRequestStatus(status, done) {
 
 async function addGitHubPullRequestComment(status, done) {
     console.log(`add comment on pull_request completion ${status.eventData.ghEventId}`);
-
+    /**
+     * declare type PullRequestsCreateReviewParams =
+     & {
+      owner: string;
+      repo: string;
+      number: number;
+      commit_id?: string;
+      body?: string;
+      event?: "APPROVE"|"REQUEST_CHANGES"|"COMMENT"|"PENDING";
+      comments?: string[];
+    };
+     */
     let github = connect();
     return await github.pullRequests
-        .createComment({
+        .createReview({
             owner: status.owner,
             repo: status.repo,
             number: parseInt(status.number),
-            body: status.description
+            body: status.description,
+            event: 'COMMENT'
         })
         .then(() => {
             done();
