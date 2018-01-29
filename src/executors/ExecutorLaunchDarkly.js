@@ -18,15 +18,61 @@ let log = AgentUtils.logger();
  */
 
 export class ExecutorLaunchDarkly extends Executor {
+
     constructor(eventData) {
         super(eventData);
         this.options = this.getOptions();
     }
 
-    async executeTask(task) {
-        log.info(`Starting LaunchDarkly api calls. Flags: ${task.options.flags}`);
+    async getFlagValue(flagName) {
+        return true;
+    }
 
-        //do it
+    async setFlagValue(flagName, flagValue) {
+
+        log.info(`Setting Flag '${flagName}' to '${flagValue}'`);
+        let oldFlagValue = getFlagValue(flagName);
+        let changed = false;
+
+        if (oldFlagValue != flagValue) {
+            // Values are Different, Update Flag Value Using API
+            log.info(`Updating Flag Value for '${flagName}'`);
+            changed = true;
+        } else {
+            // Values are the Same, no Update Needed
+            log.info(`Skipping Update for Flag '${flagName}'`);
+        }
+
+        return {
+            flagName: flagName,
+            newValue: flagValue,
+            oldValue: oldFlagValue,
+            changed: changed
+        };
+
+    }
+
+    async executeTask(task) {
+
+        let flags = task.options.flags;
+        let results = [];
+        let changedCount = 0;
+        let passed = true;
+
+        log.info(`Starting LaunchDarkly api calls. Flags: ${flags}`);
+
+        for (let flagName in flags) {
+            let result = await setFlagValue(flagName, flags[flagName]);
+            results.push(result);
+            if (result.changed) { changedCount++; }
+        }
+
+        let resultSummary = {
+            passed: passed,
+            url: 'https://github.com',
+            message: `Updated ${changedCount} Flags`
+        };
+        
     }
 }
 
