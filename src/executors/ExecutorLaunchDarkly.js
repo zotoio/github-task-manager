@@ -25,13 +25,14 @@ export class ExecutorLaunchDarkly extends Executor {
     }
 
     async getFlagValue(flagName) {
+        log.info(`Getting Flag Value for Flag '${flagName}'`);
         return true;
     }
 
     async setFlagValue(flagName, flagValue) {
 
         log.info(`Setting Flag '${flagName}' to '${flagValue}'`);
-        let oldFlagValue = getFlagValue(flagName);
+        let oldFlagValue = this.getFlagValue(flagName);
         let changed = false;
 
         if (oldFlagValue != flagValue) {
@@ -62,17 +63,17 @@ export class ExecutorLaunchDarkly extends Executor {
         log.info(`Starting LaunchDarkly api calls. Flags: ${flags}`);
 
         for (let flagName in flags) {
-            let result = await setFlagValue(flagName, flags[flagName]);
+            let result = await this.setFlagValue(flagName, flags[flagName]);
             results.push(result);
             if (result.changed) { changedCount++; }
         }
 
-        let resultSummary = {
+        return {
             passed: passed,
             url: 'https://github.com',
             message: `Updated ${changedCount} Flags`
         };
-        
+
     }
 }
 
