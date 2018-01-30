@@ -22,25 +22,6 @@ export class ExecutorJenkins extends Executor {
         });
     }
 
-    taskNameToBuild(context) {
-        let desiredTask = context;
-        console.debug(desiredTask);
-
-        let tasks = {
-            functional: 'EXECUTE_AUTOMATED_TESTS',
-            a11y: 'EXECUTE_AUTOMATED_TESTS'
-        };
-
-        if (!tasks.hasOwnProperty(desiredTask)) {
-            log.error('No Tasks Matched Request: ' + desiredTask);
-            return null;
-        } else {
-            let mappedTask = tasks[desiredTask];
-            log.info('Mapped Task ' + desiredTask + ' to Job ' + mappedTask);
-            return mappedTask;
-        }
-    }
-
     async waitForBuildToExist(buildName, buildNumber) {
         return new Promise(async (resolve, reject) => {
             let exists = false;
@@ -82,8 +63,8 @@ export class ExecutorJenkins extends Executor {
     createJenkinsBuildParams(task) {
         // todo jenkins params by eventType, task options etc
         return {
-            TAGS: JSON.stringify(task.options.tags),
-            ENVIRONMENT: 'automated-test-env'
+            TAGS: JSON.stringify(task.options.parameters.tags),
+            ENVIRONMENT: task.options.parameters.ENVIRONMENT
         };
     }
 
@@ -106,7 +87,8 @@ export class ExecutorJenkins extends Executor {
     }
 
     async executeTask(task) {
-        let jobName = this.taskNameToBuild(task.context);
+        let jobName = task.options.jobName;
+
         if (jobName == null) {
             await AgentUtils.timeout(4000);
             return 'NO_MATCHING_TASK';

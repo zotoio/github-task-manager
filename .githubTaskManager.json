@@ -5,25 +5,32 @@
         "executor": "jenkins",
         "context": "functional",
         "options": {
-          "tags": [
-            "@smoke"
-          ],
-          "browsers": [
-            "chrome"
-          ]
+          "jobName": "EXECUTE_AUTOMATED_TESTS",
+          "parameters": {
+            "tags": [
+              "@smoke"
+            ],
+            "browsers": [
+              "chrome"
+            ],
+            "ENVIRONMENT":"testEnv"
+          }
         }
       },
       {
         "executor": "TeamCity",
-        "context": "projectName",
+        "context": "run e2e tests",
         "options": {
-          "build_tag" : "proj_wasX",
-          "build_env" : "env_dev",
-          "cuke_env" : "env_dev|staging|prod",
-          "cuke_tags" : [
-            "@proj_wasX",
-            "@proj_wasn"
-          ]
+          "jobName": "projectName_id",
+          "parameters": {
+            "build_tag" : "proj_wasX",
+            "ENVIRONMENT" : "env_dev",
+            "cuke_env" : "env_dev|staging|prod",
+            "cuke_tags" : [
+              "@proj_wasX",
+              "@proj_wasn"
+            ]
+          }
         }
       },
       {

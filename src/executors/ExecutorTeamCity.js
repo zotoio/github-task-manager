@@ -9,15 +9,18 @@ let log = AgentUtils.logger();
  * Sample .githubTaskManager.json task config
  * {
         "executor": "TeamCity",
-        "context": "projectName",
+        "context": "run e2e tests",
         "options": {
-          "build_tag" : "proj_wasX",
-          "build_env" : "env_dev",
-          "cuke_env" : "env_dev|staging|prod",
-          "cuke_tags" : [
-            "@proj_wasX",
-            "@proj_wasn"
-          ]
+          "jobName": "projectName_id",
+          "parameters": {
+            "build_tag" : "proj_wasX",
+            "ENVIRONMENT" : "env_dev",
+            "cuke_env" : "env_dev|staging|prod",
+            "cuke_tags" : [
+              "@proj_wasX",
+              "@proj_wasn"
+            ]
+          }
         }
     }
 */
@@ -40,12 +43,12 @@ export class ExecutorTeamCity extends Executor {
             build: [{ name: 'buildType', attrs: { id: jobName } }, { name: 'properties', children: [] }]
         };
 
-        for (var buildProperty in task.options) {
+        for (var buildProperty in task.options.parameters) {
             let property = {
                 name: 'property',
                 attrs: {
                     name: buildProperty,
-                    value: task.options[buildProperty]
+                    value: task.options.parameters[buildProperty]
                 }
             };
             xmlNode.build[1].children.push(property);
@@ -56,7 +59,7 @@ export class ExecutorTeamCity extends Executor {
     }
 
     async executeTask(task) {
-        let jobName = task.context;
+        let jobName = task.options.jobName;
 
         if (jobName == undefined) {
             await AgentUtils.timeout(4000);
@@ -78,7 +81,7 @@ export class ExecutorTeamCity extends Executor {
         let result = completedBuild.status === 'SUCCESS';
         let overAllResult = { passed: result, url: completedBuild.buildType.webUrl };
 
-        if (task.options.hasOwnProperty('cuke_tags')) {
+        if (task.options.parameters.hasOwnProperty('cuke_tags')) {
             let statisticsUrl = AgentUtils.formatBasicAuth(
                 this.options.GTM_TEAMCITY_USER,
                 this.options.GTM_TEAMCITY_PASSCODE,
@@ -127,9 +130,7 @@ export class ExecutorTeamCity extends Executor {
             });
         }
 
-        if (resultData !== null) {
-            return resultData;
-        }
+        return resultData;
     }
 
     createResultObject(statistics) {
@@ -139,23 +140,9 @@ export class ExecutorTeamCity extends Executor {
 
         let statisticsArray = Object.values(parsedJSON.properties.property);
 
-        let totalTestCount = statisticsArray.find(function(item, i) {
-            if (item.$.name === 'TotalTestCount') {
-                return i;
-            }
-        });
-
-        let passedTestCount = statisticsArray.find(function(item, i) {
-            if (item.$.name === 'PassedTestCount') {
-                return i;
-            }
-        });
-
-        let failedTestCount = statisticsArray.find(function(item, i) {
-            if (item.$.name === 'FailedTestCount') {
-                return i;
-            }
-        });
+        let totalTestCount = AgentUtils.findMatchingElementInArray(statisticsArray, 'TotalTestCount');
+        let passedTestCount = AgentUtils.findMatchingElementInArray(statisticsArray, 'PassedTestCount');
+        let failedTestCount = AgentUtils.findMatchingElementInArray(statisticsArray, 'FailedTestCount');
 
         resultObject.TotalTestCount = totalTestCount === undefined ? 0 : totalTestCount.$.value;
         resultObject.PassedTestCount = passedTestCount === undefined ? 0 : passedTestCount.$.value;
