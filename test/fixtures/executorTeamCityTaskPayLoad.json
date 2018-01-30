@@ -5,14 +5,17 @@
   "ghTaskConfig": {
     "task": {
               "executor": "TeamCity",
-              "context": "Gameoflife_Build",
+              "context": "run e2e tests",
               "options": {
-                "build_tag" : "proj_wasX",
-                "cuke_env" : "env_dev",
-                "cuke_tags" : [
-                  "@proj_wasX",
-                  "@proj_wasn"
-                ]
+                "jobName" : "projectName_To_Build",
+                "parameters" : {
+                  "build_tag" : "proj_wasX",
+                  "cuke_env" : "env_dev",
+                  "cuke_tags" : [
+                    "@proj_wasX",
+                    "@proj_wasn"
+                  ]
+                }
               }
             }
   },
