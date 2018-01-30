@@ -299,4 +299,12 @@ export class AgentUtils {
         });
     }
 
+    static findMatchingElementInArray(inArray, elementToFind) {
+        let foundItem = inArray.find(function(item, i) {
+            if (item.$.name === elementToFind) {
+                return i;
+            }
+        });
+        return foundItem;
+    }
 }

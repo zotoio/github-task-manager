@@ -111,24 +111,6 @@ describe('ExecutorJenkins', function() {
         });
     });
 
-    describe('taskNameToBuild', () => {
-        let tasks = {
-            context: 'functional',
-            mappedTask: 'EXECUTE_AUTOMATED_TESTS'
-        };
-
-        it('should return the pre-configured task to build based on the context', () => {
-            let result = executorJenkins.taskNameToBuild(tasks.context);
-            assert.equal(result, tasks.mappedTask);
-        });
-
-        it('should return the null for non-mapped context', () => {
-            tasks.context = 'non-functional';
-            let result = executorJenkins.taskNameToBuild(tasks.context);
-            assert.equal(result, null);
-        });
-    });
-
     describe('createJenkinsBuildParams', () => {
         eventData = JSON.parse(fs.readFileSync(__dirname + '/../fixtures/executorJenkinsTaskPayload.json', 'utf-8'));
         let tagsToBuild = '["@smoke"]';
