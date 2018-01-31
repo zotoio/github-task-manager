@@ -121,7 +121,7 @@ export class ExecutorJenkins extends Executor {
 
         task.results = resultSummary;
 
-        return Promise.resolve(resultSummary); // todo handle results
+        return resultBool ? Promise.resolve(task) : Promise.reject(task); // todo handle results
     }
 }
 

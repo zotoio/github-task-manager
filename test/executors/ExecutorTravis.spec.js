@@ -19,28 +19,11 @@ describe('ExecutorTravis', function() {
         });
     });
 
-    describe('run', () => {
-        it('should return all the tied runFunctions', () => {
-            assert.notEqual(executorTravis.run('pull_request'), null);
-        });
-    });
-
     describe('executeTask', () => {
         eventData = JSON.parse(fs.readFileSync(__dirname + '/../fixtures/executorJenkinsTaskPayload.json', 'utf-8'));
         let expectedObject = { passed: true, url: 'https://travis-ci.org' };
         it('executeTask to return result object', async () => {
             let result = await executorTravis.executeTask(eventData.ghTaskConfig.tasks);
-            for (let i = 0; i < 2; i++) {
-                assert.equal(result[i], expectedObject[i]);
-            }
-        });
-    });
-
-    describe('executeForPullRequest', () => {
-        eventData = JSON.parse(fs.readFileSync(__dirname + '/../fixtures/executorJenkinsTaskPayload.json', 'utf-8'));
-        let expectedObject = { passed: true, url: 'https://travis-ci.org' };
-        it('executeTask to return result object', async () => {
-            let result = await executorTravis.executeForPullRequest(eventData.ghTaskConfig.tasks);
             for (let i = 0; i < 2; i++) {
                 assert.equal(result[i], expectedObject[i]);
             }

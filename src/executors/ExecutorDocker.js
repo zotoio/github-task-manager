@@ -74,7 +74,7 @@ export class ExecutorDocker extends Executor {
 
             task.results = resultSummary;
 
-            return Promise.resolve(resultSummary); // todo handle results
+            return Promise.reject(task);
         }
 
         if (!this.validateImage(image)) {
@@ -88,7 +88,7 @@ export class ExecutorDocker extends Executor {
 
             task.results = resultSummary;
 
-            return Promise.resolve(resultSummary); // todo handle results
+            return Promise.reject(task);
         }
 
         log.info(`Starting local docker container '${image}' to run: ${command.join(' ')}`);
@@ -180,16 +180,19 @@ export class ExecutorDocker extends Executor {
 
                 task.results = resultSummary;
 
-                return Promise.resolve(resultSummary); // todo handle results
+                return Promise.resolve(task); // todo handle results
             })
 
             .catch(e => {
                 log.error(e.message);
-                return Promise.reject({
+                let resultSummary = {
                     passed: false,
                     url: 'https://github.com/apocas/dockerode',
                     message: e.message
-                });
+                };
+
+                task.results = resultSummary;
+                return Promise.reject(task);
             });
     }
 }

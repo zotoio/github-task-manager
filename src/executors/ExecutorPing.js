@@ -48,10 +48,11 @@ export class ExecutorPing extends Executor {
         }
 
         return Promise.all(promises).then(() => {
-            return Promise.resolve({
+            task.results = {
                 passed: true,
                 url: `https://ping.io/ping/${task.options.count}`
-            });
+            };
+            return Promise.resolve(task);
         });
     }
 }

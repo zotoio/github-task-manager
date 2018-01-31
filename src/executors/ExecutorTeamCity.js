@@ -97,7 +97,9 @@ export class ExecutorTeamCity extends Executor {
             overAllResult.message = parsedResult;
         }
 
-        return overAllResult;
+        task.results = overAllResult;
+
+        return result ? Promise.resolve(task) : Promise.reject(task);
     }
 
     async waitForBuildToComplete(buildName, buildNumber) {

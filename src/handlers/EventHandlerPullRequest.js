@@ -1,6 +1,7 @@
 import { EventHandler } from '../agent/EventHandler';
 import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
+import { default as formatJson } from 'format-json';
 let log = AgentUtils.logger();
 
 export class EventHandlerPullRequest extends EventHandler {
@@ -21,7 +22,7 @@ export class EventHandlerPullRequest extends EventHandler {
 
         return this.handleTasks(this, this).then(() => {
             //return Promise.resolve(true);
-            return this.addPullRequestComment(this);
+            return this.addPullRequestSummaryComment(this);
         });
     }
 
@@ -124,8 +125,8 @@ export class EventHandlerPullRequest extends EventHandler {
                 try {
                     taskPromise = executor
                         .executeTask(task)
-                        .then(taskResult => {
-                            if (taskResult === 'NO_MATCHING_TASK') {
+                        .then(task => {
+                            if (task.result === 'NO_MATCHING_TASK') {
                                 status = AgentUtils.createPullRequestStatus(
                                     event.eventData,
                                     'error',
@@ -134,16 +135,16 @@ export class EventHandlerPullRequest extends EventHandler {
                                     'https://kuro.neko.ac'
                                 );
                             } else {
-                                let defaultResultMessage = taskResult.passed
+                                let defaultResultMessage = task.results.passed
                                     ? 'Task Completed Successfully'
                                     : 'Task Completed with Errors';
-                                let taskResultMessage = taskResult.message || defaultResultMessage;
+                                let taskResultMessage = task.results.message || defaultResultMessage;
                                 status = AgentUtils.createPullRequestStatus(
                                     event.eventData,
-                                    taskResult.passed ? 'success' : 'error',
+                                    task.results.passed ? 'success' : 'error',
                                     eventContext,
                                     taskResultMessage,
-                                    taskResult.url
+                                    task.results.url
                                 );
                             }
                             return status;
@@ -157,6 +158,9 @@ export class EventHandlerPullRequest extends EventHandler {
                                     task.context
                                 } - Event ID: ${event.eventId}`
                             );
+                        })
+                        .then(() => {
+                            return task;
                         })
                         .catch(e => {
                             log.error(e);
@@ -174,7 +178,9 @@ export class EventHandlerPullRequest extends EventHandler {
                                 `Result 'error' for ${event.eventType} => ${task.executor}:${
                                     task.context
                                 } - Event ID: ${event.eventId}`
-                            );
+                            ).then(() => {
+                                return task;
+                            });
                         });
                 } catch (e) {
                     log.error(e);
@@ -185,20 +191,34 @@ export class EventHandlerPullRequest extends EventHandler {
             });
         }
 
-        return Promise.all(promises).then(() => {
-            let promises = [];
-            parent.tasks.forEach(async newParent => {
-                if (!newParent.disabled && newParent.tasks) {
-                    log.info(`Task ${newParent.executor}:${newParent.context} has Sub-Tasks. Processing..`);
-                    promises.push(
-                        event.handleTasks(event, newParent).then(() => {
-                            log.info(`Sub-Tasks for ${newParent.executor}:${newParent.context} Completed.`);
-                        })
-                    );
-                }
-            });
-            return Promise.all(promises);
+        let subtaskPromises = [];
+        promises.forEach(async promise => {
+            // for each sibling task
+            subtaskPromises.push(
+                //..wait for task to complete
+                promise.then(async task => {
+                    //.. if there are subtasks
+                    if (!task.disabled && task.tasks) {
+                        //..and the task failed, skip subtasks
+                        log.info(`${task.hash} passed? ${task.results.passed}`);
+                        if (process.env.GTM_TASK_REQUIRE_PARENT_PASS !== 'false' && !task.results.passed) {
+                            let commentBody = `A parent task failed: '${task.executor}: ${
+                                task.context
+                            }', so subtasks were skipped. Config: \n\`\`\`json\n${formatJson.plain(task)}\n\`\`\``;
+                            return this.addPullRequestComment(event, commentBody);
+                        }
+
+                        //..otherwise process subtasks
+                        log.info(`Task ${task.executor}:${task.context} has Sub-Tasks. Processing..`);
+                        return event.handleTasks(event, task).then(() => {
+                            //..and wait for those too.
+                            log.info(`Sub-Tasks for ${task.executor}:${task.context} Completed.`);
+                        });
+                    }
+                })
+            );
         });
+        return Promise.all(subtaskPromises);
     }
 
     /**
@@ -231,15 +251,10 @@ export class EventHandlerPullRequest extends EventHandler {
         return commentBody;
     }
 
-    async addPullRequestComment(event) {
+    async addPullRequestComment(event, commentBody) {
         if (process.env.GTM_GITHUB_PR_COMMENTS_ENABLED !== 'true') {
             return;
         }
-
-        let commentBody = '';
-        event.tasks.forEach(task => {
-            commentBody += `<details>${EventHandlerPullRequest.buildEventSummary(task, 0, '')}</details>`;
-        });
 
         if (commentBody === '') commentBody = 'no comment';
         log.info(`adding PR comment: ${commentBody}`);
@@ -255,6 +270,15 @@ export class EventHandlerPullRequest extends EventHandler {
             log.info('PR comment queued.');
             log.info('-----------------------------');
         });
+    }
+
+    async addPullRequestSummaryComment(event) {
+        let commentBody = '';
+        event.tasks.forEach(task => {
+            commentBody += `<details>${EventHandlerPullRequest.buildEventSummary(task, 0, '')}</details>`;
+        });
+
+        return this.addPullRequestComment(event, commentBody);
     }
 }
 
