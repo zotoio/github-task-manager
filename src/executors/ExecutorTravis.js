@@ -4,6 +4,20 @@ import { AgentUtils } from '../agent/AgentUtils';
 import { default as json } from 'format-json';
 let log = AgentUtils.logger();
 
+/**
+ * Sample .githubTaskManager.json task config - NOT READY FOR USE
+ *
+ * see: https://github.com/wyvern8/github-task-manager/wiki/Structure-of-.githubTaskManager.json
+ *
+ {
+   "executor": "Travis",
+   "context": "release",
+   "options": {
+     "target": "npm"
+   }
+ }
+ */
+
 export class ExecutorTravis extends Executor {
     constructor(eventData) {
         super(eventData);

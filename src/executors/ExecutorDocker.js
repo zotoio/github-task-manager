@@ -10,6 +10,8 @@ let log = AgentUtils.logger();
 /**
  * Sample .githubTaskManager.json task config
  *
+ * see: https://github.com/wyvern8/github-task-manager/wiki/Structure-of-.githubTaskManager.json
+ *
  {
    "executor": "Docker",
    "context": "run ls in latest alpine",
