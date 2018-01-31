@@ -42,64 +42,13 @@ export class EventHandlerPullRequest extends EventHandler {
         });
     }
 
-    /**
-     * <details>
-     * <summary>TestResult A : PASS</summary>
-     * <p>
-     * this is a summary of the result with a <a href="https://www.google.com.au">link</a> to more info.
-     * </p>
-     * </details>
-     * @param task
-     * @param depth
-     * @param commentBody
-     * @returns {*}
-     */
-    static buildEventSummary(task, depth, commentBody) {
-        if (!task.disabled && task.results && task.results.message) {
-            commentBody += `<summary>${task.executor} : ${task.context} (${task.hash}) ${
-                task.results.message
-            }</summary>\n`;
-            commentBody += `<p>${task.results.url} : TODO details..`;
-            if (task.tasks) {
-                commentBody += `<details>`;
-                task.tasks.forEach(subtask => {
-                    commentBody = EventHandlerPullRequest.buildEventSummary(subtask, depth++, commentBody);
-                });
-                commentBody += `</details>`;
-            }
-            commentBody += `</p>`;
-        }
-        return commentBody;
-    }
-
-    async addPullRequestComment(event) {
-        let commentBody = '';
-        event.tasks.forEach(task => {
-            commentBody += `<details>${EventHandlerPullRequest.buildEventSummary(task, 0, '')}</details>`;
-        });
-
-        if (commentBody === '') commentBody = 'no comment';
-        log.info(`adding PR comment: ${commentBody}`);
-
-        let status = AgentUtils.createPullRequestStatus(event.eventData, 'N/A', 'COMMENT_ONLY', commentBody);
-
-        return AgentUtils.postResultsAndTrigger(
-            process.env.GTM_SQS_RESULTS_QUEUE,
-            status,
-            process.env.GTM_SNS_RESULTS_TOPIC,
-            `Result for ${event.eventType} => Event ID: ${event.eventId}<br/>`
-        ).then(function() {
-            log.info('PR comment queued.');
-            log.info('-----------------------------');
-        });
-    }
-
     async setIntialTaskState(event, parent) {
         let promises = [];
 
         if (parent.tasks) {
             parent.tasks.forEach(async task => {
                 if (task.disabled) {
+                    log.warn(`skipping disabled task ${event.eventType} => ${task.executor}:${task.context}`);
                     return;
                 }
 
@@ -153,7 +102,13 @@ export class EventHandlerPullRequest extends EventHandler {
 
         if (parent.tasks) {
             parent.tasks.forEach(async task => {
-                if (task.disabled || !Executor.isRegistered(task.executor)) {
+                if (task.disabled) {
+                    log.warn(`task disabled: ${task.executor}: ${task.context}`);
+                    return;
+                }
+
+                if (!Executor.isRegistered(task.executor)) {
+                    log.error(`executor not registered: ${task.executor}: ${task.context}`);
                     return;
                 }
 
@@ -243,6 +198,62 @@ export class EventHandlerPullRequest extends EventHandler {
                 }
             });
             return Promise.all(promises);
+        });
+    }
+
+    /**
+     * <details>
+     * <summary>TestResult A : PASS</summary>
+     * <p>
+     * this is a summary of the result with a <a href="https://www.google.com.au">link</a> to more info.
+     * </p>
+     * </details>
+     * @param task
+     * @param depth
+     * @param commentBody
+     * @returns {*}
+     */
+    static buildEventSummary(task, depth, commentBody) {
+        if (!task.disabled && task.results && task.results.message) {
+            commentBody += `<summary>${task.executor} : ${task.context} (${task.hash}) ${
+                task.results.message
+            }</summary>\n`;
+            commentBody += `<p>${task.results.url} : TODO details..`;
+            if (task.tasks) {
+                commentBody += `<details>`;
+                task.tasks.forEach(subtask => {
+                    commentBody = EventHandlerPullRequest.buildEventSummary(subtask, depth++, commentBody);
+                });
+                commentBody += `</details>`;
+            }
+            commentBody += `</p>`;
+        }
+        return commentBody;
+    }
+
+    async addPullRequestComment(event) {
+        if (process.env.GTM_GITHUB_PR_COMMENTS_ENABLED !== 'true') {
+            return;
+        }
+
+        let commentBody = '';
+        event.tasks.forEach(task => {
+            commentBody += `<details>${EventHandlerPullRequest.buildEventSummary(task, 0, '')}</details>`;
+        });
+
+        if (commentBody === '') commentBody = 'no comment';
+        log.info(`adding PR comment: ${commentBody}`);
+
+        let status = AgentUtils.createPullRequestStatus(event.eventData, 'N/A', 'COMMENT_ONLY', commentBody);
+
+        return AgentUtils.postResultsAndTrigger(
+            process.env.GTM_SQS_RESULTS_QUEUE,
+            status,
+            process.env.GTM_SNS_RESULTS_TOPIC,
+            `Result for ${event.eventType} => Event ID: ${event.eventId}<br/>`
+        ).then(function() {
+            log.info('PR comment queued.');
+            log.info('-----------------------------');
         });
     }
 }

@@ -135,18 +135,16 @@ export class ExecutorDocker extends Executor {
             return new Promise((resolve, reject) => {
                 docker.pull(image, function(err, stream) {
                     if (err) {
-                        log.error(err.message);
-                        reject(err);
+                        return reject(err);
                     }
 
                     docker.modem.followProgress(stream, onFinished, onProgress);
 
                     function onFinished(err, output) {
                         if (err) {
-                            log.error(err.message);
-                            reject(err);
+                            return reject(err);
                         }
-                        resolve(output);
+                        return resolve(output);
                     }
 
                     function onProgress(event) {
