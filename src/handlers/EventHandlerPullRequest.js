@@ -124,7 +124,7 @@ export class EventHandlerPullRequest extends EventHandler {
                     taskPromise = executor
                         .executeTask(task)
                         .then(task => {
-                            if (task.result === 'NO_MATCHING_TASK') {
+                            if (task.results === 'NO_MATCHING_TASK') {
                                 status = AgentUtils.createPullRequestStatus(
                                     event.eventData,
                                     'error',
@@ -194,6 +194,17 @@ export class EventHandlerPullRequest extends EventHandler {
             });
         }
 
+        return this.handleSubtasks(event, promises);
+    }
+
+    /**
+     * Deal with subtasks of each promise from current task array
+     *
+     * @param event - current event being processed
+     * @param promises from current task array
+     * @returns {Promise<[any]>} promises for subtasks resolved via Promise.all
+     */
+    handleSubtasks(event, promises) {
         let subtaskPromises = [];
         promises.forEach(async promise => {
             // for each sibling task
