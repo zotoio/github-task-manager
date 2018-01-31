@@ -180,8 +180,8 @@ export class AgentUtils {
             });
     }
 
-    static async postResultsAndTrigger(sqsQueueName, results, snsQueueName, message) {
-        return AgentUtils.getQueueUrl(sqsQueueName)
+    static async postResultsAndTrigger(results, message) {
+        return AgentUtils.getQueueUrl(process.env.GTM_SQS_RESULTS_QUEUE)
             .then(function(sqsQueueUrl) {
                 let params = {
                     MessageBody: safeJsonStringify(results),
@@ -195,7 +195,7 @@ export class AgentUtils {
             })
             .then(() => {
                 let params = {
-                    Name: snsQueueName
+                    Name: process.env.GTM_SNS_RESULTS_TOPIC
                 };
 
                 return sns.createTopic(params).promise();

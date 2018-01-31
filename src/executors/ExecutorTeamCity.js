@@ -7,6 +7,9 @@ let log = AgentUtils.logger();
 
 /**
  * Sample .githubTaskManager.json task config
+ *
+ * see: https://github.com/wyvern8/github-task-manager/wiki/Structure-of-.githubTaskManager.json
+ *
  * {
         "executor": "TeamCity",
         "context": "run e2e tests",
@@ -97,7 +100,9 @@ export class ExecutorTeamCity extends Executor {
             overAllResult.message = parsedResult;
         }
 
-        return overAllResult;
+        task.results = overAllResult;
+
+        return result ? Promise.resolve(task) : Promise.reject(task);
     }
 
     async waitForBuildToComplete(buildName, buildNumber) {

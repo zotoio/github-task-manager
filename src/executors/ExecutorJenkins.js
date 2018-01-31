@@ -3,6 +3,22 @@ import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
 let log = AgentUtils.logger();
 
+/**
+ * Sample .githubTaskManager.json task config/
+ *
+ * see: https://github.com/wyvern8/github-task-manager/wiki/Structure-of-.githubTaskManager.json
+ *
+ * {
+        "executor": "Jenkins",
+        "context": "Build and deploy",
+        "options": {
+          "jobName": "JENKINS_JOBNAME",
+          "parameters": {
+            "ENVIRONMENT" : "env_dev"
+        }
+    }
+ */
+
 export class ExecutorJenkins extends Executor {
     constructor(eventData) {
         super(eventData);
@@ -121,7 +137,7 @@ export class ExecutorJenkins extends Executor {
 
         task.results = resultSummary;
 
-        return Promise.resolve(resultSummary); // todo handle results
+        return resultBool ? Promise.resolve(task) : Promise.reject(task); // todo handle results
     }
 }
 
