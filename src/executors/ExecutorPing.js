@@ -36,12 +36,7 @@ export class ExecutorPing extends Executor {
             );
 
             promises.push(
-                AgentUtils.postResultsAndTrigger(
-                    process.env.GTM_SQS_RESULTS_QUEUE,
-                    status,
-                    process.env.GTM_SNS_RESULTS_TOPIC,
-                    'Ping'
-                ).then(function() {
+                AgentUtils.postResultsAndTrigger(status, 'Ping').then(function() {
                     log.info(`sent ping ${i}`);
                 })
             );

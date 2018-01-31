@@ -81,9 +81,7 @@ export class EventHandlerPullRequest extends EventHandler {
 
                 promises.push(
                     AgentUtils.postResultsAndTrigger(
-                        process.env.GTM_SQS_RESULTS_QUEUE,
                         status,
-                        process.env.GTM_SNS_RESULTS_TOPIC,
                         `Pending for ${event.eventType} => ${task.executor}:${task.context} - Event ID: ${
                             event.eventId
                         }`
@@ -151,9 +149,7 @@ export class EventHandlerPullRequest extends EventHandler {
                         })
                         .then(status => {
                             return AgentUtils.postResultsAndTrigger(
-                                process.env.GTM_SQS_RESULTS_QUEUE,
                                 status,
-                                process.env.GTM_SNS_RESULTS_TOPIC,
                                 `Result '${status.state}' for ${event.eventType} => ${task.executor}:${
                                     task.context
                                 } - Event ID: ${event.eventId}`
@@ -172,15 +168,22 @@ export class EventHandlerPullRequest extends EventHandler {
                             );
 
                             return AgentUtils.postResultsAndTrigger(
-                                process.env.GTM_SQS_RESULTS_QUEUE,
                                 status,
-                                process.env.GTM_SNS_RESULTS_TOPIC,
                                 `Result 'error' for ${event.eventType} => ${task.executor}:${
                                     task.context
                                 } - Event ID: ${event.eventId}`
-                            ).then(() => {
-                                return task;
-                            });
+                            )
+                                .then(() => {
+                                    let commentBody = `Task failed: '${task.executor}: ${
+                                        task.context
+                                    }', any subtasks have been skipped. Config: \n\`\`\`json\n${formatJson.plain(
+                                        task
+                                    )}\n\`\`\``;
+                                    return this.addPullRequestComment(event, commentBody, task);
+                                })
+                                .then(() => {
+                                    return task;
+                                });
                         });
                 } catch (e) {
                     log.error(e);
@@ -200,12 +203,12 @@ export class EventHandlerPullRequest extends EventHandler {
                     //.. if there are subtasks
                     if (!task.disabled && task.tasks) {
                         //..and the task failed, skip subtasks
-                        log.info(`${task.hash} passed? ${task.results.passed}`);
-                        if (process.env.GTM_TASK_REQUIRE_PARENT_PASS !== 'false' && !task.results.passed) {
-                            let commentBody = `A parent task failed: '${task.executor}: ${
-                                task.context
-                            }', so subtasks were skipped. Config: \n\`\`\`json\n${formatJson.plain(task)}\n\`\`\``;
-                            return this.addPullRequestComment(event, commentBody);
+                        log.info(`${task.executor}: ${task.context} #${task.hash} passed? ${task.results.passed}`);
+                        if (!task.results.passed) {
+                            log.error(
+                                `A parent task failed: '${task.executor}: ${task.context}', so subtasks were skipped.`
+                            );
+                            return;
                         }
 
                         //..otherwise process subtasks
@@ -251,25 +254,24 @@ export class EventHandlerPullRequest extends EventHandler {
         return commentBody;
     }
 
-    async addPullRequestComment(event, commentBody) {
-        if (process.env.GTM_GITHUB_PR_COMMENTS_ENABLED !== 'true') {
-            return;
+    async addPullRequestComment(event, commentBody, task) {
+        // don't add comment to PR if disabled for this event type, or disabled for current task
+        if (!event.taskConfig.pull_request.disableComments && (!task || !task.disableComments)) {
+            if (commentBody === '') commentBody = 'no comment';
+            log.info(`adding PR comment: ${commentBody}`);
+
+            let status = AgentUtils.createPullRequestStatus(event.eventData, 'N/A', 'COMMENT_ONLY', commentBody);
+
+            return AgentUtils.postResultsAndTrigger(
+                status,
+                `Result for ${event.eventType} => Event ID: ${event.eventId}<br/>`
+            ).then(function() {
+                log.info('PR comment queued.');
+                log.info('-----------------------------');
+            });
+        } else {
+            log.info(`skipping PR comment per .githubTaskManager.json`);
         }
-
-        if (commentBody === '') commentBody = 'no comment';
-        log.info(`adding PR comment: ${commentBody}`);
-
-        let status = AgentUtils.createPullRequestStatus(event.eventData, 'N/A', 'COMMENT_ONLY', commentBody);
-
-        return AgentUtils.postResultsAndTrigger(
-            process.env.GTM_SQS_RESULTS_QUEUE,
-            status,
-            process.env.GTM_SNS_RESULTS_TOPIC,
-            `Result for ${event.eventType} => Event ID: ${event.eventId}<br/>`
-        ).then(function() {
-            log.info('PR comment queued.');
-            log.info('-----------------------------');
-        });
     }
 
     async addPullRequestSummaryComment(event) {
