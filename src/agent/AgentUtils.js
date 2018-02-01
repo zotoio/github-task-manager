@@ -180,8 +180,8 @@ export class AgentUtils {
             });
     }
 
-    static async postResultsAndTrigger(sqsQueueName, results, snsQueueName, message) {
-        return AgentUtils.getQueueUrl(sqsQueueName)
+    static async postResultsAndTrigger(results, message) {
+        return AgentUtils.getQueueUrl(process.env.GTM_SQS_RESULTS_QUEUE)
             .then(function(sqsQueueUrl) {
                 let params = {
                     MessageBody: safeJsonStringify(results),
@@ -195,7 +195,7 @@ export class AgentUtils {
             })
             .then(() => {
                 let params = {
-                    Name: snsQueueName
+                    Name: process.env.GTM_SNS_RESULTS_TOPIC
                 };
 
                 return sns.createTopic(params).promise();
@@ -284,10 +284,23 @@ export class AgentUtils {
      * Create a Templating Object from a Configuration Object
      * @param {Object} obj - EventData Object to Return Variables From
      */
-    static createBasicTemplate(obj) {
+    static createBasicTemplate(obj, parent) {
+        if (!parent.results) {
+            log.info('No Parent Build. Providing Safe Defaults');
+            parent.results = {
+                passed: true,
+                meta: {
+                    buildNumber: 0,
+                    buildName: 'NO_PARENT_TASK'
+                }
+            };
+        }
+
         return {
             '##GHPRNUM##': obj.pull_request.number,
-            '##GHREPONAME##': obj.repository.name
+            '##GHREPONAME##': obj.repository.name,
+            '##PARENTBUILDNUMBER##': parent.results.meta.buildNumber,
+            '##PARENTBUILDNAME##': parent.results.meta.buildName
         };
     }
 

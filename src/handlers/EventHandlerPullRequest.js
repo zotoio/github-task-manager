@@ -1,6 +1,7 @@
 import { EventHandler } from '../agent/EventHandler';
 import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
+import { default as formatJson } from 'format-json';
 let log = AgentUtils.logger();
 
 export class EventHandlerPullRequest extends EventHandler {
@@ -17,11 +18,9 @@ export class EventHandlerPullRequest extends EventHandler {
         log.info('Pull Request: ' + this.eventData.pull_request.number);
         log.info('---------------------------------');
 
-        this.tasks = AgentUtils.templateReplace(AgentUtils.createBasicTemplate(this.eventData), this.tasks);
-
         return this.handleTasks(this, this).then(() => {
             //return Promise.resolve(true);
-            return this.addPullRequestComment(this);
+            return this.addPullRequestSummaryComment(this);
         });
     }
 
@@ -52,6 +51,11 @@ export class EventHandlerPullRequest extends EventHandler {
                     return;
                 }
 
+                task.options = AgentUtils.templateReplace(
+                    AgentUtils.createBasicTemplate(this.eventData, parent),
+                    task.options
+                );
+
                 let initialState = 'pending';
                 let initialDesc = 'Task Execution in Progress';
 
@@ -80,9 +84,7 @@ export class EventHandlerPullRequest extends EventHandler {
 
                 promises.push(
                     AgentUtils.postResultsAndTrigger(
-                        process.env.GTM_SQS_RESULTS_QUEUE,
                         status,
-                        process.env.GTM_SNS_RESULTS_TOPIC,
                         `Pending for ${event.eventType} => ${task.executor}:${task.context} - Event ID: ${
                             event.eventId
                         }`
@@ -124,8 +126,8 @@ export class EventHandlerPullRequest extends EventHandler {
                 try {
                     taskPromise = executor
                         .executeTask(task)
-                        .then(taskResult => {
-                            if (taskResult === 'NO_MATCHING_TASK') {
+                        .then(task => {
+                            if (task.results === 'NO_MATCHING_TASK') {
                                 status = AgentUtils.createPullRequestStatus(
                                     event.eventData,
                                     'error',
@@ -134,29 +136,30 @@ export class EventHandlerPullRequest extends EventHandler {
                                     'https://kuro.neko.ac'
                                 );
                             } else {
-                                let defaultResultMessage = taskResult.passed
+                                let defaultResultMessage = task.results.passed
                                     ? 'Task Completed Successfully'
                                     : 'Task Completed with Errors';
-                                let taskResultMessage = taskResult.message || defaultResultMessage;
+                                let taskResultMessage = task.results.message || defaultResultMessage;
                                 status = AgentUtils.createPullRequestStatus(
                                     event.eventData,
-                                    taskResult.passed ? 'success' : 'error',
+                                    task.results.passed ? 'success' : 'error',
                                     eventContext,
                                     taskResultMessage,
-                                    taskResult.url
+                                    task.results.url
                                 );
                             }
                             return status;
                         })
                         .then(status => {
                             return AgentUtils.postResultsAndTrigger(
-                                process.env.GTM_SQS_RESULTS_QUEUE,
                                 status,
-                                process.env.GTM_SNS_RESULTS_TOPIC,
                                 `Result '${status.state}' for ${event.eventType} => ${task.executor}:${
                                     task.context
                                 } - Event ID: ${event.eventId}`
                             );
+                        })
+                        .then(() => {
+                            return task;
                         })
                         .catch(e => {
                             log.error(e);
@@ -168,13 +171,22 @@ export class EventHandlerPullRequest extends EventHandler {
                             );
 
                             return AgentUtils.postResultsAndTrigger(
-                                process.env.GTM_SQS_RESULTS_QUEUE,
                                 status,
-                                process.env.GTM_SNS_RESULTS_TOPIC,
                                 `Result 'error' for ${event.eventType} => ${task.executor}:${
                                     task.context
                                 } - Event ID: ${event.eventId}`
-                            );
+                            )
+                                .then(() => {
+                                    let commentBody = `Task failed: '${task.executor}: ${
+                                        task.context
+                                    }', any subtasks have been skipped. Config: \n\`\`\`json\n${formatJson.plain(
+                                        task
+                                    )}\n\`\`\``;
+                                    return this.addPullRequestComment(event, commentBody, task);
+                                })
+                                .then(() => {
+                                    return task;
+                                });
                         });
                 } catch (e) {
                     log.error(e);
@@ -185,20 +197,45 @@ export class EventHandlerPullRequest extends EventHandler {
             });
         }
 
-        return Promise.all(promises).then(() => {
-            let promises = [];
-            parent.tasks.forEach(async newParent => {
-                if (!newParent.disabled && newParent.tasks) {
-                    log.info(`Task ${newParent.executor}:${newParent.context} has Sub-Tasks. Processing..`);
-                    promises.push(
-                        event.handleTasks(event, newParent).then(() => {
-                            log.info(`Sub-Tasks for ${newParent.executor}:${newParent.context} Completed.`);
-                        })
-                    );
-                }
-            });
-            return Promise.all(promises);
+        return this.handleSubtasks(event, promises);
+    }
+
+    /**
+     * Deal with subtasks of each promise from current task array
+     *
+     * @param event - current event being processed
+     * @param promises from current task array
+     * @returns {Promise<[any]>} promises for subtasks resolved via Promise.all
+     */
+    handleSubtasks(event, promises) {
+        let subtaskPromises = [];
+        promises.forEach(async promise => {
+            // for each sibling task
+            subtaskPromises.push(
+                //..wait for task to complete
+                promise.then(async task => {
+                    //.. if there are subtasks
+                    if (!task.disabled && task.tasks) {
+                        //..and the task failed, skip subtasks
+                        log.info(`${task.executor}: ${task.context} #${task.hash} passed? ${task.results.passed}`);
+                        if (!task.results.passed) {
+                            log.error(
+                                `A parent task failed: '${task.executor}: ${task.context}', so subtasks were skipped.`
+                            );
+                            return;
+                        }
+
+                        //..otherwise process subtasks
+                        log.info(`Task ${task.executor}:${task.context} has Sub-Tasks. Processing..`);
+                        return event.handleTasks(event, task).then(() => {
+                            //..and wait for those too.
+                            log.info(`Sub-Tasks for ${task.executor}:${task.context} Completed.`);
+                        });
+                    }
+                })
+            );
         });
+        return Promise.all(subtaskPromises);
     }
 
     /**
@@ -231,30 +268,33 @@ export class EventHandlerPullRequest extends EventHandler {
         return commentBody;
     }
 
-    async addPullRequestComment(event) {
-        if (process.env.GTM_GITHUB_PR_COMMENTS_ENABLED !== 'true') {
-            return;
-        }
+    async addPullRequestComment(event, commentBody, task) {
+        // don't add comment to PR if disabled for this event type, or disabled for current task
+        if (!event.taskConfig.pull_request.disableComments && (!task || !task.disableComments)) {
+            if (commentBody === '') commentBody = 'no comment';
+            log.info(`adding PR comment: ${commentBody}`);
 
+            let status = AgentUtils.createPullRequestStatus(event.eventData, 'N/A', 'COMMENT_ONLY', commentBody);
+
+            return AgentUtils.postResultsAndTrigger(
+                status,
+                `Result for ${event.eventType} => Event ID: ${event.eventId}<br/>`
+            ).then(function() {
+                log.info('PR comment queued.');
+                log.info('-----------------------------');
+            });
+        } else {
+            log.info(`skipping PR comment per .githubTaskManager.json`);
+        }
+    }
+
+    async addPullRequestSummaryComment(event) {
         let commentBody = '';
         event.tasks.forEach(task => {
             commentBody += `<details>${EventHandlerPullRequest.buildEventSummary(task, 0, '')}</details>`;
         });
 
-        if (commentBody === '') commentBody = 'no comment';
-        log.info(`adding PR comment: ${commentBody}`);
-
-        let status = AgentUtils.createPullRequestStatus(event.eventData, 'N/A', 'COMMENT_ONLY', commentBody);
-
-        return AgentUtils.postResultsAndTrigger(
-            process.env.GTM_SQS_RESULTS_QUEUE,
-            status,
-            process.env.GTM_SNS_RESULTS_TOPIC,
-            `Result for ${event.eventType} => Event ID: ${event.eventId}<br/>`
-        ).then(function() {
-            log.info('PR comment queued.');
-            log.info('-----------------------------');
-        });
+        return this.addPullRequestComment(event, commentBody);
     }
 }
 

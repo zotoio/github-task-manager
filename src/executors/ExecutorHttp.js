@@ -7,6 +7,9 @@ let log = AgentUtils.logger();
 
 /**
  * Sample .githubTaskManager.json task config
+ *
+ * see: https://github.com/wyvern8/github-task-manager/wiki/Structure-of-.githubTaskManager.json
+ *
  * {
         "executor": "Http",
         "context": "avtest",
@@ -50,27 +53,30 @@ export class ExecutorHttp extends Executor {
                 log.info(json.plain(response));
 
                 if (this.validate(task, response)) {
-                    return Promise.resolve({
+                    task.results = {
                         passed: true,
                         message: 'Request completed',
                         url: 'http://www.softwareishard.com/blog/har-12-spec/#request'
-                    });
+                    };
+                    return Promise.resolve(task);
                 } else {
-                    return Promise.reject({
+                    task.results = {
                         passed: false,
                         message: 'Response validation failed',
                         url: 'http://www.softwareishard.com/blog/har-12-spec/#request'
-                    });
+                    };
+                    return Promise.reject(task);
                 }
             })
 
             .catch(e => {
                 log.error(e.message);
-                return Promise.reject({
+                task.results = {
                     passed: false,
                     message: e.message,
                     url: 'http://www.softwareishard.com/blog/har-12-spec/#request'
-                });
+                };
+                return Promise.reject(task);
             });
     }
 
