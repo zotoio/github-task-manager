@@ -103,8 +103,8 @@ export class ExecutorJenkins extends Executor {
             task.results = {
                 passed: false,
                 url: this.options.GTM_JENKINS_URL,
-                message: `Required Parameters not Specified for ${jobName}`,
-            }
+                message: `Required Parameters not Specified for ${jobName}`
+            };
             return Promise.reject(task);
         }
 

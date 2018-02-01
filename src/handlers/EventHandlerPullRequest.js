@@ -18,8 +18,6 @@ export class EventHandlerPullRequest extends EventHandler {
         log.info('Pull Request: ' + this.eventData.pull_request.number);
         log.info('---------------------------------');
 
-        this.tasks = AgentUtils.templateReplace(AgentUtils.createBasicTemplate(this.eventData), this.tasks);
-
         return this.handleTasks(this, this).then(() => {
             //return Promise.resolve(true);
             return this.addPullRequestSummaryComment(this);
@@ -52,6 +50,11 @@ export class EventHandlerPullRequest extends EventHandler {
                     log.warn(`skipping disabled task ${event.eventType} => ${task.executor}:${task.context}`);
                     return;
                 }
+
+                task.options = AgentUtils.templateReplace(
+                    AgentUtils.createBasicTemplate(this.eventData, parent),
+                    task.options
+                );
 
                 let initialState = 'pending';
                 let initialDesc = 'Task Execution in Progress';
