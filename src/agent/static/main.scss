@@ -105,6 +105,20 @@ nav {
     border: 1px solid #ebccd1;
 }
 
+// Footer Styles
+footer {
+    margin-top: 20px;
+    padding: 15px;
+    background: #444;
+
+    .notice {
+        color: rgba(255,255,255,0.5);
+        font-size: 12px;
+        text-align: center;
+        margin: 0;
+    }
+}
+
 // Tab Controls
 .tabcontrols {
     margin: 0;
