@@ -137,4 +137,4 @@ export class ExecutorJenkins extends Executor {
     }
 }
 
-Executor.register('NABJenkins', ExecutorJenkins);
+Executor.register('Jenkins', ExecutorJenkins);
