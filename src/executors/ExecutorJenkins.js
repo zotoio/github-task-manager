@@ -76,14 +76,6 @@ export class ExecutorJenkins extends Executor {
         return buildDict;
     }
 
-    createJenkinsBuildParams(task) {
-        // todo jenkins params by eventType, task options etc
-        return {
-            TAGS: JSON.stringify(task.options.parameters.tags),
-            ENVIRONMENT: task.options.parameters.ENVIRONMENT
-        };
-    }
-
     async buildNumberfromQueue(queueId) {
         let queueData = await this.jenkins.queue.item(queueId).then(function(data) {
             return data;
@@ -103,17 +95,23 @@ export class ExecutorJenkins extends Executor {
     }
 
     async executeTask(task) {
-        let jobName = task.options.jobName;
+        let jobName = task.options.jobName || null;
+        let buildParams = task.options.parameters || null;
 
-        if (jobName == null) {
+        if (jobName == null || buildParams == null) {
             await AgentUtils.timeout(4000);
-            return 'NO_MATCHING_TASK';
+            task.results = {
+                passed: false,
+                url: this.options.GTM_JENKINS_URL,
+                message: `Required Parameters not Specified for ${jobName}`,
+            }
+            return Promise.reject(task);
         }
 
-        let buildParams = this.createJenkinsBuildParams(task);
         log.debug(buildParams);
 
         log.info('Starting Jenkins Job: ' + jobName);
+        // TODO: Check if Job Exists
         let queueNumber = await this.jenkins.job.build({
             name: jobName,
             parameters: buildParams
@@ -125,7 +123,7 @@ export class ExecutorJenkins extends Executor {
 
         let resultBool = result.result === 'SUCCESS';
 
-        let resultSummary = {
+        task.results = {
             passed: resultBool,
             url: result.url,
             message: `${jobName} #${buildNumber} - ${result.result}`,
@@ -135,10 +133,8 @@ export class ExecutorJenkins extends Executor {
             }
         };
 
-        task.results = resultSummary;
-
-        return resultBool ? Promise.resolve(task) : Promise.reject(task); // todo handle results
+        return resultBool ? Promise.resolve(task) : Promise.reject(task);
     }
 }
 
-Executor.register('Jenkins', ExecutorJenkins);
+Executor.register('NABJenkins', ExecutorJenkins);
