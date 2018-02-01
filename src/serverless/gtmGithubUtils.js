@@ -26,7 +26,6 @@ function connect(context) {
     console.log('Creating GitHub API Connection');
     let github = new GitHubApi(githubOptions);
 
-
     let token = process.env.GTM_GITHUB_TOKEN;
     if (context) {
         token =
@@ -140,7 +139,10 @@ async function updateGitHubPullRequestStatus(status, done) {
         return await github.repos.createStatus(status).then(() => {
             done();
         });
-    } catch(e) {
+    } catch (e) {
+        if (e.message == 'OAuth2 authentication requires a token or key & secret to be set') {
+            throw e;
+        }
         console.log('----- ERROR COMMUNICATING WITH GITHUB -----');
         console.log(e);
         done();
@@ -174,7 +176,7 @@ async function addGitHubPullRequestComment(status, done) {
             .then(() => {
                 done();
             });
-    } catch(e) {
+    } catch (e) {
         console.log('----- ERROR COMMUNICATING WITH GITHUB -----');
         console.log(e);
         done();
