@@ -9,13 +9,16 @@ let githubUpdaters = {
     comment: updateGitHubComment
 };
 
+let ghEnforceValidSsl = process.env.NODE_TLS_REJECT_UNAUTHORIZED === 0;
+
 function connect(context) {
     let githubOptions = {
         host: process.env.GTM_GITHUB_HOST || 'api.github.com',
         debug: process.env.GTM_GITHUB_DEBUG || false,
         timeout: parseInt(process.env.GTM_GITHUB_TIMEOUT) || 5000,
         pathPrefix: process.env.GTM_GITHUB_PATH_PREFIX || '',
-        proxy: process.env.GTM_GITHUB_PROXY || ''
+        proxy: process.env.GTM_GITHUB_PROXY || '',
+        rejectUnauthorized: ghEnforceValidSsl
     };
 
     let github = new GitHubApi(githubOptions);
