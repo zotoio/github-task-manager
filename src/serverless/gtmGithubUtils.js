@@ -10,8 +10,10 @@ let githubUpdaters = {
 };
 
 let ghEnforceValidSsl = process.env.NODE_TLS_REJECT_UNAUTHORIZED === 0;
+console.log('GitHub SSL Validation: ' + String(ghEnforceValidSsl));
 
 function connect(context) {
+    console.log('Connecting to GitHub');
     let githubOptions = {
         host: process.env.GTM_GITHUB_HOST || 'api.github.com',
         debug: process.env.GTM_GITHUB_DEBUG || false,
@@ -21,7 +23,9 @@ function connect(context) {
         rejectUnauthorized: ghEnforceValidSsl
     };
 
+    console.log('Creating GitHub API Connection');
     let github = new GitHubApi(githubOptions);
+
 
     let token = process.env.GTM_GITHUB_TOKEN;
     if (context) {
@@ -29,6 +33,7 @@ function connect(context) {
             process.env['GTM_GITHUB_TOKEN_' + context.toUpperCase().replace('-', '_')] || process.env.GTM_GITHUB_TOKEN;
     }
 
+    console.log('Authenticating with GitHub');
     github.authenticate({
         type: 'oauth',
         token: token
@@ -130,10 +135,16 @@ async function updateGitHubPullRequest(status, done) {
 async function updateGitHubPullRequestStatus(status, done) {
     console.log(`updating github for pull_request event ${status.eventData.ghEventId}`);
 
-    let github = connect(status.context);
-    return await github.repos.createStatus(status).then(() => {
+    try {
+        let github = connect(status.context);
+        return await github.repos.createStatus(status).then(() => {
+            done();
+        });
+    } catch(e) {
+        console.log('----- ERROR COMMUNICATING WITH GITHUB -----');
+        console.log(e);
         done();
-    });
+    }
 }
 
 async function addGitHubPullRequestComment(status, done) {
@@ -150,18 +161,24 @@ async function addGitHubPullRequestComment(status, done) {
       comments?: string[];
     };
      */
-    let github = connect();
-    return await github.pullRequests
-        .createReview({
-            owner: status.owner,
-            repo: status.repo,
-            number: parseInt(status.number),
-            body: status.description,
-            event: 'COMMENT'
-        })
-        .then(() => {
-            done();
-        });
+    try {
+        let github = connect();
+        return await github.pullRequests
+            .createReview({
+                owner: status.owner,
+                repo: status.repo,
+                number: parseInt(status.number),
+                body: status.description,
+                event: 'COMMENT'
+            })
+            .then(() => {
+                done();
+            });
+    } catch(e) {
+        console.log('----- ERROR COMMUNICATING WITH GITHUB -----');
+        console.log(e);
+        done();
+    }
 }
 
 async function updateGitHubComment(status, done) {
