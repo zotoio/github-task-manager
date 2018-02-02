@@ -10,6 +10,8 @@ let log = AgentUtils.logger();
 /**
  * Sample .githubTaskManager.json task config
  *
+ * see: https://github.com/wyvern8/github-task-manager/wiki/Structure-of-.githubTaskManager.json
+ *
  {
    "executor": "Docker",
    "context": "run ls in latest alpine",
@@ -74,7 +76,7 @@ export class ExecutorDocker extends Executor {
 
             task.results = resultSummary;
 
-            return Promise.resolve(resultSummary); // todo handle results
+            return Promise.reject(task);
         }
 
         if (!this.validateImage(image)) {
@@ -88,7 +90,7 @@ export class ExecutorDocker extends Executor {
 
             task.results = resultSummary;
 
-            return Promise.resolve(resultSummary); // todo handle results
+            return Promise.reject(task);
         }
 
         log.info(`Starting local docker container '${image}' to run: ${command.join(' ')}`);
@@ -135,18 +137,16 @@ export class ExecutorDocker extends Executor {
             return new Promise((resolve, reject) => {
                 docker.pull(image, function(err, stream) {
                     if (err) {
-                        log.error(err.message);
-                        reject(err);
+                        return reject(err);
                     }
 
                     docker.modem.followProgress(stream, onFinished, onProgress);
 
                     function onFinished(err, output) {
                         if (err) {
-                            log.error(err.message);
-                            reject(err);
+                            return reject(err);
                         }
-                        resolve(output);
+                        return resolve(output);
                     }
 
                     function onProgress(event) {
@@ -182,16 +182,19 @@ export class ExecutorDocker extends Executor {
 
                 task.results = resultSummary;
 
-                return Promise.resolve(resultSummary); // todo handle results
+                return Promise.resolve(task); // todo handle results
             })
 
             .catch(e => {
                 log.error(e.message);
-                return Promise.reject({
+                let resultSummary = {
                     passed: false,
                     url: 'https://github.com/apocas/dockerode',
                     message: e.message
-                });
+                };
+
+                task.results = resultSummary;
+                return Promise.reject(task);
             });
     }
 }

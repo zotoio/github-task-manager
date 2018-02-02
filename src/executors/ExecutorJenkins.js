@@ -3,6 +3,22 @@ import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
 let log = AgentUtils.logger();
 
+/**
+ * Sample .githubTaskManager.json task config/
+ *
+ * see: https://github.com/wyvern8/github-task-manager/wiki/Structure-of-.githubTaskManager.json
+ *
+ * {
+        "executor": "Jenkins",
+        "context": "Build and deploy",
+        "options": {
+          "jobName": "JENKINS_JOBNAME",
+          "parameters": {
+            "ENVIRONMENT" : "env_dev"
+        }
+    }
+ */
+
 export class ExecutorJenkins extends Executor {
     constructor(eventData) {
         super(eventData);
@@ -20,25 +36,6 @@ export class ExecutorJenkins extends Executor {
             crumbIssuer: useCsrf,
             promisify: true
         });
-    }
-
-    taskNameToBuild(context) {
-        let desiredTask = context;
-        console.debug(desiredTask);
-
-        let tasks = {
-            functional: 'EXECUTE_AUTOMATED_TESTS',
-            a11y: 'EXECUTE_AUTOMATED_TESTS'
-        };
-
-        if (!tasks.hasOwnProperty(desiredTask)) {
-            log.error('No Tasks Matched Request: ' + desiredTask);
-            return null;
-        } else {
-            let mappedTask = tasks[desiredTask];
-            log.info('Mapped Task ' + desiredTask + ' to Job ' + mappedTask);
-            return mappedTask;
-        }
     }
 
     async waitForBuildToExist(buildName, buildNumber) {
@@ -79,14 +76,6 @@ export class ExecutorJenkins extends Executor {
         return buildDict;
     }
 
-    createJenkinsBuildParams(task) {
-        // todo jenkins params by eventType, task options etc
-        return {
-            TAGS: JSON.stringify(task.options.tags),
-            ENVIRONMENT: 'automated-test-env'
-        };
-    }
-
     async buildNumberfromQueue(queueId) {
         let queueData = await this.jenkins.queue.item(queueId).then(function(data) {
             return data;
@@ -106,16 +95,23 @@ export class ExecutorJenkins extends Executor {
     }
 
     async executeTask(task) {
-        let jobName = this.taskNameToBuild(task.context);
-        if (jobName == null) {
+        let jobName = task.options.jobName || null;
+        let buildParams = task.options.parameters || null;
+
+        if (jobName == null || buildParams == null) {
             await AgentUtils.timeout(4000);
-            return 'NO_MATCHING_TASK';
+            task.results = {
+                passed: false,
+                url: this.options.GTM_JENKINS_URL,
+                message: `Required Parameters not Specified for ${jobName}`
+            };
+            return Promise.reject(task);
         }
 
-        let buildParams = this.createJenkinsBuildParams(task);
         log.debug(buildParams);
 
         log.info('Starting Jenkins Job: ' + jobName);
+        // TODO: Check if Job Exists
         let queueNumber = await this.jenkins.job.build({
             name: jobName,
             parameters: buildParams
@@ -127,7 +123,7 @@ export class ExecutorJenkins extends Executor {
 
         let resultBool = result.result === 'SUCCESS';
 
-        let resultSummary = {
+        task.results = {
             passed: resultBool,
             url: result.url,
             message: `${jobName} #${buildNumber} - ${result.result}`,
@@ -137,9 +133,7 @@ export class ExecutorJenkins extends Executor {
             }
         };
 
-        task.results = resultSummary;
-
-        return Promise.resolve(resultSummary); // todo handle results
+        return resultBool ? Promise.resolve(task) : Promise.reject(task);
     }
 }
 

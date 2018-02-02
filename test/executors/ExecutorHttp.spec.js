@@ -45,7 +45,7 @@ describe('ExecutorHttp', () => {
             result = await executorHttp.executeTask(eventData).then(data => {
                 return data;
             });
-            assert.equal(result.passed, true);
+            assert.equal(result.results.passed, true);
         });
     });
 });

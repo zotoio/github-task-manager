@@ -1,23 +1,31 @@
 import { default as TeamCity } from 'teamcity-rest-api';
 import { default as rp } from 'request-promise-native';
 import { default as xmlBuilder } from 'jsontoxml';
+import { default as x2j } from 'xml2js';
+import { default as URL } from 'url';
 import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
 let log = AgentUtils.logger();
 
 /**
  * Sample .githubTaskManager.json task config
+ *
+ * see: https://github.com/wyvern8/github-task-manager/wiki/Structure-of-.githubTaskManager.json
+ *
  * {
         "executor": "TeamCity",
-        "context": "projectName",
+        "context": "run e2e tests",
         "options": {
-          "build_tag" : "proj_wasX",
-          "build_env" : "env_dev",
-          "cuke_env" : "env_dev|staging|prod",
-          "cuke_tags" : [
-            "@proj_wasX",
-            "@proj_wasn"
-          ]
+          "jobName": "projectName_id",
+          "parameters": {
+            "build_tag" : "proj_wasX",
+            "ENVIRONMENT" : "env_dev",
+            "cuke_env" : "env_dev|staging|prod",
+            "cuke_tags" : [
+              "@proj_wasX",
+              "@proj_wasn"
+            ]
+          }
         }
     }
 */
@@ -40,12 +48,12 @@ export class ExecutorTeamCity extends Executor {
             build: [{ name: 'buildType', attrs: { id: jobName } }, { name: 'properties', children: [] }]
         };
 
-        for (var buildProperty in task.options) {
+        for (var buildProperty in task.options.parameters) {
             let property = {
                 name: 'property',
                 attrs: {
                     name: buildProperty,
-                    value: task.options[buildProperty]
+                    value: task.options.parameters[buildProperty]
                 }
             };
             xmlNode.build[1].children.push(property);
@@ -56,7 +64,7 @@ export class ExecutorTeamCity extends Executor {
     }
 
     async executeTask(task) {
-        let jobName = task.context;
+        let jobName = task.options.jobName;
 
         if (jobName == undefined) {
             await AgentUtils.timeout(4000);
@@ -78,23 +86,26 @@ export class ExecutorTeamCity extends Executor {
         let result = completedBuild.status === 'SUCCESS';
         let overAllResult = { passed: result, url: completedBuild.buildType.webUrl };
 
-        if (task.options.hasOwnProperty('cuke_tags')) {
+        if (task.options.parameters.hasOwnProperty('cuke_tags')) {
             let statisticsUrl = AgentUtils.formatBasicAuth(
                 this.options.GTM_TEAMCITY_USER,
                 this.options.GTM_TEAMCITY_PASSCODE,
-                `${this.options.GTM_TEAMCITY_URL}/app/rest/builds/id:${teamCityBuildId.id}/statistics`
+                URL.resolve(this.options.GTM_TEAMCITY_URL, `/app/rest/builds/id:${teamCityBuildId.id}/statistics`)
             );
 
             let statistics = await this.getBuildStatistics(statisticsUrl);
             let parsedResult = this.createResultObject(statistics);
-            parsedResult.testResultsUrl = `${this.options.GTM_TEAMCITY_URL}/viewLog.html?buildId=${
-                teamCityBuildId.id
-            }&tab=buildResultsDiv&buildTypeId=${teamCityBuildId.id}`;
+            parsedResult.testResultsUrl = URL.resolve(
+                this.options.GTM_TEAMCITY_URL,
+                `/viewLog.html?buildId=${teamCityBuildId.id}&tab=buildResultsDiv&buildTypeId=${teamCityBuildId.id}`
+            );
 
             overAllResult.message = parsedResult;
         }
 
-        return overAllResult;
+        task.results = overAllResult;
+
+        return result ? Promise.resolve(task) : Promise.reject(task);
     }
 
     async waitForBuildToComplete(buildName, buildNumber) {
@@ -127,35 +138,23 @@ export class ExecutorTeamCity extends Executor {
             });
         }
 
-        if (resultData !== null) {
-            return resultData;
-        }
+        return resultData;
     }
 
     createResultObject(statistics) {
         let resultObject = {};
 
-        let parsedJSON = AgentUtils.xmlToJson(statistics);
+        let parsedJSON;
+        let parser = new x2j.Parser();
+        parser.parseString(statistics, (err, result) => {
+            parsedJSON = result;
+        });
 
         let statisticsArray = Object.values(parsedJSON.properties.property);
 
-        let totalTestCount = statisticsArray.find(function(item, i) {
-            if (item.$.name === 'TotalTestCount') {
-                return i;
-            }
-        });
-
-        let passedTestCount = statisticsArray.find(function(item, i) {
-            if (item.$.name === 'PassedTestCount') {
-                return i;
-            }
-        });
-
-        let failedTestCount = statisticsArray.find(function(item, i) {
-            if (item.$.name === 'FailedTestCount') {
-                return i;
-            }
-        });
+        let totalTestCount = AgentUtils.findMatchingElementInArray(statisticsArray, 'TotalTestCount');
+        let passedTestCount = AgentUtils.findMatchingElementInArray(statisticsArray, 'PassedTestCount');
+        let failedTestCount = AgentUtils.findMatchingElementInArray(statisticsArray, 'FailedTestCount');
 
         resultObject.TotalTestCount = totalTestCount === undefined ? 0 : totalTestCount.$.value;
         resultObject.PassedTestCount = passedTestCount === undefined ? 0 : passedTestCount.$.value;

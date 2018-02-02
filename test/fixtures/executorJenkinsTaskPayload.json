@@ -7,8 +7,12 @@
                 "executor": "jenkins",
                 "context": "functional",
                 "options": {
-                    "tags": ["@smoke"],
-                    "browsers": ["chrome"]
+                    "jobName": "EXECUTE_AUTOMATED_TESTS",
+                    "parameters": {
+                      "tags": ["@smoke"],
+                      "browsers": ["chrome"],
+                      "ENVIRONMENT":"testEnv"
+                    }
                 }
             }
   },

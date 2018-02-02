@@ -1,6 +1,7 @@
 import { EventHandler } from '../agent/EventHandler';
 import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
+import { default as formatJson } from 'format-json';
 let log = AgentUtils.logger();
 
 export class EventHandlerPullRequest extends EventHandler {
@@ -17,11 +18,9 @@ export class EventHandlerPullRequest extends EventHandler {
         log.info('Pull Request: ' + this.eventData.pull_request.number);
         log.info('---------------------------------');
 
-        this.tasks = AgentUtils.templateReplace(AgentUtils.createBasicTemplate(this.eventData), this.tasks);
-
         return this.handleTasks(this, this).then(() => {
             //return Promise.resolve(true);
-            return this.addPullRequestComment(this);
+            return this.addPullRequestSummaryComment(this);
         });
     }
 
@@ -40,6 +39,204 @@ export class EventHandlerPullRequest extends EventHandler {
                 return this.processTasks(event, parent);
             });
         });
+    }
+
+    async setIntialTaskState(event, parent) {
+        let promises = [];
+
+        if (parent.tasks) {
+            parent.tasks.forEach(async task => {
+                if (task.disabled) {
+                    log.warn(`skipping disabled task ${event.eventType} => ${task.executor}:${task.context}`);
+                    return;
+                }
+
+                task.options = AgentUtils.templateReplace(
+                    AgentUtils.createBasicTemplate(this.eventData, parent),
+                    task.options
+                );
+
+                let initialState = 'pending';
+                let initialDesc = 'Task Execution in Progress';
+
+                if (!Executor.isRegistered(task.executor)) {
+                    initialState = 'error';
+                    initialDesc = 'Unknown Executor: ' + task.executor;
+                }
+
+                if (!parent.hash) {
+                    log.info('No Parent Hash Found. Creating Child Hash');
+                    task.hash = AgentUtils.createMd5Hash(task);
+                } else {
+                    log.info('Parent Hash Found. Appending to Child Hash');
+                    task.hash = AgentUtils.createMd5Hash(task, parent.hash);
+                }
+
+                let eventContext = `${task.executor}: ${task.context} (${task.hash})`;
+
+                let status = AgentUtils.createPullRequestStatus(
+                    event.eventData,
+                    initialState,
+                    eventContext,
+                    initialDesc,
+                    'https://github.com' // fails if not an https url
+                );
+
+                promises.push(
+                    AgentUtils.postResultsAndTrigger(
+                        status,
+                        `Pending for ${event.eventType} => ${task.executor}:${task.context} - Event ID: ${
+                            event.eventId
+                        }`
+                    ).then(function() {
+                        log.info(task);
+                        log.info('-----------------------------');
+                    })
+                );
+            });
+        }
+
+        return Promise.all(promises);
+    }
+
+    async processTasks(event, parent) {
+        let promises = [];
+
+        if (parent.tasks) {
+            parent.tasks.forEach(async task => {
+                if (task.disabled) {
+                    log.warn(`task disabled: ${task.executor}: ${task.context}`);
+                    return;
+                }
+
+                if (!Executor.isRegistered(task.executor)) {
+                    log.error(`executor not registered: ${task.executor}: ${task.context}`);
+                    return;
+                }
+
+                let eventContext = `${task.executor}: ${task.context} (${task.hash})`;
+
+                log.info('=================================');
+                log.info('Creating Executor for Task: ' + task.executor + ':' + task.context);
+                let executor = Executor.create(task.executor, event.eventData);
+
+                let status;
+                let taskPromise;
+
+                try {
+                    taskPromise = executor
+                        .executeTask(task)
+                        .then(task => {
+                            if (task.results === 'NO_MATCHING_TASK') {
+                                status = AgentUtils.createPullRequestStatus(
+                                    event.eventData,
+                                    'error',
+                                    eventContext,
+                                    'Unknown Task Type: ' + task.context,
+                                    'https://kuro.neko.ac'
+                                );
+                            } else {
+                                let defaultResultMessage = task.results.passed
+                                    ? 'Task Completed Successfully'
+                                    : 'Task Completed with Errors';
+                                let taskResultMessage = task.results.message || defaultResultMessage;
+                                status = AgentUtils.createPullRequestStatus(
+                                    event.eventData,
+                                    task.results.passed ? 'success' : 'error',
+                                    eventContext,
+                                    taskResultMessage,
+                                    task.results.url
+                                );
+                            }
+                            return status;
+                        })
+                        .then(status => {
+                            return AgentUtils.postResultsAndTrigger(
+                                status,
+                                `Result '${status.state}' for ${event.eventType} => ${task.executor}:${
+                                    task.context
+                                } - Event ID: ${event.eventId}`
+                            );
+                        })
+                        .then(() => {
+                            return task;
+                        })
+                        .catch(e => {
+                            log.error(e);
+                            status = AgentUtils.createPullRequestStatus(
+                                event.eventData,
+                                'error',
+                                eventContext,
+                                'Task execution failure',
+                                task.results.url
+                            );
+
+                            return AgentUtils.postResultsAndTrigger(
+                                status,
+                                `Result 'error' for ${event.eventType} => ${task.executor}:${
+                                    task.context
+                                } - Event ID: ${event.eventId}`
+                            )
+                                .then(() => {
+                                    let commentBody = `Task failed: '${task.executor}: ${
+                                        task.context
+                                    }', any subtasks have been skipped. Config: \n\`\`\`json\n${formatJson.plain(
+                                        task
+                                    )}\n\`\`\``;
+                                    return this.addPullRequestComment(event, commentBody, task);
+                                })
+                                .then(() => {
+                                    return task;
+                                });
+                        });
+                } catch (e) {
+                    log.error(e);
+                    taskPromise = Promise.reject(e.message);
+                }
+
+                promises.push(taskPromise);
+            });
+        }
+
+        return this.handleSubtasks(event, promises);
+    }
+
+    /**
+     * Deal with subtasks of each promise from current task array
+     *
+     * @param event - current event being processed
+     * @param promises from current task array
+     * @returns {Promise<[any]>} promises for subtasks resolved via Promise.all
+     */
+    handleSubtasks(event, promises) {
+        let subtaskPromises = [];
+        promises.forEach(async promise => {
+            // for each sibling task
+            subtaskPromises.push(
+                //..wait for task to complete
+                promise.then(async task => {
+                    //.. if there are subtasks
+                    if (!task.disabled && task.tasks) {
+                        //..and the task failed, skip subtasks
+                        log.info(`${task.executor}: ${task.context} #${task.hash} passed? ${task.results.passed}`);
+                        if (!task.results.passed) {
+                            log.error(
+                                `A parent task failed: '${task.executor}: ${task.context}', so subtasks were skipped.`
+                            );
+                            return;
+                        }
+
+                        //..otherwise process subtasks
+                        log.info(`Task ${task.executor}:${task.context} has Sub-Tasks. Processing..`);
+                        return event.handleTasks(event, task).then(() => {
+                            //..and wait for those too.
+                            log.info(`Sub-Tasks for ${task.executor}:${task.context} Completed.`);
+                        });
+                    }
+                })
+            );
+        });
+        return Promise.all(subtaskPromises);
     }
 
     /**
@@ -72,178 +269,33 @@ export class EventHandlerPullRequest extends EventHandler {
         return commentBody;
     }
 
-    async addPullRequestComment(event) {
+    async addPullRequestComment(event, commentBody, task) {
+        // don't add comment to PR if disabled for this event type, or disabled for current task
+        if (!event.taskConfig.pull_request.disableComments && (!task || !task.disableComments)) {
+            if (commentBody === '') commentBody = 'no comment';
+            log.info(`adding PR comment: ${commentBody}`);
+
+            let status = AgentUtils.createPullRequestStatus(event.eventData, 'N/A', 'COMMENT_ONLY', commentBody);
+
+            return AgentUtils.postResultsAndTrigger(
+                status,
+                `Result for ${event.eventType} => Event ID: ${event.eventId}<br/>`
+            ).then(function() {
+                log.info('PR comment queued.');
+                log.info('-----------------------------');
+            });
+        } else {
+            log.info(`skipping PR comment per .githubTaskManager.json`);
+        }
+    }
+
+    async addPullRequestSummaryComment(event) {
         let commentBody = '';
         event.tasks.forEach(task => {
             commentBody += `<details>${EventHandlerPullRequest.buildEventSummary(task, 0, '')}</details>`;
         });
 
-        if (commentBody === '') commentBody = 'no comment';
-        log.info(`adding PR comment: ${commentBody}`);
-
-        let status = AgentUtils.createPullRequestStatus(event.eventData, 'N/A', 'COMMENT_ONLY', commentBody);
-
-        return AgentUtils.postResultsAndTrigger(
-            process.env.GTM_SQS_RESULTS_QUEUE,
-            status,
-            process.env.GTM_SNS_RESULTS_TOPIC,
-            `Result for ${event.eventType} => Event ID: ${event.eventId}<br/>`
-        ).then(function() {
-            log.info('PR comment queued.');
-            log.info('-----------------------------');
-        });
-    }
-
-    async setIntialTaskState(event, parent) {
-        let promises = [];
-
-        if (parent.tasks) {
-            parent.tasks.forEach(async task => {
-                if (task.disabled) {
-                    return;
-                }
-
-                let initialState = 'pending';
-                let initialDesc = 'Task Execution in Progress';
-
-                if (!Executor.isRegistered(task.executor)) {
-                    initialState = 'error';
-                    initialDesc = 'Unknown Executor: ' + task.executor;
-                }
-
-                if (!parent.hash) {
-                    log.info('No Parent Hash Found. Creating Child Hash');
-                    task.hash = AgentUtils.createMd5Hash(task);
-                } else {
-                    log.info('Parent Hash Found. Appending to Child Hash');
-                    task.hash = AgentUtils.createMd5Hash(task, parent.hash);
-                }
-
-                let eventContext = `${task.executor}: ${task.context} (${task.hash})`;
-
-                let status = AgentUtils.createPullRequestStatus(
-                    event.eventData,
-                    initialState,
-                    eventContext,
-                    initialDesc,
-                    'https://github.com' // fails if not an https url
-                );
-
-                promises.push(
-                    AgentUtils.postResultsAndTrigger(
-                        process.env.GTM_SQS_RESULTS_QUEUE,
-                        status,
-                        process.env.GTM_SNS_RESULTS_TOPIC,
-                        `Pending for ${event.eventType} => ${task.executor}:${task.context} - Event ID: ${
-                            event.eventId
-                        }`
-                    ).then(function() {
-                        log.info(task);
-                        log.info('-----------------------------');
-                    })
-                );
-            });
-        }
-
-        return Promise.all(promises);
-    }
-
-    async processTasks(event, parent) {
-        let promises = [];
-
-        if (parent.tasks) {
-            parent.tasks.forEach(async task => {
-                if (task.disabled || !Executor.isRegistered(task.executor)) {
-                    return;
-                }
-
-                let eventContext = `${task.executor}: ${task.context} (${task.hash})`;
-
-                log.info('=================================');
-                log.info('Creating Executor for Task: ' + task.executor + ':' + task.context);
-                let executor = Executor.create(task.executor, event.eventData);
-
-                let status;
-                let taskPromise;
-
-                try {
-                    taskPromise = executor
-                        .executeTask(task)
-                        .then(taskResult => {
-                            if (taskResult === 'NO_MATCHING_TASK') {
-                                status = AgentUtils.createPullRequestStatus(
-                                    event.eventData,
-                                    'error',
-                                    eventContext,
-                                    'Unknown Task Type: ' + task.context,
-                                    'https://kuro.neko.ac'
-                                );
-                            } else {
-                                let defaultResultMessage = taskResult.passed
-                                    ? 'Task Completed Successfully'
-                                    : 'Task Completed with Errors';
-                                let taskResultMessage = taskResult.message || defaultResultMessage;
-                                status = AgentUtils.createPullRequestStatus(
-                                    event.eventData,
-                                    taskResult.passed ? 'success' : 'error',
-                                    eventContext,
-                                    taskResultMessage,
-                                    taskResult.url
-                                );
-                            }
-                            return status;
-                        })
-                        .then(status => {
-                            return AgentUtils.postResultsAndTrigger(
-                                process.env.GTM_SQS_RESULTS_QUEUE,
-                                status,
-                                process.env.GTM_SNS_RESULTS_TOPIC,
-                                `Result '${status.state}' for ${event.eventType} => ${task.executor}:${
-                                    task.context
-                                } - Event ID: ${event.eventId}`
-                            );
-                        })
-                        .catch(e => {
-                            log.error(e);
-                            status = AgentUtils.createPullRequestStatus(
-                                event.eventData,
-                                'error',
-                                eventContext,
-                                'Task execution failure'
-                            );
-
-                            return AgentUtils.postResultsAndTrigger(
-                                process.env.GTM_SQS_RESULTS_QUEUE,
-                                status,
-                                process.env.GTM_SNS_RESULTS_TOPIC,
-                                `Result 'error' for ${event.eventType} => ${task.executor}:${
-                                    task.context
-                                } - Event ID: ${event.eventId}`
-                            );
-                        });
-                } catch (e) {
-                    log.error(e);
-                    taskPromise = Promise.reject(e.message);
-                }
-
-                promises.push(taskPromise);
-            });
-        }
-
-        return Promise.all(promises).then(() => {
-            let promises = [];
-            parent.tasks.forEach(async newParent => {
-                if (!newParent.disabled && newParent.tasks) {
-                    log.info(`Task ${newParent.executor}:${newParent.context} has Sub-Tasks. Processing..`);
-                    promises.push(
-                        event.handleTasks(event, newParent).then(() => {
-                            log.info(`Sub-Tasks for ${newParent.executor}:${newParent.context} Completed.`);
-                        })
-                    );
-                }
-            });
-            return Promise.all(promises);
-        });
+        return this.addPullRequestComment(event, commentBody);
     }
 }
 

@@ -11,7 +11,7 @@ describe('ExecutorTeamCity', function() {
     let eventData;
     process.env.GTM_TEAMCITY_USER = 'admin';
     process.env.GTM_TEAMCITY_PASSCODE = 'admin';
-    process.env.GTM_TEAMCITY_URL = 'http://localshost:8111';
+    process.env.GTM_TEAMCITY_URL = 'http://localhost:8111';
 
     beforeEach(() => {
         eventData = JSON.parse(fs.readFileSync(__dirname + '/../fixtures/executorTeamCityTaskPayLoad.json', 'utf-8'));
@@ -81,7 +81,7 @@ describe('ExecutorTeamCity', function() {
             try {
                 await executorTeamcity.executeTask(eventData.ghTaskConfig.task);
             } catch (e) {
-                return assert.equal(e.message, 'getaddrinfo ENOTFOUND localshost localshost:8111');
+                return assert.equal(e.message, 'connect ECONNREFUSED 127.0.0.1:8111');
             }
         });
     });
@@ -157,7 +157,7 @@ describe('ExecutorTeamCity', function() {
             try {
                 await executorTeamcity.waitForBuildToComplete(buildName, buildNumber);
             } catch (e) {
-                return assert.equal(e.message, 'getaddrinfo ENOTFOUND localshost localshost:8111');
+                return assert.equal(e.message, 'connect ECONNREFUSED 127.0.0.1:8111');
             }
         });
     });

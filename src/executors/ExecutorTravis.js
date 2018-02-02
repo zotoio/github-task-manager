@@ -4,24 +4,31 @@ import { AgentUtils } from '../agent/AgentUtils';
 import { default as json } from 'format-json';
 let log = AgentUtils.logger();
 
+/**
+ * Sample .githubTaskManager.json task config - NOT READY FOR USE
+ *
+ * see: https://github.com/wyvern8/github-task-manager/wiki/Structure-of-.githubTaskManager.json
+ *
+ {
+   "executor": "Travis",
+   "context": "release",
+   "options": {
+     "target": "npm"
+   }
+ }
+ */
+
 export class ExecutorTravis extends Executor {
     constructor(eventData) {
         super(eventData);
         this.options = this.getOptions();
-
-        this.runFunctions = {};
-        this.runFunctions['pull_request'] = this.executeForPullRequest;
 
         this.travis = new Travis({
             version: '2.0.0'
         });
     }
 
-    run(fn) {
-        return this.runFunctions[fn];
-    }
-
-    async executeForPullRequest(task) {
+    async executeTask(task) {
         log.info(`travis options: ${json.plain(task.options)}`);
 
         this.travis.authenticate(
@@ -40,13 +47,9 @@ export class ExecutorTravis extends Executor {
 
         let result = true;
         log.info('Build Finished: ' + result);
-        return { passed: result, url: 'https://travis-ci.org' };
-    }
 
-    async executeTask(task) {
-        log.info('Travis Build Finished');
-        log.debug(task);
-        return { passed: true, url: 'https://travis-ci.org' };
+        task.results = { passed: result, url: 'https://travis-ci.org' };
+        return result ? Promise.resolve(task) : Promise.reject(task);
     }
 }
 

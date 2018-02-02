@@ -12,6 +12,7 @@ import { AgentUtils } from './AgentUtils';
 import { Event } from './Event';
 import { default as json } from 'format-json';
 import { default as GtmGithubHook } from '../serverless/gtmGithubHook/gtmGithubHook.js';
+import { version as GTMVersion } from '../../../package.json';
 
 let log = AgentLogger.log();
 
@@ -23,6 +24,7 @@ let pendingUrl;
 let pendingQueueHandler;
 let systemConfig = {};
 let runmode;
+systemConfig.gtmversion = GTMVersion;
 systemConfig.agentGroup = AGENT_GROUP;
 let isDev;
 
@@ -299,6 +301,7 @@ export class Agent {
 
         app.listen(process.env.GTM_AGENT_PORT, function() {
             AgentUtils.printBanner();
+            log.info(`GTM Version ${GTMVersion}`);
             log.info('AGENT_ID: ' + AgentUtils.agentId());
             log.info('AGENT_GROUP: ' + AGENT_GROUP);
             log.info('GitHub Task Manager Agent Running on Port ' + process.env.GTM_AGENT_PORT);

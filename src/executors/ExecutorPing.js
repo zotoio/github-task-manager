@@ -5,6 +5,8 @@ let log = AgentUtils.logger();
 /**
  * Sample .githubTaskManager.json task config
  *
+ * see: https://github.com/wyvern8/github-task-manager/wiki/Structure-of-.githubTaskManager.json
+ *
   {
     "executor": "Ping",
     "context": "diagnostic",
@@ -34,12 +36,7 @@ export class ExecutorPing extends Executor {
             );
 
             promises.push(
-                AgentUtils.postResultsAndTrigger(
-                    process.env.GTM_SQS_RESULTS_QUEUE,
-                    status,
-                    process.env.GTM_SNS_RESULTS_TOPIC,
-                    'Ping'
-                ).then(function() {
+                AgentUtils.postResultsAndTrigger(status, 'Ping').then(function() {
                     log.info(`sent ping ${i}`);
                 })
             );
@@ -48,10 +45,11 @@ export class ExecutorPing extends Executor {
         }
 
         return Promise.all(promises).then(() => {
-            return Promise.resolve({
+            task.results = {
                 passed: true,
                 url: `https://ping.io/ping/${task.options.count}`
-            });
+            };
+            return Promise.resolve(task);
         });
     }
 }
