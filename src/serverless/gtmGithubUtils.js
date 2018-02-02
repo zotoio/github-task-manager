@@ -10,10 +10,10 @@ let githubUpdaters = {
 };
 
 let ghEnforceValidSsl = process.env.NODE_TLS_REJECT_UNAUTHORIZED === 0;
-console.log('GitHub SSL Validation: ' + String(ghEnforceValidSsl));
 
 function connect(context) {
     console.log('Connecting to GitHub');
+    console.log('GitHub SSL Validation: ' + String(ghEnforceValidSsl));
     let githubOptions = {
         host: process.env.GTM_GITHUB_HOST || 'api.github.com',
         debug: process.env.GTM_GITHUB_DEBUG || false,
