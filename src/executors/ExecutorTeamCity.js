@@ -1,6 +1,8 @@
 import { default as TeamCity } from 'teamcity-rest-api';
 import { default as rp } from 'request-promise-native';
 import { default as xmlBuilder } from 'jsontoxml';
+import { default as x2j } from 'xml2js';
+import { default as URL } from 'url';
 import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
 let log = AgentUtils.logger();
@@ -88,14 +90,15 @@ export class ExecutorTeamCity extends Executor {
             let statisticsUrl = AgentUtils.formatBasicAuth(
                 this.options.GTM_TEAMCITY_USER,
                 this.options.GTM_TEAMCITY_PASSCODE,
-                `${this.options.GTM_TEAMCITY_URL}/app/rest/builds/id:${teamCityBuildId.id}/statistics`
+                URL.resolve(this.options.GTM_TEAMCITY_URL, `/app/rest/builds/id:${teamCityBuildId.id}/statistics`)
             );
 
             let statistics = await this.getBuildStatistics(statisticsUrl);
             let parsedResult = this.createResultObject(statistics);
-            parsedResult.testResultsUrl = `${this.options.GTM_TEAMCITY_URL}/viewLog.html?buildId=${
-                teamCityBuildId.id
-            }&tab=buildResultsDiv&buildTypeId=${teamCityBuildId.id}`;
+            parsedResult.testResultsUrl = URL.resolve(
+                this.options.GTM_TEAMCITY_URL,
+                `/viewLog.html?buildId=${teamCityBuildId.id}&tab=buildResultsDiv&buildTypeId=${teamCityBuildId.id}`
+            );
 
             overAllResult.message = parsedResult;
         }
@@ -141,7 +144,11 @@ export class ExecutorTeamCity extends Executor {
     createResultObject(statistics) {
         let resultObject = {};
 
-        let parsedJSON = AgentUtils.xmlToJson(statistics);
+        let parsedJSON;
+        let parser = new x2j.Parser();
+        parser.parseString(statistics, (err, result) => {
+            parsedJSON = result;
+        });
 
         let statisticsArray = Object.values(parsedJSON.properties.property);
 
