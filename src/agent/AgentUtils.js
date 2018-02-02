@@ -24,7 +24,6 @@ if (process.env.IAM_ENABLED) {
 
 let sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 let sns = new AWS.SNS({ apiVersion: '2010-03-31' });
-import { default as x2j } from 'xml2js';
 require('babel-polyfill');
 const safeJsonStringify = require('safe-json-stringify');
 
@@ -302,14 +301,6 @@ export class AgentUtils {
             '##PARENTBUILDNUMBER##': parent.results.meta.buildNumber,
             '##PARENTBUILDNAME##': parent.results.meta.buildName
         };
-    }
-
-    static xmlToJson(xml) {
-        let parser = new x2j.Parser();
-
-        return parser.parseString(xml, function(err, result) {
-            return result;
-        });
     }
 
     static findMatchingElementInArray(inArray, elementToFind) {

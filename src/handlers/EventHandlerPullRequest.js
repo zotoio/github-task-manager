@@ -167,7 +167,8 @@ export class EventHandlerPullRequest extends EventHandler {
                                 event.eventData,
                                 'error',
                                 eventContext,
-                                'Task execution failure'
+                                'Task execution failure',
+                                task.results.url
                             );
 
                             return AgentUtils.postResultsAndTrigger(
