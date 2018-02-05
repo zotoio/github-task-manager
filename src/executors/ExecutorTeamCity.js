@@ -155,10 +155,12 @@ export class ExecutorTeamCity extends Executor {
         let totalTestCount = AgentUtils.findMatchingElementInArray(statisticsArray, 'TotalTestCount');
         let passedTestCount = AgentUtils.findMatchingElementInArray(statisticsArray, 'PassedTestCount');
         let failedTestCount = AgentUtils.findMatchingElementInArray(statisticsArray, 'FailedTestCount');
+        let ignoredTestCount = AgentUtils.findMatchingElementInArray(statisticsArray, 'IgnoredTestCount');
 
         resultObject.TotalTestCount = totalTestCount === undefined ? 0 : totalTestCount.$.value;
         resultObject.PassedTestCount = passedTestCount === undefined ? 0 : passedTestCount.$.value;
         resultObject.FailedTestCount = failedTestCount === undefined ? 0 : failedTestCount.$.value;
+        resultObject.IgnoredTestCount = ignoredTestCount === undefined ? 0 : ignoredTestCount.$.value;
 
         return resultObject;
     }
