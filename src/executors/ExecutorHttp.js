@@ -73,7 +73,8 @@ export class ExecutorHttp extends Executor {
                 log.error(e.message);
                 task.results = {
                     passed: false,
-                    message: e.message,
+                    message: 'an unhandled http error occurred',
+                    details: e.message,
                     url: 'http://www.softwareishard.com/blog/har-12-spec/#request'
                 };
                 return Promise.reject(task);

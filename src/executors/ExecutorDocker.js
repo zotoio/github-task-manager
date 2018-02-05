@@ -177,7 +177,8 @@ export class ExecutorDocker extends Executor {
                 let resultSummary = {
                     passed: true,
                     url: 'https://github.com/apocas/dockerode',
-                    message: `execution completed.`
+                    message: `execution completed.`,
+                    details: 'TODO docker output'
                 };
 
                 task.results = resultSummary;
@@ -190,7 +191,8 @@ export class ExecutorDocker extends Executor {
                 let resultSummary = {
                     passed: false,
                     url: 'https://github.com/apocas/dockerode',
-                    message: e.message
+                    message: 'docker execution error',
+                    details: e.message
                 };
 
                 task.results = resultSummary;

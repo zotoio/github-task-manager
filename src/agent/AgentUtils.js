@@ -298,8 +298,10 @@ export class AgentUtils {
         return {
             '##GHPRNUM##': obj.pull_request.number,
             '##GHREPONAME##': obj.repository.name,
-            '##PARENTBUILDNUMBER##': parent.results.meta.buildNumber,
-            '##PARENTBUILDNAME##': parent.results.meta.buildName
+            '##PARENTBUILDNUMBER##':
+                parent.results.meta && parent.results.meta.buildNumber ? parent.results.meta.buildNumber : 'N/A',
+            '##PARENTBUILDNAME##':
+                parent.results.meta && parent.results.meta.buildName ? parent.results.meta.buildName : 'N/A'
         };
     }
 

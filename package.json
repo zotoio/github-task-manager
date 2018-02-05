@@ -94,6 +94,7 @@
     }
   },
   "dependencies": {
+    "@octokit/rest": "14.0.5",
     "app-root-path": "^2.0.1",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-polyfill": "^6.26.0",
@@ -105,10 +106,14 @@
     "express": "^4.16.2",
     "express-nunjucks": "^2.2.3",
     "express-sse": "^0.4.1",
-    "@octokit/rest": "14.0.5",
     "globule": "^1.2.0",
     "highlight.js": "^9.12.0",
+    "http": "^0.0.0",
     "jenkins": "^0.20.1",
+    "jsontoxml": "^0.1.0",
+    "launchdarkly-nodeutils": "^0.4.4",
+    "ldclient-node": "^3.3.2",
+    "node-static": "^0.7.10",
     "nunjucks": "^3.0.1",
     "proxy-agent": "^2.1.0",
     "request": "^2.83.0",
@@ -122,9 +127,6 @@
     "travis-ci": "^2.1.1",
     "uuid": "^3.1.0",
     "webpack": "^3.10.0",
-    "xml2js": "^0.4.19",
-    "node-static": "^0.7.10",
-    "http": "^0.0.0",
-    "jsontoxml": "^0.1.0"
+    "xml2js": "^0.4.19"
   }
 }
