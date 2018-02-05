@@ -14,7 +14,7 @@ let log = AgentUtils.logger();
         "executor": "LaunchDarkly",
         "context": "Set FeatureFlags",
         "options": {
-          "project": "mlc",
+          "project": "myProject",
           "environment": "dev",
           "flags": {
             "testFlagOne": true,
