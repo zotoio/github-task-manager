@@ -37,6 +37,27 @@ describe('ExecutorLaunchDarkly', () => {
         });
     });
 
+    describe('getFlagValue', () => {
+        it('should return a promise', async () => {
+            let flagValue = executorLaunchDarkly.getFlagValue();
+            assert.equal(flagValue instanceof Promise, true);
+        });
+    });
+
+    describe('setFlagValue', () => {
+        it('should return a promise', async () => {
+            let flagValue = executorLaunchDarkly.setFlagValue(eventData, 'test-one', true);
+            assert.equal(flagValue instanceof Promise, true);
+        });
+    });
+
+    describe('getLDUtils', () => {
+        it('should return a promise', async () => {
+            let ldUtils = executorLaunchDarkly.getLDUtils();
+            assert.equal(ldUtils instanceof Promise, true);
+        });
+    });
+
     describe('executeTask', () => {
         let stubCall;
         let customResult;
