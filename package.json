@@ -113,7 +113,7 @@
     "proxy-agent": "^2.1.0",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5",
-    "require-dir": "^0.3.2",
+    "require-dir": "^1.0.0",
     "safe-json-stringify": "^1.0.4",
     "smoketail": "^0.1.0",
     "sqs-consumer": "^3.8.0",
