@@ -36,6 +36,20 @@ describe('ExecutorDocker', () => {
         });
     });
 
+    describe('pullImage', () => {
+        it('should return a promise', async () => {
+            let result = executorDocker.pullImage();
+            assert.equal(result instanceof Promise, true);
+        });
+    });
+
+    describe('containerLogs', () => {
+        it('should not return a promise', async () => {
+            let result = executorDocker.containerLogs({ logs: () => {} });
+            assert.equal(result instanceof Promise, false);
+        });
+    });
+
     describe('executeTask', () => {
         let stubCall;
         let customResult;

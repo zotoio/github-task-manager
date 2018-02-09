@@ -298,9 +298,13 @@ export class AgentUtils {
         return {
             '##GHPRNUM##': obj.pull_request.number,
             '##GHREPONAME##': obj.repository.name,
-            '##PARENTBUILDNUMBER##': parent.results.meta.buildNumber,
-            '##PARENTBUILDNAME##': parent.results.meta.buildName
+            '##PARENTBUILDNUMBER##': this.metaValue(parent, 'buildNumber'),
+            '##PARENTBUILDNAME##': this.metaValue(parent, 'buildName')
         };
+    }
+
+    static metaValue(parent, field) {
+        return parent.results.meta && parent.results.meta[field] ? parent.results.meta[field] : 'N/A';
     }
 
     static findMatchingElementInArray(inArray, elementToFind) {
