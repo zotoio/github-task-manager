@@ -35,7 +35,7 @@ export class EventHandlerPullRequest extends EventHandler {
      */
     async handleTasks(event, parent) {
         return this.setIntialTaskState(event, parent).then(() => {
-            return AgentUtils.timeout(4000).then(() => {
+            return AgentUtils.timeout(10000).then(() => {
                 return this.processTasks(event, parent);
             });
         });
@@ -256,7 +256,7 @@ export class EventHandlerPullRequest extends EventHandler {
             commentBody += `<summary>${task.executor} : ${task.context} (${task.hash}) ${
                 task.results.message
             }</summary>\n`;
-            commentBody += `<p>${task.results.url} : TODO details..`;
+            commentBody += `<p>${task.results.details || ''}\n${task.results.url || ''}`;
             if (task.tasks) {
                 commentBody += `<details>`;
                 task.tasks.forEach(subtask => {
