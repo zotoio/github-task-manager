@@ -97,66 +97,7 @@ export class ExecutorDocker extends Executor {
 
         let docker = new Docker();
 
-        /**
-         * Get logs from running container
-         */
-        function containerLogs(container) {
-            let logBuffer = [];
-
-            // create a single stream for stdin and stdout
-            let logStream = new stream.PassThrough();
-            logStream.on('data', function(chunk) {
-                logBuffer.push(chunk.toString('utf8')); // todo find a better way
-                if (logBuffer.length % 100 === 0) {
-                    log.info(logBuffer.reverse().join(''));
-                    logBuffer = [];
-                }
-            });
-
-            container.logs(
-                {
-                    follow: true,
-                    stdout: true,
-                    stderr: true
-                },
-                function(err, stream) {
-                    if (err) {
-                        return log.error(err.message);
-                    }
-                    container.modem.demuxStream(stream, logStream, logStream);
-                    stream.on('end', function() {
-                        log.info(logBuffer.reverse().join(''));
-                        logBuffer = [];
-                        logStream.end('!stop!');
-                    });
-                }
-            );
-        }
-
-        function pullImage(image) {
-            return new Promise((resolve, reject) => {
-                docker.pull(image, function(err, stream) {
-                    if (err) {
-                        return reject(err);
-                    }
-
-                    docker.modem.followProgress(stream, onFinished, onProgress);
-
-                    function onFinished(err, output) {
-                        if (err) {
-                            return reject(err);
-                        }
-                        return resolve(output);
-                    }
-
-                    function onProgress(event) {
-                        log.info(event);
-                    }
-                });
-            });
-        }
-
-        return pullImage(image)
+        return this.pullImage(docker, image)
             .then(() => {
                 return docker.createContainer({
                     Image: image,
@@ -170,14 +111,15 @@ export class ExecutorDocker extends Executor {
             })
 
             .then(container => {
-                return containerLogs(container);
+                return this.containerLogs(container);
             })
 
             .then(() => {
                 let resultSummary = {
                     passed: true,
                     url: 'https://github.com/apocas/dockerode',
-                    message: `execution completed.`
+                    message: `execution completed.`,
+                    details: 'TODO docker output'
                 };
 
                 task.results = resultSummary;
@@ -190,12 +132,72 @@ export class ExecutorDocker extends Executor {
                 let resultSummary = {
                     passed: false,
                     url: 'https://github.com/apocas/dockerode',
-                    message: e.message
+                    message: 'docker execution error',
+                    details: e.message
                 };
 
                 task.results = resultSummary;
                 return Promise.reject(task);
             });
+    }
+
+    /**
+     * Get logs from running container
+     */
+    containerLogs(container) {
+        let logBuffer = [];
+
+        // create a single stream for stdin and stdout
+        let logStream = new stream.PassThrough();
+        logStream.on('data', function(chunk) {
+            logBuffer.push(chunk.toString('utf8'));
+            if (logBuffer.length % 100 === 0) {
+                log.info(logBuffer.reverse().join(''));
+                logBuffer = [];
+            }
+        });
+
+        container.logs(
+            {
+                follow: true,
+                stdout: true,
+                stderr: true
+            },
+            function(err, stream) {
+                if (err) {
+                    return log.error(err.message);
+                }
+                container.modem.demuxStream(stream, logStream, logStream);
+                stream.on('end', function() {
+                    log.info(logBuffer.reverse().join(''));
+                    logBuffer = [];
+                    logStream.end('!stop!');
+                });
+            }
+        );
+    }
+
+    pullImage(docker, image) {
+        return new Promise((resolve, reject) => {
+            docker.pull(image, function(err, stream) {
+                if (err) {
+                    return reject(err);
+                }
+
+                docker.modem.followProgress(stream, onFinished, onProgress);
+
+                function onFinished(err, output) {
+                    if (err) {
+                        return reject(err);
+                    }
+                    return resolve(output);
+                }
+
+                function onProgress(event) {
+                    log.info(event);
+                }
+            });
+        });
     }
 }
 

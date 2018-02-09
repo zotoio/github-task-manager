@@ -24,3 +24,4 @@ GTM_DOCKER_IMAGE_WHITELIST=alpine:*,bash:latest
 GTM_DOCKER_IMAGE_WHITELIST_FILE=.dockerImageWhitelistExample
 GTM_DOCKER_COMMANDS_ALLOWED=true
 IAM_ENABLED=<true|undefined>
+LAUNCHDARKLY_API_TOKEN=<redacted>
