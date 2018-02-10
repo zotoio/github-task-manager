@@ -13,11 +13,14 @@ receive github hook, notify agent, receive task results, notify github (Unoffici
 
 <image align="right" height="160" width="160" src="https://storage.googleapis.com/github-bin/gtm-logo.svg">
 
-## Aim
+## Aims
 Create an asynchronous CI agnostic mechanism for running custom test stage gates for github pull requests.
+- allow team leads to configure task sequences without leaving github
+- allow developers to see output from tasks without leaving github
 - trigger multiple jobs in parallel and indicate pending status on pr checks
-- then add results for each back to pull request check as they complete
-- make extensible for other github event/task handling
+- then add results for each back to pull request check/comments as they complete
+- make extensible for other github event handling
+- stateless and deployable to Kubernetes at scale
 
 ## Design
 
