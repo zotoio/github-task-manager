@@ -240,12 +240,12 @@ export class ExecutorDocker extends Executor {
         let valid = true;
 
         if (task.options.validator && task.options.validator.type === 'outputRegex') {
-            log.info('validating response: outputRegex');
+            log.info('validating docker output: outputRegex');
 
             try {
                 let regex = task.options.validator.regex;
 
-                log.info(`checking ${regex} matches ${output}`);
+                log.debug(`checking ${regex} matches ${output}`);
 
                 let pattern = new RegExp(regex);
                 if (!pattern.test(output)) {
@@ -253,7 +253,7 @@ export class ExecutorDocker extends Executor {
                     valid = false;
                 }
             } catch (e) {
-                log.error('http bodyJson validation failed', e);
+                log.error('docker outputRegex validation failed', e);
                 valid = false;
             }
         }
