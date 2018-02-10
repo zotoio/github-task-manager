@@ -18,10 +18,14 @@ let log = AgentUtils.logger();
    "options": {
      "image": "alpine:latest",
      "command": ["/bin/ls", "-ltr", "/bin"],
-     "env: [
+     "env": [
         "myvar=myval",
         "var2=val2"
-     ]
+     ],
+     "validator": {
+        "type": "outputRegex",
+        "regex": ".*HOSTNAME.*"
+     }
    }
  }
  */
@@ -30,6 +34,16 @@ export class ExecutorDocker extends Executor {
     constructor(eventData) {
         super(eventData);
         this.options = this.getOptions();
+        this._taskOutputTail = '';
+    }
+
+    // will contain last 100 lines of output
+    set taskOutputTail(output) {
+        this._taskOutputTail = output;
+    }
+
+    get taskOutputTail() {
+        return this._taskOutputTail;
     }
 
     validateImage(image) {
@@ -96,6 +110,7 @@ export class ExecutorDocker extends Executor {
         log.info(`Starting local docker container '${image}' to run: ${command.join(' ')}`);
 
         let docker = new Docker();
+        let that = this;
 
         return this.pullImage(docker, image)
             .then(() => {
@@ -111,20 +126,33 @@ export class ExecutorDocker extends Executor {
             })
 
             .then(container => {
-                return this.containerLogs(container);
+                return this.containerLogs(that, container);
             })
 
-            .then(() => {
-                let resultSummary = {
-                    passed: true,
-                    url: 'https://github.com/apocas/dockerode',
-                    message: `execution completed.`,
-                    details: 'TODO docker output'
-                };
+            .then(taskOutput => {
+                let resultSummary;
+                let lines = taskOutput.split('\n');
+                let lineCount = lines.length - 1;
+                let tail = lineCount <= 30 ? taskOutput : lines.slice(-30).join('\n');
+                if (!this.validate(task, taskOutput)) {
+                    resultSummary = {
+                        passed: false,
+                        url: 'https://github.com/apocas/dockerode',
+                        message: `Docker output validation failed for ${task.options.validator.type}`,
+                        details: `\n\n**output tail (${lineCount} lines total):**\n\n\`\`\`\n...\n${tail}\n\`\`\`\n\n`
+                    };
+                } else {
+                    resultSummary = {
+                        passed: true,
+                        url: 'https://github.com/apocas/dockerode',
+                        message: `Execution completed.`,
+                        details: `\n\n**output tail (${lineCount} lines total):**\n\n\`\`\`\n...\n${tail}\n\`\`\`\n\n`
+                    };
+                }
 
                 task.results = resultSummary;
 
-                return Promise.resolve(task); // todo handle results
+                return Promise.resolve(task);
             })
 
             .catch(e => {
@@ -144,37 +172,45 @@ export class ExecutorDocker extends Executor {
     /**
      * Get logs from running container
      */
-    containerLogs(container) {
-        let logBuffer = [];
+    async containerLogs(executor, container) {
+        return new Promise(function(resolve, reject) {
+            let logBuffer = [];
 
-        // create a single stream for stdin and stdout
-        let logStream = new stream.PassThrough();
-        logStream.on('data', function(chunk) {
-            logBuffer.push(chunk.toString('utf8'));
-            if (logBuffer.length % 100 === 0) {
-                log.info(logBuffer.reverse().join(''));
-                logBuffer = [];
-            }
-        });
-
-        container.logs(
-            {
-                follow: true,
-                stdout: true,
-                stderr: true
-            },
-            function(err, stream) {
-                if (err) {
-                    return log.error(err.message);
-                }
-                container.modem.demuxStream(stream, logStream, logStream);
-                stream.on('end', function() {
-                    log.info(logBuffer.reverse().join(''));
+            // create a single stream for stdin and stdout
+            let logStream = new stream.PassThrough();
+            logStream.on('data', function(chunk) {
+                logBuffer.push(chunk.toString('utf8'));
+                if (logBuffer.length % 100 === 0) {
+                    let lines = logBuffer.reverse().join('');
+                    log.info(lines);
+                    executor.taskOutputTail += lines;
                     logBuffer = [];
-                    logStream.end('!stop!');
-                });
-            }
-        );
+                }
+            });
+
+            container.logs(
+                {
+                    follow: true,
+                    stdout: true,
+                    stderr: true
+                },
+                function(err, stream) {
+                    if (err) {
+                        reject(log.error(err.message));
+                    }
+                    container.modem.demuxStream(stream, logStream, logStream);
+                    stream.on('end', () => {
+                        let lines = logBuffer.reverse().join('');
+                        log.info(lines);
+                        executor.taskOutputTail += lines;
+                        logBuffer = [];
+                        logStream.end('!stop!');
+
+                        resolve(executor.taskOutputTail);
+                    });
+                }
+            );
+        });
     }
 
     pullImage(docker, image) {
@@ -198,6 +234,31 @@ export class ExecutorDocker extends Executor {
                 }
             });
         });
+    }
+
+    validate(task, output) {
+        let valid = true;
+
+        if (task.options.validator && task.options.validator.type === 'outputRegex') {
+            log.info('validating response: outputRegex');
+
+            try {
+                let regex = task.options.validator.regex;
+
+                log.info(`checking ${regex} matches ${output}`);
+
+                let pattern = new RegExp(regex);
+                if (!pattern.test(output)) {
+                    log.error(`docker stdout/stderr did not match regex ${regex}`);
+                    valid = false;
+                }
+            } catch (e) {
+                log.error('http bodyJson validation failed', e);
+                valid = false;
+            }
+        }
+
+        return valid;
     }
 }
 
