@@ -76,7 +76,8 @@ function stream(groupName, streamName) {
         logGroupName: logGroupMap[groupName],
         logStreamNames: streamName && streamName !== 'ALL' ? [streamName] : undefined,
         startTime: Date.now(),
-        follow: true
+        follow: true,
+        followInterval: 5000
     };
 
     let awsOpts = {
