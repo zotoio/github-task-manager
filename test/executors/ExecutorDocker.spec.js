@@ -44,9 +44,9 @@ describe('ExecutorDocker', () => {
     });
 
     describe('containerLogs', () => {
-        it('should not return a promise', async () => {
+        it('should return a promise', async () => {
             let result = executorDocker.containerLogs({ logs: () => {} });
-            assert.equal(result instanceof Promise, false);
+            assert.equal(result instanceof Promise, true);
         });
     });
 

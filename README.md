@@ -13,11 +13,14 @@ receive github hook, notify agent, receive task results, notify github (Unoffici
 
 <image align="right" height="160" width="160" src="https://storage.googleapis.com/github-bin/gtm-logo.svg">
 
-## Aim
+## Aims
 Create an asynchronous CI agnostic mechanism for running custom test stage gates for github pull requests.
+- allow team leads to configure task sequences without leaving github
+- allow developers to see output from tasks without leaving github
 - trigger multiple jobs in parallel and indicate pending status on pr checks
-- then add results for each back to pull request check as they complete
-- make extensible for other github event/task handling
+- then add results for each back to pull request check/comments as they complete
+- make extensible for other github event handling
+- stateless and deployable to Kubernetes at scale
 
 ## Design
 
@@ -56,11 +59,28 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_AWS_ACCESS_KEY_ID | aws key id - for agent only |
 |GTM_AWS_SECRET_ACCESS_KEY | aws secret - for agent only |
 |AWS_PROXY|URL of proxy to use for network requests. Optional|
+|GTM_AGENT_PORT| defaults to 9091 |
+|GTM_AGENT_AWS_ACCESS_KEY_ID|access key for agent|
+|GTM_AGENT_AWS_SECRET_ACCESS_KEY|secret key for agent|
+|GTM_JENKINS_USER|login for jenkins executor|
+|GTM_JENKINS_URL|url executor uses to talk to jenkins|
+|GTM_JENKINS_CSRF| is csrf enabled? true or false|
+|GTM_TEAMCITY_USER|teamcity executor user|
+|GTM_TEAMCITY_PASSCODE|teamcity executor passcode|
+|GTM_TEAMCITY_URL|teamcity api url|
+|GTM_DOCKER_IMAGE_WHITELIST| comma separated list of regex of allows docker images eg. alpine:*,bash:latest|
+|GTM_DOCKER_IMAGE_WHITELIST_FILE|use an optional docker whitelist file .dockerImageWhitelistExample|
+|GTM_DOCKER_COMMANDS_ALLOWED| default is false, set to true to enable docker executor|
+|IAM_ENABLED|agent host uses IAM ?|
+|LAUNCHDARKLY_API_TOKEN|token for launchdarkly sass executor|
 
+## Configure and deploy
 - run: `npm run sls-deploy` - note that this will create aws re$ources..
 - capture the hook url output in console and add to github repo pull request conf
 - run: `npm run sls-logs-hook` or `npm run sls-logs-results` to tail the logs
-- create a pull request and confirm the hook is being hit
+- create a .githubTaskManager.json in your repo per https://github.com/wyvern8/github-task-manager/wiki/Creating-a-Task-Configuration
+- start an agent locally using `npm run build && npm start agent` (or use docker/k8s)
+- create a pull request and confirm the hook is being hit and agent processes event
 
 ## Docker and Kubernetes agents
 You can run the latest image from docker hub: https://hub.docker.com/r/wyvern8/github-task-manager

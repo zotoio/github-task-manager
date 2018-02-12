@@ -50,20 +50,22 @@ export class ExecutorHttp extends Executor {
             har: har
         })
             .then(response => {
-                log.info(json.plain(response));
-
+                let res = json.plain(response);
+                log.info(res);
                 if (this.validate(task, response)) {
                     task.results = {
                         passed: true,
                         message: 'Request completed',
-                        url: 'http://www.softwareishard.com/blog/har-12-spec/#request'
+                        url: 'http://www.softwareishard.com/blog/har-12-spec/#request',
+                        details: `\n\n**response:**\n\n\`\`\`\n\n${res}\n\`\`\`\n\n`
                     };
                     return Promise.resolve(task);
                 } else {
                     task.results = {
                         passed: false,
                         message: 'Response validation failed',
-                        url: 'http://www.softwareishard.com/blog/har-12-spec/#request'
+                        url: 'http://www.softwareishard.com/blog/har-12-spec/#request',
+                        details: `\n\n**response:**\n\n\`\`\`\n\n${res}\n\`\`\`\n\n`
                     };
                     return Promise.reject(task);
                 }
