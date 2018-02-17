@@ -94,7 +94,7 @@
     }
   },
   "dependencies": {
-    "@octokit/rest": "14.0.9",
+    "@octokit/rest": "15.0.0",
     "app-root-path": "^2.0.1",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-polyfill": "^6.26.0",
