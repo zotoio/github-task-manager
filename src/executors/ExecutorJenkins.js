@@ -98,24 +98,25 @@ export class ExecutorJenkins extends Executor {
         let jobName = task.options.jobName || null;
         let buildParams = task.options.parameters || null;
 
-        if (jobName == null || buildParams == null) {
+        let configuration = {};
+
+        if (jobName == null) {
             await AgentUtils.timeout(4000);
             task.results = {
                 passed: false,
                 url: this.options.GTM_JENKINS_URL,
-                message: `Required Parameters not Specified for ${jobName}`
+                message: `Required Parameter 'Job Name' not Specified`
             };
             return Promise.reject(task);
+        } else {
+            configuration.name = jobName;
         }
 
-        log.debug(buildParams);
+        if (buildParams != null) configuration.parameters = buildParams;
 
         log.info('Starting Jenkins Job: ' + jobName);
         // TODO: Check if Job Exists
-        let queueNumber = await this.jenkins.job.build({
-            name: jobName,
-            parameters: buildParams
-        });
+        let queueNumber = await this.jenkins.job.build(configuration);
         let buildNumber = await this.buildNumberfromQueue(queueNumber);
         let buildExists = await this.waitForBuildToExist(jobName, buildNumber);
         console.debug(buildExists);

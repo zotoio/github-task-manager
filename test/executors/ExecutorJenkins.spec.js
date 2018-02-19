@@ -40,20 +40,6 @@ describe('ExecutorJenkins', function() {
             stubCall.restore();
         });
 
-        it('should return an object for misconfigured builds', async () => {
-            let sampleTask = {};
-            sampleTask.executor = 'Jenkins';
-            sampleTask.options = {
-                jobName: 'Test Job'
-            };
-            try {
-                let result = await executorJenkins.executeTask(sampleTask);
-                assert.equal(result.results.message, 'Required Parameters not Specified for Test Job');
-            } catch (result) {
-                assert.equal(result.results.message, 'Required Parameters not Specified for Test Job');
-            }
-        });
-
         it('executeTask to return result object', async () => {
             eventData = JSON.parse(
                 fs.readFileSync(__dirname + '/../fixtures/executorJenkinsTaskPayload.json', 'utf-8')
