@@ -175,7 +175,7 @@ export class AgentUtils {
                     .promise();
             })
             .then(function(data) {
-                log.info(`SQS Heartbeat Sent. (${timeoutValue}'s) ${JSON.stringify(data)}`);
+                log.debug(`SQS Heartbeat Sent. (${timeoutValue}s) ${JSON.stringify(data)}`);
             });
     }
 
