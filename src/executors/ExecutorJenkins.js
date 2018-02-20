@@ -112,7 +112,7 @@ export class ExecutorJenkins extends Executor {
             configuration.name = jobName;
         }
 
-        if (buildParams != null) configuration.parameters = buildParams;
+        if (buildParams != null && buildParams != []) configuration.parameters = buildParams;
 
         log.info('Starting Jenkins Job: ' + jobName);
         // TODO: Check if Job Exists
