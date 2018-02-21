@@ -112,7 +112,7 @@
     "jenkins": "^0.20.1",
     "jsontoxml": "^0.1.0",
     "launchdarkly-nodeutils": "^3.0.0",
-    "ldclient-node": "^3.3.2",
+    "ldclient-node": "^4.0.0",
     "node-static": "^0.7.10",
     "nunjucks": "^3.0.1",
     "proxy-agent": "^2.1.0",
