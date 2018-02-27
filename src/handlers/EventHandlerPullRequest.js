@@ -2,10 +2,10 @@ import { EventHandler } from '../agent/EventHandler';
 import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
 import { default as formatJson } from 'format-json';
-let log = AgentUtils.logger();
 
 export class EventHandlerPullRequest extends EventHandler {
     async handleEvent() {
+        let log = this.log;
         let supportedActions = ['opened', 'synchronize'];
 
         if (!supportedActions.includes(this.eventData.action)) {
@@ -14,13 +14,19 @@ export class EventHandlerPullRequest extends EventHandler {
         }
 
         log.info('---------------------------------');
-        log.info('Repository Name: ' + this.eventData.repository.name);
+        log.info('Repository Name: ' + this.eventData.repository.full_name);
         log.info('Pull Request: ' + this.eventData.pull_request.number);
         log.info('---------------------------------');
 
         return this.handleTasks(this, this).then(() => {
-            //return Promise.resolve(true);
-            return this.addPullRequestSummaryComment(this);
+            return this.addPullRequestSummaryComment(this).then(event => {
+                log.info({
+                    resultType: 'EVENT',
+                    repo: event.eventData.repository.full_name,
+                    url: event.eventData.pull_request.html_url,
+                    failed: event.failed || false
+                });
+            });
         });
     }
 
@@ -43,6 +49,7 @@ export class EventHandlerPullRequest extends EventHandler {
 
     async setIntialTaskState(event, parent) {
         let promises = [];
+        let log = this.log;
 
         if (parent.tasks) {
             parent.tasks.forEach(async task => {
@@ -52,8 +59,9 @@ export class EventHandlerPullRequest extends EventHandler {
                 }
 
                 task.options = AgentUtils.templateReplace(
-                    AgentUtils.createBasicTemplate(this.eventData, parent),
-                    task.options
+                    AgentUtils.createBasicTemplate(this.eventData, parent, log),
+                    task.options,
+                    log
                 );
 
                 let initialState = 'pending';
@@ -87,7 +95,8 @@ export class EventHandlerPullRequest extends EventHandler {
                         status,
                         `Pending for ${event.eventType} => ${task.executor}:${task.context} - Event ID: ${
                             event.eventId
-                        }`
+                        }`,
+                        log
                     ).then(function() {
                         log.info(task);
                         log.info('-----------------------------');
@@ -101,6 +110,7 @@ export class EventHandlerPullRequest extends EventHandler {
 
     async processTasks(event, parent) {
         let promises = [];
+        let log = this.log;
 
         if (parent.tasks) {
             parent.tasks.forEach(async task => {
@@ -118,7 +128,7 @@ export class EventHandlerPullRequest extends EventHandler {
 
                 log.info('=================================');
                 log.info('Creating Executor for Task: ' + task.executor + ':' + task.context);
-                let executor = Executor.create(task.executor, event.eventData);
+                let executor = Executor.create(task.executor, event.eventData, event.log);
 
                 let status;
                 let taskPromise;
@@ -151,11 +161,21 @@ export class EventHandlerPullRequest extends EventHandler {
                             return status;
                         })
                         .then(status => {
+                            if (status.state !== 'success') event.failed = true;
+                            log.info({
+                                resultType: 'TASK',
+                                repo: event.eventData.repository.full_name,
+                                url: event.eventData.pull_request.html_url,
+                                executor: task.executor,
+                                context: task.context,
+                                failed: status.state !== 'success'
+                            });
                             return AgentUtils.postResultsAndTrigger(
                                 status,
                                 `Result '${status.state}' for ${event.eventType} => ${task.executor}:${
                                     task.context
-                                } - Event ID: ${event.eventId}`
+                                } - Event ID: ${event.eventId}`,
+                                log
                             );
                         })
                         .then(() => {
@@ -171,11 +191,22 @@ export class EventHandlerPullRequest extends EventHandler {
                                 task.results.url
                             );
 
+                            event.failed = true;
+                            log.info({
+                                resultType: 'TASK',
+                                repo: event.eventData.repository.full_name,
+                                url: event.eventData.pull_request.html_url,
+                                executor: task.executor,
+                                context: task.context,
+                                failed: true
+                            });
+
                             return AgentUtils.postResultsAndTrigger(
                                 status,
                                 `Result 'error' for ${event.eventType} => ${task.executor}:${
                                     task.context
-                                } - Event ID: ${event.eventId}`
+                                } - Event ID: ${event.eventId}`,
+                                log
                             )
                                 .then(() => {
                                     let commentBody = `Task failed: '${task.executor}: ${
@@ -191,6 +222,17 @@ export class EventHandlerPullRequest extends EventHandler {
                         });
                 } catch (e) {
                     log.error(e);
+
+                    event.failed = true;
+                    log.info({
+                        resultType: 'TASK',
+                        repo: event.eventData.repository.full_name,
+                        url: event.eventData.pull_request.html_url,
+                        executor: task.executor,
+                        context: task.context,
+                        failed: true
+                    });
+
                     taskPromise = Promise.reject(e.message);
                 }
 
@@ -210,6 +252,8 @@ export class EventHandlerPullRequest extends EventHandler {
      */
     handleSubtasks(event, promises) {
         let subtaskPromises = [];
+        let log = this.log;
+
         promises.forEach(async promise => {
             // for each sibling task
             subtaskPromises.push(
@@ -270,6 +314,7 @@ export class EventHandlerPullRequest extends EventHandler {
     }
 
     async addPullRequestComment(event, commentBody, task) {
+        let log = this.log;
         // don't add comment to PR if disabled for this event type, or disabled for current task
         if (!event.taskConfig.pull_request.disableComments && (!task || !task.disableComments)) {
             if (commentBody === '') commentBody = 'no comment';
@@ -279,10 +324,12 @@ export class EventHandlerPullRequest extends EventHandler {
 
             return AgentUtils.postResultsAndTrigger(
                 status,
-                `Result for ${event.eventType} => Event ID: ${event.eventId}<br/>`
+                `Result for ${event.eventType} => Event ID: ${event.eventId}<br/>`,
+                log
             ).then(function() {
                 log.info('PR comment queued.');
                 log.info('-----------------------------');
+                return event;
             });
         } else {
             log.info(`skipping PR comment per .githubTaskManager.json`);

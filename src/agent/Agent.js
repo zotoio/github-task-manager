@@ -257,19 +257,20 @@ export class Agent {
                             AgentUtils.setSqsMessageTimeout(
                                 process.env.GTM_SQS_PENDING_QUEUE,
                                 message.ReceiptHandle,
-                                30
+                                30,
+                                log
                             );
                         }, 5000);
 
                         // handle the event and execute tasks
                         try {
-                            await EventHandler.create(event.attrs.ghEventType, event.payload)
+                            await EventHandler.create(event.attrs.ghEventType, event.payload, event.log)
                                 .handleEvent()
                                 .then(() => {
                                     done();
                                     clearInterval(loopTimer);
                                     return Promise.resolve(
-                                        log.info(
+                                        event.log.info(
                                             `### Event handled: type=${event.attrs.ghEventType} id=${
                                                 event.attrs.ghEventId
                                             }}`
@@ -277,7 +278,7 @@ export class Agent {
                                     );
                                 });
                         } catch (e) {
-                            log.error(e);
+                            event.log.error(e);
                             clearInterval(loopTimer);
                             done(e);
                         }

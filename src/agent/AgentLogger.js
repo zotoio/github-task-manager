@@ -4,6 +4,7 @@ import { default as createCWStream } from 'bunyan-cloudwatch';
 import { default as UUID } from 'uuid/v4';
 import { default as ExpressSSE } from 'express-sse';
 import { default as proxy } from 'proxy-agent';
+import { default as bunyanTcp } from 'bunyan-logstash-tcp';
 
 let SSE = [];
 let AGENT_ID = UUID();
@@ -38,26 +39,42 @@ function create(agentId) {
         };
     }
 
-    let stream = createCWStream({
+    let cloudWatchtream = createCWStream({
         logGroupName: process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP || 'gtmAgent',
         logStreamName: 'AGENT_ID=' + agentId,
         cloudWatchLogsOptions: CWLogOptions
-    });
+    }).on('error', console.error);
 
     janitorInterval = setInterval(streamJanitor, 60000);
 
-    return bunyan.createLogger({
+    let bunyanConf = {
         name: agentId.substring(0, 7),
         streams: [
             {
-                stream: stream,
+                stream: cloudWatchtream,
                 type: 'raw'
             },
             {
                 stream: bformat({ outputMode: 'short' })
             }
         ]
-    });
+    };
+
+    if (process.env.GTM_LOGSTASH_HOST) {
+        let logstashPort = process.env.GTM_LOGSTASH_PORT || 5000;
+
+        bunyanConf.streams.push({
+            type: 'raw',
+            stream: bunyanTcp
+                .createStream({
+                    host: process.env.GTM_LOGSTASH_HOST,
+                    port: logstashPort
+                })
+                .on('error', console.error)
+        });
+    }
+
+    return bunyan.createLogger(bunyanConf);
 }
 
 function log() {

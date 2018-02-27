@@ -73,6 +73,8 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_DOCKER_COMMANDS_ALLOWED| default is false, set to true to enable docker executor|
 |IAM_ENABLED|agent host uses IAM ?|
 |LAUNCHDARKLY_API_TOKEN|token for launchdarkly sass executor|
+|GTM_LOGSTASH_HOST|optional logstash host for elasticsearch analysis|
+|GTM_LOGSTASH_PORT|optional logstash port|
 
 ## Configure and deploy
 - run: `npm run sls-deploy` - note that this will create aws re$ources..

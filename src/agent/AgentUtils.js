@@ -161,7 +161,7 @@ export class AgentUtils {
      * @param {String} messageHandle - Message Handle from ReceiveMessage Event
      * @param {Integer} timeoutValue - New Message Timeout Value (Seconds)
      */
-    static async setSqsMessageTimeout(queueName, messageHandle, timeoutValue) {
+    static async setSqsMessageTimeout(queueName, messageHandle, timeoutValue, log) {
         log.debug(`Setting SQS Message Timeout to ${timeoutValue} Seconds`);
         return AgentUtils.getQueueUrl(queueName)
             .then(function(queueUrl) {
@@ -179,7 +179,7 @@ export class AgentUtils {
             });
     }
 
-    static async postResultsAndTrigger(results, message) {
+    static async postResultsAndTrigger(results, message, log) {
         return AgentUtils.getQueueUrl(process.env.GTM_SQS_RESULTS_QUEUE)
             .then(function(sqsQueueUrl) {
                 let params = {
@@ -268,7 +268,7 @@ export class AgentUtils {
      * @param {Object} varDict - Source for Template Variables
      * @param {Object} template - Object to Replace Template Strings Within
      */
-    static templateReplace(varDict, template) {
+    static templateReplace(varDict, template, log) {
         let templateStr = JSON.stringify(template);
         for (let key in varDict) {
             let re = new RegExp(key, 'g');
@@ -283,7 +283,7 @@ export class AgentUtils {
      * Create a Templating Object from a Configuration Object
      * @param {Object} obj - EventData Object to Return Variables From
      */
-    static createBasicTemplate(obj, parent) {
+    static createBasicTemplate(obj, parent, log) {
         if (!parent.results) {
             log.info('No Parent Build. Providing Safe Defaults');
             parent.results = {

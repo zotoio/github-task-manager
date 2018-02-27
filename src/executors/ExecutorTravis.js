@@ -1,8 +1,6 @@
 import { default as Travis } from 'travis-ci';
 import { Executor } from '../agent/Executor';
-import { AgentUtils } from '../agent/AgentUtils';
 import { default as json } from 'format-json';
-let log = AgentUtils.logger();
 
 /**
  * Sample .githubTaskManager.json task config - NOT READY FOR USE
@@ -19,8 +17,9 @@ let log = AgentUtils.logger();
  */
 
 export class ExecutorTravis extends Executor {
-    constructor(eventData) {
-        super(eventData);
+    constructor(eventData, log) {
+        super(eventData, log);
+        this.log = log;
         this.options = this.getOptions();
 
         this.travis = new Travis({
@@ -29,6 +28,7 @@ export class ExecutorTravis extends Executor {
     }
 
     async executeTask(task) {
+        let log = this.log;
         log.info(`travis options: ${json.plain(task.options)}`);
 
         this.travis.authenticate(

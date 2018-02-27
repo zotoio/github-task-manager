@@ -1,11 +1,8 @@
 import { Executor } from '../agent/Executor';
-import { AgentUtils } from '../agent/AgentUtils';
 import { default as Docker } from 'dockerode';
 import { default as stream } from 'stream';
 import { default as fs } from 'fs';
 import appRoot from 'app-root-path';
-
-let log = AgentUtils.logger();
 
 /**
  * Sample .githubTaskManager.json task config
@@ -31,8 +28,9 @@ let log = AgentUtils.logger();
  */
 
 export class ExecutorDocker extends Executor {
-    constructor(eventData) {
-        super(eventData);
+    constructor(eventData, log) {
+        super(eventData, log);
+        this.log = log;
         this.options = this.getOptions();
         this._taskOutputTail = '';
     }
@@ -47,6 +45,7 @@ export class ExecutorDocker extends Executor {
     }
 
     validateImage(image) {
+        let log = this.log;
         let valid = false;
         let imageList = this.options.GTM_DOCKER_IMAGE_WHITELIST
             ? this.options.GTM_DOCKER_IMAGE_WHITELIST.split(',')
@@ -72,6 +71,7 @@ export class ExecutorDocker extends Executor {
     }
 
     async executeTask(task) {
+        let log = this.log;
         let image = task.options.image;
         let command = task.options.command;
         let env = task.options.env || [];
@@ -173,6 +173,7 @@ export class ExecutorDocker extends Executor {
      * Get logs from running container
      */
     async containerLogs(executor, container) {
+        let log = this.log;
         return new Promise(function(resolve, reject) {
             let logBuffer = [];
 
@@ -214,6 +215,7 @@ export class ExecutorDocker extends Executor {
     }
 
     pullImage(docker, image) {
+        let log = this.log;
         return new Promise((resolve, reject) => {
             docker.pull(image, function(err, stream) {
                 if (err) {
@@ -237,6 +239,7 @@ export class ExecutorDocker extends Executor {
     }
 
     validate(task, output) {
+        let log = this.log;
         let valid = true;
 
         if (task.options.validator && task.options.validator.type === 'outputRegex') {

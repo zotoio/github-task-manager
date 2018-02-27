@@ -14,7 +14,7 @@ describe('ExecutorJenkins', function() {
 
     beforeEach(() => {
         eventData = JSON.parse(fs.readFileSync(__dirname + '/../fixtures/executorJenkinsTaskPayload.json', 'utf-8'));
-        executorJenkins = new ExecutorJenkins(eventData);
+        executorJenkins = new ExecutorJenkins(eventData, console);
     });
 
     describe('constructor', function() {

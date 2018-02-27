@@ -1,9 +1,6 @@
 import { Executor } from '../agent/Executor';
-import { AgentUtils } from '../agent/AgentUtils';
 import { default as rp } from 'request-promise-native';
 import { default as json } from 'format-json';
-
-let log = AgentUtils.logger();
 
 /**
  * Sample .githubTaskManager.json task config
@@ -34,12 +31,14 @@ let log = AgentUtils.logger();
  */
 
 export class ExecutorHttp extends Executor {
-    constructor(eventData) {
-        super(eventData);
+    constructor(eventData, log) {
+        super(eventData, log);
+        this.log = log;
         this.options = this.getOptions();
     }
 
     async executeTask(task) {
+        let log = this.log;
         let har = task.options.har;
 
         log.info(`Starting http request..`);
@@ -84,6 +83,7 @@ export class ExecutorHttp extends Executor {
     }
 
     validate(task, response) {
+        let log = this.log;
         let valid = true;
 
         if (task.options.validator && task.options.validator.type === 'bodyJson') {

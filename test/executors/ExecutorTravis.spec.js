@@ -10,7 +10,7 @@ describe('ExecutorTravis', function() {
 
     beforeEach(() => {
         eventData = JSON.parse(fs.readFileSync(__dirname + '/../fixtures/executorJenkinsTaskPayload.json', 'utf-8'));
-        executorTravis = new ExecutorTravis(eventData);
+        executorTravis = new ExecutorTravis(eventData, console);
     });
 
     describe('constructor', function() {

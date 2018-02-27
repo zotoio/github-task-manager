@@ -17,7 +17,7 @@ describe('ExecutorDocker', () => {
                 command: ['/bin/ls', '-ltr', '/bin']
             }
         };
-        executorDocker = new ExecutorDocker(eventData);
+        executorDocker = new ExecutorDocker(eventData, console);
     });
 
     describe('constructor', () => {

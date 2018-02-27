@@ -30,7 +30,7 @@ describe('ExecutorHttp', () => {
             }
         };
 
-        executorHttp = new ExecutorHttp(eventData);
+        executorHttp = new ExecutorHttp(eventData, console);
     });
 
     describe('constructor', () => {

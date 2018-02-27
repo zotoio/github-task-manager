@@ -1,9 +1,7 @@
 'use strict';
 import requireDir from 'require-dir';
 import { Plugin } from './Plugin';
-import { AgentUtils } from './AgentUtils';
 let json = require('format-json');
-let log = AgentUtils.logger();
 
 /**
  * Create an Executor to run Builds, Deploys, and Tests
@@ -13,25 +11,24 @@ export class Executor extends Plugin {
      * Initialise the CI Executor
      * @param {String} executorType - Class Name to Create
      * @param {*} eventData - Object of Options to pass into Class
+     * @param {Logger} log - child logger for event
      */
-    constructor(eventData) {
+    constructor(eventData, log) {
         super();
-
-        // executors must register functions for event types
-        //this.run = [];
+        this.log = log;
 
         this.eventId = eventData.ghEventId;
         this.eventType = eventData.ghEventType;
         this.taskConfig = eventData.ghTaskConfig;
         this.eventData = eventData;
 
-        log.info('----------------------------');
-        log.info(`New Executor Created`);
-        log.info('Event ID: ' + this.eventId);
-        log.info('Event Type: ' + this.eventType);
-        log.info('----------------------------');
-        log.debug('Task Config: ' + json.plain(this.taskConfig));
-        log.debug(eventData);
+        this.log.info('----------------------------');
+        this.log.info(`New Executor Created`);
+        this.log.info('Event ID: ' + this.eventId);
+        this.log.info('Event Type: ' + this.eventType);
+        this.log.info('----------------------------');
+        this.log.debug('Task Config: ' + json.plain(this.taskConfig));
+        this.log.debug(eventData);
     }
 
     /**

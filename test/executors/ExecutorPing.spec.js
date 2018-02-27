@@ -29,7 +29,7 @@ describe('ExecutorPing', () => {
                 }
             }
         };
-        executorPing = new ExecutorPing(eventData);
+        executorPing = new ExecutorPing(eventData, console);
     });
 
     describe('constructor', () => {

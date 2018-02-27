@@ -8,7 +8,7 @@ describe('Executor', function() {
     let executor;
     beforeEach(() => {
         let eventData = JSON.parse(fs.readFileSync(__dirname + '/../fixtures/githubEventPayload.json', 'utf-8'));
-        executor = new Executor(eventData);
+        executor = new Executor(eventData, console);
     });
 
     describe('constructor', function() {
