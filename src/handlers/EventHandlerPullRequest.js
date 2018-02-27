@@ -161,15 +161,8 @@ export class EventHandlerPullRequest extends EventHandler {
                             return status;
                         })
                         .then(status => {
-                            if (status.state !== 'success') event.failed = true;
-                            log.info({
-                                resultType: 'TASK',
-                                repo: event.eventData.repository.full_name,
-                                url: event.eventData.pull_request.html_url,
-                                executor: task.executor,
-                                context: task.context,
-                                failed: status.state !== 'success'
-                            });
+                            this.handleTaskResult(event, task, log);
+
                             return AgentUtils.postResultsAndTrigger(
                                 status,
                                 `Result '${status.state}' for ${event.eventType} => ${task.executor}:${
@@ -191,15 +184,7 @@ export class EventHandlerPullRequest extends EventHandler {
                                 task.results.url
                             );
 
-                            event.failed = true;
-                            log.info({
-                                resultType: 'TASK',
-                                repo: event.eventData.repository.full_name,
-                                url: event.eventData.pull_request.html_url,
-                                executor: task.executor,
-                                context: task.context,
-                                failed: true
-                            });
+                            this.handleTaskResult(event, task, log);
 
                             return AgentUtils.postResultsAndTrigger(
                                 status,
@@ -223,15 +208,7 @@ export class EventHandlerPullRequest extends EventHandler {
                 } catch (e) {
                     log.error(e);
 
-                    event.failed = true;
-                    log.info({
-                        resultType: 'TASK',
-                        repo: event.eventData.repository.full_name,
-                        url: event.eventData.pull_request.html_url,
-                        executor: task.executor,
-                        context: task.context,
-                        failed: true
-                    });
+                    this.handleTaskResult(event, task, log);
 
                     taskPromise = Promise.reject(e.message);
                 }
@@ -343,6 +320,18 @@ export class EventHandlerPullRequest extends EventHandler {
         });
 
         return this.addPullRequestComment(event, commentBody);
+    }
+
+    handleTaskResult(event, task, log) {
+        if (!task.results.passed) event.failed = true;
+        log.info({
+            resultType: 'TASK',
+            repo: event.eventData.repository.full_name,
+            url: event.eventData.pull_request.html_url,
+            executor: task.executor,
+            context: task.context,
+            failed: !task.results.passed
+        });
     }
 }
 
