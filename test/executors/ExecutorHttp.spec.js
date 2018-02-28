@@ -48,4 +48,12 @@ describe('ExecutorHttp', () => {
             assert.equal(result.results.passed, true);
         });
     });
+
+    describe('validate', () => {
+        it('should validate for bodyJson', () => {
+            let actual = executorHttp.validate(eventData, { body: '{"headers": {"Host": "httpbin.org"}}' });
+            let expected = true;
+            assert.equal(actual, expected);
+        });
+    });
 });

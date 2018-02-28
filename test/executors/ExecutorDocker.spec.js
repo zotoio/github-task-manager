@@ -14,7 +14,11 @@ describe('ExecutorDocker', () => {
             context: 'run ls in latest alpine',
             options: {
                 image: 'alpine:latest',
-                command: ['/bin/ls', '-ltr', '/bin']
+                command: ['/bin/ls', '-ltr', '/bin'],
+                validator: {
+                    type: 'outputRegex',
+                    regex: '.*HOSTNAME.*'
+                }
             }
         };
         executorDocker = new ExecutorDocker(eventData, console);
@@ -99,5 +103,12 @@ describe('ExecutorDocker', () => {
             });
         });
         */
+    });
+    describe('validate', () => {
+        it('should validate output', () => {
+            let actual = executorDocker.validate(eventData, 'HOSTNAME=docker.com');
+            let expected = true;
+            assert.equal(actual, expected);
+        });
     });
 });
