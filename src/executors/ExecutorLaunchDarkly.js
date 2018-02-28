@@ -1,9 +1,6 @@
 import { Executor } from '../agent/Executor';
-import { AgentUtils } from '../agent/AgentUtils';
 import { LaunchDarklyUtils } from 'launchdarkly-nodeutils';
 import { default as formatJson } from 'format-json';
-
-let log = AgentUtils.logger();
 
 /**
  * Sample .githubTaskManager.json task config
@@ -25,12 +22,14 @@ let log = AgentUtils.logger();
  */
 
 export class ExecutorLaunchDarkly extends Executor {
-    constructor(eventData) {
-        super(eventData);
+    constructor(eventData, log) {
+        super(eventData, log);
+        this.log = log;
         this.options = this.getOptions();
     }
 
     async getLDUtils() {
+        let log = this.log;
         if (!this.ldUtils) {
             let that = this;
             return new LaunchDarklyUtils().create(process.env.LAUNCHDARKLY_API_TOKEN, log).then(handle => {
@@ -43,13 +42,15 @@ export class ExecutorLaunchDarkly extends Executor {
     }
 
     async getFlagValue(task, flagName) {
+        let log = this.log;
         log.info(`Getting Flag Value for Flag '${flagName}'`);
         return this.getLDUtils().then(ldUtils => {
-            return ldUtils.getFeatureFlagState(task.options.project, flagName, task.options.environment);
+            return ldUtils.flags.getFeatureFlagState(task.options.project, flagName, task.options.environment);
         });
     }
 
     async setFlagValue(task, flagName, flagValue) {
+        let log = this.log;
         log.info(`Setting Flag '${flagName}' to '${flagValue}'`);
         let oldFlagValue = await this.getFlagValue(task, flagName);
         let changed = false;
@@ -58,7 +59,12 @@ export class ExecutorLaunchDarkly extends Executor {
             // Values are Different, Update Flag Value Using API
             log.info(`Updating Flag Value for '${flagName}'`);
             await this.getLDUtils().then(async ldUtils => {
-                await ldUtils.toggleFeatureFlag(task.options.project, flagName, task.options.environment, flagValue);
+                await ldUtils.flags.toggleFeatureFlag(
+                    task.options.project,
+                    flagName,
+                    task.options.environment,
+                    flagValue
+                );
             });
             changed = true;
         } else {
@@ -75,6 +81,7 @@ export class ExecutorLaunchDarkly extends Executor {
     }
 
     async executeTask(task) {
+        let log = this.log;
         let flags = task.options.flags;
         let results = [];
         let changedCount = 0;

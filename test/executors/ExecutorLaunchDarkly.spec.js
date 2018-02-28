@@ -21,7 +21,7 @@ describe('ExecutorLaunchDarkly', () => {
                 }
             }
         };
-        executorLaunchDarkly = new ExecutorLaunchDarkly(eventData);
+        executorLaunchDarkly = new ExecutorLaunchDarkly(eventData, console);
     });
 
     describe('constructor', () => {
@@ -39,7 +39,7 @@ describe('ExecutorLaunchDarkly', () => {
 
     describe('getFlagValue', () => {
         it('should return a promise', async () => {
-            let flagValue = executorLaunchDarkly.getFlagValue();
+            let flagValue = executorLaunchDarkly.getFlagValue(eventData, 'test-one');
             assert.equal(flagValue instanceof Promise, true);
         });
     });

@@ -5,7 +5,6 @@ import { default as x2j } from 'xml2js';
 import { default as URL } from 'url';
 import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
-let log = AgentUtils.logger();
 
 /**
  * Sample .githubTaskManager.json task config
@@ -31,8 +30,9 @@ let log = AgentUtils.logger();
 */
 
 export class ExecutorTeamCity extends Executor {
-    constructor(eventData) {
-        super(eventData);
+    constructor(eventData, log) {
+        super(eventData, log);
+        this.log = log;
         this.options = this.getOptions();
 
         this.teamCity = TeamCity.create({
@@ -64,6 +64,7 @@ export class ExecutorTeamCity extends Executor {
     }
 
     async executeTask(task) {
+        let log = this.log;
         let jobName = task.options.jobName;
 
         if (jobName == undefined) {
@@ -109,6 +110,7 @@ export class ExecutorTeamCity extends Executor {
     }
 
     async waitForBuildToComplete(buildName, buildNumber) {
+        let log = this.log;
         let buildDict = await this.teamCity.builds.get(buildNumber);
         let maxRetries = 600;
         let tries = 1;
@@ -124,6 +126,7 @@ export class ExecutorTeamCity extends Executor {
     }
 
     async getBuildStatistics(statisticsUrl) {
+        let log = this.log;
         log.debug(`Starting http request.. : ${statisticsUrl}`);
 
         let tries = 1;

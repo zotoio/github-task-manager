@@ -3,6 +3,8 @@ import { default as assert } from 'assert';
 import { default as crypto } from 'crypto';
 import { default as githubUtils } from '../../src/serverless/gtmGithubUtils.js';
 
+process.env.GTM_GITHUB_TOKEN = '';
+
 describe('gtmGithubUtils', function() {
     describe('connect', function() {
         it('should throw without creds', function(done) {

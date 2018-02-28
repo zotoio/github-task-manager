@@ -30,7 +30,7 @@ describe('ExecutorHttp', () => {
             }
         };
 
-        executorHttp = new ExecutorHttp(eventData);
+        executorHttp = new ExecutorHttp(eventData, console);
     });
 
     describe('constructor', () => {
@@ -46,6 +46,14 @@ describe('ExecutorHttp', () => {
                 return data;
             });
             assert.equal(result.results.passed, true);
+        });
+    });
+
+    describe('validate', () => {
+        it('should validate for bodyJson', () => {
+            let actual = executorHttp.validate(eventData, { body: '{"headers": {"Host": "httpbin.org"}}' });
+            let expected = true;
+            assert.equal(actual, expected);
         });
     });
 });

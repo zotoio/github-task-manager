@@ -8,7 +8,7 @@ describe('EventHandler', function() {
     let handler;
     beforeEach(() => {
         let eventData = JSON.parse(fs.readFileSync(__dirname + '/../fixtures/githubEventPayload.json', 'utf-8'));
-        handler = new EventHandler(eventData);
+        handler = new EventHandler(eventData, console);
     });
 
     describe('constructor', function() {

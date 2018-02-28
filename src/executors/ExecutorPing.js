@@ -1,6 +1,5 @@
 import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
-let log = AgentUtils.logger();
 
 /**
  * Sample .githubTaskManager.json task config
@@ -17,14 +16,15 @@ let log = AgentUtils.logger();
  */
 
 export class ExecutorPing extends Executor {
-    constructor(eventData) {
-        super(eventData);
+    constructor(eventData, log) {
+        super(eventData, log);
+        this.log = log;
         this.options = this.getOptions();
     }
 
     async executeTask(task) {
+        let log = this.log;
         let count = parseInt(task.options.count);
-
         let promises = [];
 
         for (let i = 1; i <= count; i++) {
@@ -36,7 +36,7 @@ export class ExecutorPing extends Executor {
             );
 
             promises.push(
-                AgentUtils.postResultsAndTrigger(status, 'Ping').then(function() {
+                AgentUtils.postResultsAndTrigger(status, 'Ping', log).then(function() {
                     log.info(`sent ping ${i}`);
                 })
             );

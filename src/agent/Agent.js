@@ -221,6 +221,7 @@ export class Agent {
                 messageAttributeNames: Event.requiredAttributes,
 
                 handleMessage: async (message, done) => {
+                    let startTime = new Date().getTime();
                     log.info('## == NEW EVENT ==================================');
                     log.info('Received Message from Pending Queue');
                     log.debug(`message: ${json.plain(message)}`);
@@ -257,27 +258,30 @@ export class Agent {
                             AgentUtils.setSqsMessageTimeout(
                                 process.env.GTM_SQS_PENDING_QUEUE,
                                 message.ReceiptHandle,
-                                30
+                                30,
+                                log
                             );
                         }, 5000);
 
                         // handle the event and execute tasks
                         try {
-                            await EventHandler.create(event.attrs.ghEventType, event.payload)
+                            await EventHandler.create(event.attrs.ghEventType, event.payload, event.log)
                                 .handleEvent()
                                 .then(() => {
                                     done();
                                     clearInterval(loopTimer);
+                                    let endTime = new Date().getTime();
+                                    let duration = endTime - startTime;
                                     return Promise.resolve(
-                                        log.info(
+                                        event.log.info(
                                             `### Event handled: type=${event.attrs.ghEventType} id=${
                                                 event.attrs.ghEventId
-                                            }}`
+                                            } duration=${duration}ms`
                                         )
                                     );
                                 });
                         } catch (e) {
-                            log.error(e);
+                            event.log.error(e);
                             clearInterval(loopTimer);
                             done(e);
                         }

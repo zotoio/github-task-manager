@@ -14,6 +14,7 @@ export class Event {
     constructor(message) {
         this.attrs = Event.validateMessage(message);
         this.payload = Event.prepareEventPayload(message, this.attrs);
+        this.log = log.child({ ghEventId: this.attrs.ghEventId });
         Agent.systemConfig.event.current = this.payload;
     }
 

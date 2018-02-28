@@ -15,7 +15,7 @@ describe('ExecutorTeamCity', function() {
 
     beforeEach(() => {
         eventData = JSON.parse(fs.readFileSync(__dirname + '/../fixtures/executorTeamCityTaskPayLoad.json', 'utf-8'));
-        executorTeamcity = new ExecutorTeamCity(eventData);
+        executorTeamcity = new ExecutorTeamCity(eventData, console);
     });
 
     describe('constructor', () => {

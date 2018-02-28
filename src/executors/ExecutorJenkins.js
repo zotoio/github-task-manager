@@ -1,7 +1,6 @@
 import { default as JenkinsLib } from 'jenkins';
 import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
-let log = AgentUtils.logger();
 
 /**
  * Sample .githubTaskManager.json task config/
@@ -20,8 +19,9 @@ let log = AgentUtils.logger();
  */
 
 export class ExecutorJenkins extends Executor {
-    constructor(eventData) {
-        super(eventData);
+    constructor(eventData, log) {
+        super(eventData, log);
+        this.log = log;
         this.options = this.getOptions();
 
         // If set, this will return bool:true, else bool:false
@@ -39,6 +39,7 @@ export class ExecutorJenkins extends Executor {
     }
 
     async waitForBuildToExist(buildName, buildNumber) {
+        let log = this.log;
         return new Promise(async (resolve, reject) => {
             let exists = false;
             let maxRetries = 600;
@@ -61,6 +62,7 @@ export class ExecutorJenkins extends Executor {
     }
 
     async waitForBuild(buildName, buildNumber) {
+        let log = this.log;
         let buildDict = await this.jenkins.build.get(buildName, buildNumber).then(function(data) {
             return data;
         });
@@ -77,6 +79,7 @@ export class ExecutorJenkins extends Executor {
     }
 
     async buildNumberfromQueue(queueId) {
+        let log = this.log;
         let queueData = await this.jenkins.queue.item(queueId).then(function(data) {
             return data;
         });
@@ -95,6 +98,7 @@ export class ExecutorJenkins extends Executor {
     }
 
     async executeTask(task) {
+        let log = this.log;
         let jobName = task.options.jobName || null;
         let buildParams = task.options.parameters || null;
 
