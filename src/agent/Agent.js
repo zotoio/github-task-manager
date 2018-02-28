@@ -221,6 +221,7 @@ export class Agent {
                 messageAttributeNames: Event.requiredAttributes,
 
                 handleMessage: async (message, done) => {
+                    let startTime = new Date().getTime();
                     log.info('## == NEW EVENT ==================================');
                     log.info('Received Message from Pending Queue');
                     log.debug(`message: ${json.plain(message)}`);
@@ -269,11 +270,13 @@ export class Agent {
                                 .then(() => {
                                     done();
                                     clearInterval(loopTimer);
+                                    let endTime = new Date().getTime();
+                                    let duration = endTime - startTime;
                                     return Promise.resolve(
                                         event.log.info(
                                             `### Event handled: type=${event.attrs.ghEventType} id=${
                                                 event.attrs.ghEventId
-                                            }}`
+                                            } duration=${duration}ms`
                                         )
                                     );
                                 });

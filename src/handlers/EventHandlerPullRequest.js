@@ -6,6 +6,7 @@ import { default as formatJson } from 'format-json';
 export class EventHandlerPullRequest extends EventHandler {
     async handleEvent() {
         let log = this.log;
+        let startTime = new Date().getTime();
         let supportedActions = ['opened', 'synchronize'];
 
         if (!supportedActions.includes(this.eventData.action)) {
@@ -20,10 +21,13 @@ export class EventHandlerPullRequest extends EventHandler {
 
         return this.handleTasks(this, this).then(() => {
             return this.addPullRequestSummaryComment(this).then(event => {
+                let endTime = new Date().getTime();
+                let duration = endTime - startTime;
                 log.info({
                     resultType: 'EVENT',
                     repo: event.eventData.repository.full_name,
                     url: event.eventData.pull_request.html_url,
+                    duration: duration,
                     failed: event.failed || false
                 });
             });
@@ -132,6 +136,7 @@ export class EventHandlerPullRequest extends EventHandler {
 
                 let status;
                 let taskPromise;
+                let startTime = new Date().getTime();
 
                 try {
                     taskPromise = executor
@@ -161,7 +166,7 @@ export class EventHandlerPullRequest extends EventHandler {
                             return status;
                         })
                         .then(status => {
-                            this.handleTaskResult(event, task, log);
+                            this.handleTaskResult(event, task, log, startTime);
 
                             return AgentUtils.postResultsAndTrigger(
                                 status,
@@ -184,7 +189,7 @@ export class EventHandlerPullRequest extends EventHandler {
                                 task.results.url
                             );
 
-                            this.handleTaskResult(event, task, log);
+                            this.handleTaskResult(event, task, log, startTime);
 
                             return AgentUtils.postResultsAndTrigger(
                                 status,
@@ -208,7 +213,7 @@ export class EventHandlerPullRequest extends EventHandler {
                 } catch (e) {
                     log.error(e);
 
-                    this.handleTaskResult(event, task, log);
+                    this.handleTaskResult(event, task, log, startTime);
 
                     taskPromise = Promise.reject(e.message);
                 }
@@ -322,7 +327,9 @@ export class EventHandlerPullRequest extends EventHandler {
         return this.addPullRequestComment(event, commentBody);
     }
 
-    handleTaskResult(event, task, log) {
+    handleTaskResult(event, task, log, startTime) {
+        let endTime = new Date().getTime();
+        let duration = endTime - startTime;
         if (!task.results.passed) event.failed = true;
         log.info({
             resultType: 'TASK',
@@ -330,6 +337,7 @@ export class EventHandlerPullRequest extends EventHandler {
             url: event.eventData.pull_request.html_url,
             executor: task.executor,
             context: task.context,
+            duration: duration,
             failed: !task.results.passed
         });
     }
