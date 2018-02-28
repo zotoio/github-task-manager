@@ -199,7 +199,9 @@ export class EventHandlerPullRequest extends EventHandler {
                                 log
                             )
                                 .then(() => {
-                                    let commentBody = `Task failed: '${task.executor}: ${
+                                    let commentBody = `### Task failed during event ${event.eventId}\n'${
+                                        task.executor
+                                    }: ${
                                         task.context
                                     }', any subtasks have been skipped. Config: \n\`\`\`json\n${formatJson.plain(
                                         task
@@ -319,7 +321,7 @@ export class EventHandlerPullRequest extends EventHandler {
     }
 
     async addPullRequestSummaryComment(event) {
-        let commentBody = '';
+        let commentBody = `### Results for event id: ${event.eventId}\n`;
         event.tasks.forEach(task => {
             commentBody += `<details>${EventHandlerPullRequest.buildEventSummary(task, 0, '')}</details>`;
         });
