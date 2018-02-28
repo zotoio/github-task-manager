@@ -39,7 +39,7 @@ function create(agentId) {
         };
     }
 
-    let cloudWatchtream = createCWStream({
+    let cloudWatchStream = createCWStream({
         logGroupName: process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP || 'gtmAgent',
         logStreamName: 'AGENT_ID=' + agentId,
         cloudWatchLogsOptions: CWLogOptions
@@ -51,7 +51,7 @@ function create(agentId) {
         name: agentId.substring(0, 7),
         streams: [
             {
-                stream: cloudWatchtream,
+                stream: cloudWatchStream,
                 type: 'raw'
             },
             {
