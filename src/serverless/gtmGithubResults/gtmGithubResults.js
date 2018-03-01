@@ -1,5 +1,6 @@
 'use strict';
 
+require('source-map-support').install();
 let json = require('format-json');
 let consumer = require('sqs-consumer');
 let githubUtils = require('../gtmGithubUtils.js');

@@ -6,7 +6,8 @@
   "plugins": [
     "transform-async-to-generator",
     "transform-class-properties",
-    "transform-runtime"
+    "transform-runtime",
+    "source-map-support"
   ],
   "env": {
     "test": {
