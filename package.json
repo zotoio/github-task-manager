@@ -4,7 +4,8 @@
   "description": "receive github hook, notify agent, receive task results, notify github",
   "main": "index.js",
   "scripts": {
-    "build": "npm run lint && rimraf dist/ && babel ./src --out-dir dist/src --copy-files && babel ./test --out-dir dist/test --copy-files && babel ./*.js --out-dir dist/ --copy-files && npm run agent-build",
+    "build": "npm run patch && npm run lint && rimraf dist/ && babel ./src --out-dir dist/src --copy-files && babel ./test --out-dir dist/test --copy-files && babel ./*.js --out-dir dist/ --copy-files && npm run agent-build",
+    "patch": "cp -rf ./patches/* ./node_modules/",
     "commit": "./node_modules/.bin/git-cz",
     "lint": "node ./node_modules/.bin/eslint ./src ./test --fix --ext=.js --ignore-pattern src/agent/static/ --ignore-pattern node_modules/ --ignore-pattern dist/ --ignore-pattern coverage/ --quiet",
     "test": "npm run build && cross-env NODE_ENV=test nyc ./node_modules/.bin/mocha --timeout 10000 --require babel-core/register --require babel-polyfill './dist/test/**/*.spec.js'",
@@ -94,8 +95,9 @@
     }
   },
   "dependencies": {
-    "@octokit/rest": "14.0.9",
+    "@octokit/rest": "15.1.2",
     "app-root-path": "^2.0.1",
+    "babel-plugin-source-map-support": "^2.0.1",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-polyfill": "^6.26.0",
     "body-parser": "^1.18.2",
@@ -122,6 +124,7 @@
     "require-dir": "^1.0.0",
     "safe-json-stringify": "^1.0.4",
     "smoketail": "^0.1.0",
+    "source-map-support": "^0.5.3",
     "sqs-consumer": "^3.8.0",
     "systemjs": "^0.21.0",
     "teamcity-rest-api": "0.0.8",

@@ -1,5 +1,6 @@
 'use strict';
 
+require('source-map-support').install();
 let json = require('format-json');
 let UUID = require('uuid/v4');
 let Producer = require('sqs-producer');

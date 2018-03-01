@@ -63,6 +63,7 @@ main.css.map
 
 .idea/
 dist/
+!patches/*/dist/
 *.swp
 
 # Serverless directories

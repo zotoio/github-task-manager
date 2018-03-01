@@ -1,7 +1,6 @@
 'use strict';
 
 let json = require('format-json');
-//let GitHubApi = require('github');
 let GitHubApi = require('@octokit/rest');
 let crypto = require('crypto');
 let githubUpdaters = {
@@ -131,8 +130,21 @@ async function updateGitHubPullRequest(status, done) {
     }
 }
 
+/**
+ * export type ReposCreateStatusParams =
+ & {
+      owner: string;
+      repo: string;
+      sha: string;
+      state: "pending"|"success"|"error"|"failure";
+      target_url?: string;
+      description?: string;
+      context?: string;
+    };
+ */
 async function updateGitHubPullRequestStatus(status, done) {
     console.log(`updating github for pull_request event ${status.eventData.ghEventId}`);
+    //console.log(status);
 
     try {
         let github = connect(status.context);
