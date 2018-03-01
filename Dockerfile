@@ -9,6 +9,7 @@ ADD ./.eslintrc.json /home/node/app/.eslintrc.json
 ADD ./.prettierrc.json /home/node/app/.prettierrc.json
 ADD ./.babelrc /home/node/app/.babelrc
 ADD ./index.js /home/node/app/index.js
+ADD ./patches /home/node/app/patches
 
 RUN cd /home/node/app && npm install && npm run build
 
