@@ -236,12 +236,17 @@ export class Agent {
                     }
 
                     if (event.attrs.ghAgentGroup !== AGENT_GROUP) {
-                        log.info(
+                        event.log.info(
                             `agentGroup mismatch - event: '${
                                 event.attrs.ghAgentGroup
                             }' agent: '${AGENT_GROUP}' skipping..`
                         );
-                        AgentUtils.setSqsMessageTimeout(process.env.GTM_SQS_PENDING_QUEUE, message.ReceiptHandle, 5);
+                        AgentUtils.setSqsMessageTimeout(
+                            process.env.GTM_SQS_PENDING_QUEUE,
+                            message.ReceiptHandle,
+                            5,
+                            log
+                        );
                         done(new Error()); // Re-Queue Messages that don't match our Agent Group
                         return;
                     }
