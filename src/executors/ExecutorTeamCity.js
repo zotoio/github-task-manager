@@ -45,8 +45,14 @@ export class ExecutorTeamCity extends Executor {
     createTeamCityBuildNode(task, jobName) {
         let xml;
         let xmlNode = {
-            build: [{ name: 'buildType', attrs: { id: jobName } }, { name: 'properties', children: [] }]
+            name: 'build',
+            attrs: {},
+            children: [{ name: 'buildType', attrs: { id: jobName } }, { name: 'properties', children: [] }]
         };
+
+        if (task.options.hasOwnProperty('branchName')) {
+            xmlNode.attrs.branchName = task.options.branchName;
+        }
 
         for (var buildProperty in task.options.parameters) {
             let property = {
@@ -56,10 +62,10 @@ export class ExecutorTeamCity extends Executor {
                     value: task.options.parameters[buildProperty]
                 }
             };
-            xmlNode.build[1].children.push(property);
+            xmlNode.children[1].children.push(property);
         }
 
-        xml = xmlBuilder(xmlNode);
+        xml = xmlBuilder([xmlNode]);
         return xml;
     }
 
