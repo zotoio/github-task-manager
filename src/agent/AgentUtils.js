@@ -268,13 +268,17 @@ export class AgentUtils {
      * Replace Objects with Equivalent YAML Strings
      * @param {Object} optionsDict - Dictionary of Key:Value Pairs
      */
-    static jsonToYaml(optionsDict) {
+    static toYaml(optionsDict) {
         for (let parameter in optionsDict) {
             if (parameter.startsWith('YAML_')) {
                 let yamlString = yamljs.stringify(optionsDict[parameter]);
                 let varName = parameter.replace('YAML_', '');
                 optionsDict[varName] = yamlString;
                 delete optionsDict[parameter];
+            } else {
+                if (typeof optionsDict[parameter] == 'object') {
+                    optionsDict[parameter] = this.toYaml(optionsDict[parameter]);
+                }
             }
         }
         return optionsDict;
@@ -285,9 +289,11 @@ export class AgentUtils {
      * @param {Object} dictionary - Dictionary of Key:Value Pairs
      */
     static applyTransforms(dictionary) {
-        let transforms = [this.jsonToYaml];
+        let transforms = {
+            toYaml: this.toYaml
+        };
         for (let transform in transforms) {
-            dictionary = transform(dictionary);
+            dictionary = transforms[transform](dictionary);
         }
         return dictionary;
     }
