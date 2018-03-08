@@ -67,7 +67,7 @@
     "nyc": "^11.5.0",
     "prettier": "1.11.0",
     "rimraf": "^2.6.2",
-    "semantic-release": "^12.2.2",
+    "semantic-release": "^15.0.0",
     "serverless": "^1.25.0",
     "serverless-dotenv-plugin": "^1.0.1",
     "serverless-webpack": "^4.2.0",
