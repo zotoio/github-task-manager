@@ -4,6 +4,7 @@ const pullRequestData = require('./pullrequest.json');
 const { URL } = require('url');
 const crypto = require('crypto');
 import { default as AgentLogger } from './AgentLogger';
+import { default as yamljs } from 'yamljs';
 let log = AgentLogger.log();
 
 const AWS = require('aws-sdk');
@@ -261,6 +262,40 @@ export class AgentUtils {
         bannerData.forEach(function(line) {
             console.log(line);
         });
+    }
+
+    /**
+     * Replace Objects with Equivalent YAML Strings
+     * @param {Object} optionsDict - Dictionary of Key:Value Pairs
+     */
+    static toYaml(optionsDict) {
+        for (let parameter in optionsDict) {
+            if (parameter.startsWith('YAML_')) {
+                let yamlString = yamljs.stringify(optionsDict[parameter], 8);
+                let varName = parameter.replace('YAML_', '');
+                optionsDict[varName] = yamlString;
+                delete optionsDict[parameter];
+            } else {
+                if (typeof optionsDict[parameter] == 'object') {
+                    optionsDict[parameter] = this.toYaml(optionsDict[parameter]);
+                }
+            }
+        }
+        return optionsDict;
+    }
+
+    /**
+     * Apply Listed Transformations to Options Dictionaries
+     * @param {Object} dictionary - Dictionary of Key:Value Pairs
+     */
+    static applyTransforms(dictionary) {
+        let transforms = {
+            toYaml: this.toYaml
+        };
+        for (let transform in transforms) {
+            dictionary = transforms[transform](dictionary);
+        }
+        return dictionary;
     }
 
     /**
