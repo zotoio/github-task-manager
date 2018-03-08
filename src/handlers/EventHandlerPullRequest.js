@@ -62,10 +62,12 @@ export class EventHandlerPullRequest extends EventHandler {
                     return;
                 }
 
-                task.options = AgentUtils.templateReplace(
-                    AgentUtils.createBasicTemplate(this.eventData, parent, log),
-                    task.options,
-                    log
+                task.options = AgentUtils.applyTransforms(
+                    AgentUtils.templateReplace(
+                        AgentUtils.createBasicTemplate(this.eventData, parent, log),
+                        task.options,
+                        log
+                    )
                 );
 
                 let initialState = 'pending';
