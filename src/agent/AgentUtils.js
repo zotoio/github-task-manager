@@ -271,7 +271,7 @@ export class AgentUtils {
     static toYaml(optionsDict) {
         for (let parameter in optionsDict) {
             if (parameter.startsWith('YAML_')) {
-                let yamlString = yamljs.stringify(optionsDict[parameter]);
+                let yamlString = yamljs.stringify(optionsDict[parameter], 8);
                 let varName = parameter.replace('YAML_', '');
                 optionsDict[varName] = yamlString;
                 delete optionsDict[parameter];
