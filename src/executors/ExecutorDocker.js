@@ -14,11 +14,11 @@ import appRoot from 'app-root-path';
    "context": "run ls in latest alpine",
    "options": {
      "image": "alpine:latest",
-     "command": ["/bin/ls", "-ltr", "/bin"],
-     "env": [
-        "myvar=myval",
-        "var2=val2"
-     ],
+     "command": "/bin/ls -ltr /bin",
+     "env": {
+        "myvar": "myval",
+        "var2": "val2"
+     },
      "validator": {
         "type": "outputRegex",
         "regex": ".*HOSTNAME.*"
@@ -70,11 +70,19 @@ export class ExecutorDocker extends Executor {
         return valid;
     }
 
+    formatEnv(envObj) {
+        let envArray = [];
+        Object.keys(envObj).forEach(key => {
+            envArray.push(`${key}=${envObj[key]}`);
+        });
+        return envArray;
+    }
+
     async executeTask(task) {
         let log = this.log;
         let image = task.options.image;
         let command = task.options.command;
-        let env = task.options.env || [];
+        let env = task.options.env || {};
 
         if (
             command &&
@@ -107,7 +115,7 @@ export class ExecutorDocker extends Executor {
             return Promise.reject(task);
         }
 
-        log.info(`Starting local docker container '${image}' to run: ${command.join(' ')}`);
+        log.info(`Starting local docker container '${image}' to run: ${command}`);
 
         let docker = new Docker();
         let that = this;
@@ -117,12 +125,12 @@ export class ExecutorDocker extends Executor {
                 return docker.createContainer({
                     Image: image,
                     Cmd: command,
-                    Env: env
+                    Env: this.formatEnv(env)
                 });
             })
 
             .then(container => {
-                return container.start({});
+                return container.start();
             })
 
             .then(container => {

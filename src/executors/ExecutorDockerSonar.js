@@ -10,7 +10,7 @@ import { AgentUtils } from '../agent/AgentUtils';
  *
  */
 
-export class ExecutorDockerSonarPullRequest extends ExecutorDocker {
+export class ExecutorDockerSonar extends ExecutorDocker {
     constructor(eventData, log) {
         super(eventData, log);
         this.eventData = eventData;
@@ -61,4 +61,4 @@ export class ExecutorDockerSonarPullRequest extends ExecutorDocker {
     }
 }
 
-Executor.register('Sonar', ExecutorDockerSonarPullRequest);
+Executor.register('DockerSonar', ExecutorDockerSonar);
