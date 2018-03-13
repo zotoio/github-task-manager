@@ -8,6 +8,22 @@ import { AgentUtils } from '../agent/AgentUtils';
  *
  * see: https://github.com/wyvern8/github-task-manager/wiki/Structure-of-.githubTaskManager.json
  *
+{
+  "pull_request": {
+    "agentGroup": "K8S",
+    "tasks": [
+      {
+        "executor": "DockerSonar",
+        "context": "Scan PR",
+        "options": {
+           "env": {"BUILD_TYPE": "nodejs"}
+        }
+      }
+    ]
+  }
+}
+
+ *
  */
 
 export class ExecutorDockerSonar extends ExecutorDocker {
