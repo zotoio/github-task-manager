@@ -225,24 +225,29 @@ export class ExecutorDocker extends Executor {
     pullImage(docker, image) {
         let log = this.log;
         return new Promise((resolve, reject) => {
-            docker.pull(image, function(err, stream) {
-                if (err) {
-                    return reject(err);
-                }
-
-                docker.modem.followProgress(stream, onFinished, onProgress);
-
-                function onFinished(err, output) {
+            if (process.env.DOCKER_FORCE_PULL === 'true') {
+                log.debug(`pulling image ${image}..`);
+                docker.pull(image, function(err, stream) {
                     if (err) {
                         return reject(err);
                     }
-                    return resolve(output);
-                }
 
-                function onProgress(event) {
-                    log.info(event);
-                }
-            });
+                    docker.modem.followProgress(stream, onFinished, onProgress);
+
+                    function onFinished(err, output) {
+                        if (err) {
+                            return reject(err);
+                        }
+                        return resolve(output);
+                    }
+
+                    function onProgress(event) {
+                        log.info(event);
+                    }
+                });
+            } else {
+                return resolve(true);
+            }
         });
     }
 
