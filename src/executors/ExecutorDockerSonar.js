@@ -49,7 +49,6 @@ export class ExecutorDockerSonar extends ExecutorDocker {
                 GIT_PR_BRANCHNAME: '##GH_PR_BRANCHNAME##',
                 SONAR_GITHUB_REPOSITORY: '##GH_REPOSITORY_FULLNAME##',
                 SONAR_HOST_URL: '##GTM_SONAR_HOST_URL##',
-                SONAR_GITHUB_OATH: '##GTM_SONAR_GITHUB_OAUTH##',
                 SONAR_LOGIN: '##GTM_SONAR_LOGIN##',
                 SONAR_PROJECTNAME_PREFIX: '##GTM_SONAR_PROJECTNAME_PREFIX##',
                 SONAR_ANALYSIS_MODE: '##GTM_SONAR_ANALYSIS_MODE##',
@@ -71,6 +70,12 @@ export class ExecutorDockerSonar extends ExecutorDocker {
                 task.options,
                 this.log
             )
+        );
+
+        // add token into clone url
+        task.options.env.GIT_CLONE = task.options.env.GIT_CLONE.replace(
+            'https://',
+            `https://${task.options.env.SONAR_GITHUB_OAUTH}@`
         );
 
         return task.options;
