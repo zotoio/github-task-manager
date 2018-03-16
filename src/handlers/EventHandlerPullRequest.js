@@ -184,6 +184,15 @@ export class EventHandlerPullRequest extends EventHandler {
                         })
                         .catch(e => {
                             log.error(e);
+
+                            if (!task.results) {
+                                task.results = {
+                                    passed: false,
+                                    url: 'https://github.com/wyvern8/github-task-manager',
+                                    message: e.message
+                                };
+                            }
+
                             status = AgentUtils.createPullRequestStatus(
                                 event.eventData,
                                 'error',
