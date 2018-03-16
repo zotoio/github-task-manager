@@ -60,10 +60,12 @@ export class ExecutorDocker extends Executor {
 
         if (imageList && imageList.length > 0) {
             imageList.forEach(imagePattern => {
-                let pattern = new RegExp(imagePattern.trim());
-                if (pattern.test(image)) {
-                    log.info(`matched whitelist image pattern '${imagePattern.trim()}'`);
-                    valid = true;
+                if (!valid) {
+                    let pattern = new RegExp(imagePattern.trim());
+                    if (pattern.test(image)) {
+                        log.info(`matched whitelist image pattern '${imagePattern.trim()}'`);
+                        valid = true;
+                    }
                 }
             });
         }
