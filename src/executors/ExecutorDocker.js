@@ -225,7 +225,7 @@ export class ExecutorDocker extends Executor {
     pullImage(docker, image) {
         let log = this.log;
         return new Promise((resolve, reject) => {
-            if (process.env.DOCKER_FORCE_PULL === 'true') {
+            if (process.env.GTM_DOCKER_ALLOW_PULL !== 'false') {
                 log.debug(`pulling image ${image}..`);
                 docker.pull(image, function(err, stream) {
                     if (err) {
