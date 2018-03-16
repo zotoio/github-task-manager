@@ -1,6 +1,6 @@
 import { default as bunyan } from 'bunyan';
 import { default as bformat } from 'bunyan-format';
-import { default as createCWStream } from 'bunyan-cloudwatch';
+import { default as CWLogsWritable } from 'cwlogs-writable';
 import { default as UUID } from 'uuid/v4';
 import { default as ExpressSSE } from 'express-sse';
 import { default as proxy } from 'proxy-agent';
@@ -39,7 +39,7 @@ function create(agentId) {
         };
     }
 
-    let cloudWatchStream = createCWStream({
+    let cloudWatchStream = new CWLogsWritable({
         logGroupName: process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP || 'gtmAgent',
         logStreamName: 'AGENT_ID=' + agentId,
         cloudWatchLogsOptions: CWLogOptions
