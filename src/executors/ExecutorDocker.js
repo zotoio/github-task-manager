@@ -190,8 +190,14 @@ export class ExecutorDocker extends Executor {
             logStream.on('data', function(chunk) {
                 logBuffer.push(chunk.toString('utf8'));
                 if (logBuffer.length % 50 === 0) {
-                    let lines = logBuffer.reverse().join('');
-                    log.info(lines);
+                    let lines = logBuffer.join('');
+                    if (lines.length * 4 > 250000) {
+                        lines.match(/.{1,50000}/g).forEach(line => {
+                            log.info(line);
+                        });
+                    } else {
+                        log.info(lines);
+                    }
                     executor.taskOutputTail += lines;
                     logBuffer = [];
                 }
