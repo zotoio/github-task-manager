@@ -2,6 +2,7 @@ import { EventHandler } from '../agent/EventHandler';
 import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
 import { default as formatJson } from 'format-json';
+import { default as _ } from 'lodash';
 
 export class EventHandlerPullRequest extends EventHandler {
     async handleEvent() {
@@ -201,12 +202,22 @@ export class EventHandlerPullRequest extends EventHandler {
                                 log
                             )
                                 .then(() => {
+                                    let taskMasked = _.cloneDeep(task);
+                                    Object.keys(taskMasked.options.env).forEach(key => {
+                                        if (new RegExp('LOGIN|OAUTH|KEY|TOKEN|SECRET|PASSW').test(key)) {
+                                            taskMasked.options.env[key] = AgentUtils.maskString(
+                                                taskMasked.options.env[key]
+                                            );
+                                        }
+                                    });
+                                    taskMasked.options.env.GIT_CLONE = event.eventData.repository.clone_url;
+
                                     let commentBody = `### Task failed during event ${event.eventId}\n'${
                                         task.executor
                                     }: ${
                                         task.context
                                     }', any subtasks have been skipped. Config: \n\`\`\`json\n${formatJson.plain(
-                                        task
+                                        taskMasked
                                     )}\n\`\`\``;
                                     return this.addPullRequestComment(event, commentBody, task);
                                 })
