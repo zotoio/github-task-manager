@@ -189,7 +189,7 @@ export class ExecutorDocker extends Executor {
             let logStream = new stream.PassThrough();
             logStream.on('data', function(chunk) {
                 logBuffer.push(chunk.toString('utf8'));
-                if (logBuffer.length % 100 === 0) {
+                if (logBuffer.length % 50 === 0) {
                     let lines = logBuffer.reverse().join('');
                     log.info(lines);
                     executor.taskOutputTail += lines;
@@ -197,7 +197,7 @@ export class ExecutorDocker extends Executor {
                 }
             });
 
-            container.logs(
+            return container.logs(
                 {
                     follow: true,
                     stdout: true,
