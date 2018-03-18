@@ -310,7 +310,7 @@ export class AgentUtils {
             log.info(`Replacing ${key} with ${varDict[key]}`);
             templateStr = templateStr.replace(re, varDict[key]);
         }
-        console.debug(templateStr);
+        log.debug(templateStr);
         return JSON.parse(templateStr);
     }
 
@@ -342,8 +342,10 @@ export class AgentUtils {
             '##GTM_SONAR_GITHUB_OAUTH##': process.env.GTM_SONAR_GITHUB_OAUTH,
             '##GTM_SONAR_LOGIN##': process.env.GTM_SONAR_LOGIN,
             '##GTM_SONAR_PROJECTNAME_PREFIX##': process.env.GTM_SONAR_PROJECTNAME_PREFIX,
-            '##GTM_SONAR_ANALYSIS_MODE##': process.env.GTM_SONAR_ANALYSIS_MODE,
-            '##GTM_SONAR_SOURCES##': process.env.GTM_SONAR_SOURCES
+            '##GTM_SONAR_ANALYSIS_MODE##': process.env.GTM_SONAR_ANALYSIS_MODE || 'preview',
+            '##GTM_SONAR_MODULES##': process.env.GTM_SONAR_MODULES,
+            '##GTM_SONAR_SOURCES##': process.env.GTM_SONAR_SOURCES || 'src',
+            '##GTM_SONAR_JAVA_BINARIES##': process.env.GTM_SONAR_JAVA_BINARIES || 'target'
         };
     }
 
