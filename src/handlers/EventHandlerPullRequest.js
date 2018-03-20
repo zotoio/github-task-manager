@@ -3,6 +3,7 @@ import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
 import { default as formatJson } from 'format-json';
 import { default as _ } from 'lodash';
+import { default as fs } from 'fs';
 
 export class EventHandlerPullRequest extends EventHandler {
     async handleEvent() {
@@ -57,21 +58,11 @@ export class EventHandlerPullRequest extends EventHandler {
         let log = this.log;
 
         if (event.taskConfig.pull_request.isDefaultConfig) {
-            await this.addPullRequestComment(
-                event,
-                `
-# Action required!
+            let warningPath =
+                process.env.GTM_TASK_CONFIG_DEFAULT_MESSAGE_PATH || __dirname + '/PullRequestDefaultConfigWarning.md';
 
-It looks like this git repo is missing .githubTaskManager.json in it's root so i'll try  
-some default status checks for now until this is fixed.
-
-Take a look at https://github.com/wyvern8/github-task-manager/wiki/Creating-a-Task-Configuration 
-and work with your team to create a config file for your repo.
-
-I'll keep reminding you on each pull request, as this is important!
-`,
-                null
-            );
+            let warning = fs.readFileSync(warningPath, 'utf-8');
+            await this.addPullRequestComment(event, warning, null);
         }
 
         if (parent.tasks) {

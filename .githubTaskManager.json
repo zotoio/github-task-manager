@@ -1,45 +1,15 @@
+
 {
   "pull_request": {
     "tasks": [
       {
-        "executor": "jenkins",
-        "context": "functional",
+        "executor": "DockerSonar",
+        "context": "Scan PR",
         "options": {
-          "jobName": "EXECUTE_AUTOMATED_TESTS",
-          "parameters": {
-            "tags": [
-              "@smoke"
-            ],
-            "browsers": [
-              "chrome"
-            ],
-            "ENVIRONMENT":"testEnv"
+          "env": {
+            "BUILD_TYPE": "maven",
+            "SONAR_BINARIES": "target"
           }
-        }
-      },
-      {
-        "executor": "TeamCity",
-        "context": "run e2e tests",
-        "options": {
-          "jobName": "projectName_id",
-          "parameters": {
-            "build_tag" : "proj_wasX",
-            "ENVIRONMENT" : "env_dev",
-            "cuke_env" : "env_dev|staging|prod",
-            "cuke_tags" : [
-              "@proj_wasX",
-              "@proj_wasn"
-            ]
-          }
-        }
-      },
-      {
-        "executor": "travis",
-        "context": "integration",
-        "options": {
-          "tags": [
-            "@a11y"
-          ]
         }
       }
     ]
