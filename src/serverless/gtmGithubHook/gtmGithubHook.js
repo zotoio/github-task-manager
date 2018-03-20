@@ -107,7 +107,33 @@ async function getTaskConfig(type, body) {
 
     console.log(`file request params for ${type} = ${json.plain(fileParams)}`);
 
-    let fileResponse = await githubUtils.getFile(fileParams);
+    let fileResponse = await githubUtils.getFile(fileParams).catch(() => {
+        return {
+            data: {
+                content: Buffer.from(
+                    JSON.stringify({
+                        pull_request: {
+                            isDefaultConfig: true,
+                            tasks: [
+                                {
+                                    executor: 'DockerSonar',
+                                    context: 'Scan Pull Request',
+                                    options: {
+                                        env: {
+                                            BUILD_TYPE: 'maven',
+                                            SONAR_BINARIES: 'target',
+                                            SONAR_SOURCES: 'src'
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    })
+                ).toString('base64')
+            }
+        };
+    });
+
     let taskConfig = githubUtils.decodeFileResponse(fileResponse);
 
     if (!taskConfig[type] || !taskConfig[type].tasks || !taskConfig[type].tasks.length > 0) {

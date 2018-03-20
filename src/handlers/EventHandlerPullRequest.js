@@ -56,6 +56,24 @@ export class EventHandlerPullRequest extends EventHandler {
         let promises = [];
         let log = this.log;
 
+        if (event.taskConfig.pull_request.isDefaultConfig) {
+            await this.addPullRequestComment(
+                event,
+                `
+# Action required!
+
+It looks like this git repo is missing .githubTaskManager.json in it's root so i'll try  
+some default status checks for now until this is fixed.
+
+Take a look at https://github.com/wyvern8/github-task-manager/wiki/Creating-a-Task-Configuration 
+and work with your team to create a config file for your repo.
+
+I'll keep reminding you on each pull request, as this is important!
+`,
+                null
+            );
+        }
+
         if (parent.tasks) {
             parent.tasks.forEach(async task => {
                 if (task.disabled) {
