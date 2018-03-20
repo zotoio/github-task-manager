@@ -1,4 +1,4 @@
-# Action required!
+# Action Required!
 
 It looks like this git repo is missing pull request task config `.githubTaskManager.json`, so i'll try some default status checks for now until this is fixed.
 
