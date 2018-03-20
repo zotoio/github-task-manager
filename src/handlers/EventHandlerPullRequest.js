@@ -3,6 +3,7 @@ import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
 import { default as formatJson } from 'format-json';
 import { default as _ } from 'lodash';
+import { default as fs } from 'fs';
 
 export class EventHandlerPullRequest extends EventHandler {
     async handleEvent() {
@@ -55,6 +56,14 @@ export class EventHandlerPullRequest extends EventHandler {
     async setIntialTaskState(event, parent) {
         let promises = [];
         let log = this.log;
+
+        if (event.taskConfig.pull_request.isDefaultConfig) {
+            let warningPath =
+                process.env.GTM_TASK_CONFIG_DEFAULT_MESSAGE_PATH || __dirname + '/PullRequestDefaultConfigWarning.md';
+
+            let warning = fs.readFileSync(warningPath, 'utf-8');
+            await this.addPullRequestComment(event, warning, null);
+        }
 
         if (parent.tasks) {
             parent.tasks.forEach(async task => {

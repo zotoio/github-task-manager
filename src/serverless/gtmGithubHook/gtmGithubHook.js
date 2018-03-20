@@ -1,6 +1,7 @@
 'use strict';
 
 require('source-map-support').install();
+let rp = require('request-promise-native');
 let json = require('format-json');
 let UUID = require('uuid/v4');
 let Producer = require('sqs-producer');
@@ -107,7 +108,23 @@ async function getTaskConfig(type, body) {
 
     console.log(`file request params for ${type} = ${json.plain(fileParams)}`);
 
-    let fileResponse = await githubUtils.getFile(fileParams);
+    let fileResponse = await githubUtils.getFile(fileParams).catch(() => {
+        return rp({
+            proxy: process.env.https_proxy || process.env.http_proxy || null,
+            json: true,
+            uri:
+                process.env.GTM_TASK_CONFIG_DEFAULT_URL ||
+                'https://raw.githubusercontent.com/wyvern8/github-task-manager/master/.githubTaskManager.json'
+        }).then(config => {
+            config.pull_request.isDefaultConfig = true;
+            return {
+                data: {
+                    content: Buffer.from(JSON.stringify(config)).toString('base64')
+                }
+            };
+        });
+    });
+
     let taskConfig = githubUtils.decodeFileResponse(fileResponse);
 
     if (!taskConfig[type] || !taskConfig[type].tasks || !taskConfig[type].tasks.length > 0) {
