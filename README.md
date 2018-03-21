@@ -133,4 +133,4 @@ npm install -g commitizen
 npm install -g cz-conventional-changelog
 echo '{ "path": "cz-conventional-changelog" }' > ~/.czrc
 ```
-..or you can just use `npm run commit` which will use local commitizen install.
+..or you can just use `npm run commit` which will use local commitizen install..
