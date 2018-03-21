@@ -330,21 +330,24 @@ export class AgentUtils {
             };
         }
 
-        return {
+        let mapDict = {
             '##GHPRNUM##': obj.pull_request.number,
             '##GHREPONAME##': obj.repository.name,
             '##GH_REPOSITORY_FULLNAME##': obj.repository.full_name,
             '##GH_CLONE_URL##': obj.repository.clone_url,
             '##GH_PR_BRANCHNAME##': obj.pull_request.head.ref,
             '##PARENTBUILDNUMBER##': this.metaValue(parent, 'buildNumber'),
-            '##PARENTBUILDNAME##': this.metaValue(parent, 'buildName'),
-            '##GTM_SONAR_HOST_URL##': process.env.GTM_SONAR_HOST_URL,
-            '##GTM_SONAR_GITHUB_OAUTH##': process.env.GTM_SONAR_GITHUB_OAUTH,
-            '##GTM_SONAR_LOGIN##': process.env.GTM_SONAR_LOGIN,
-            '##GTM_SONAR_PROJECTNAME_PREFIX##': process.env.GTM_SONAR_PROJECTNAME_PREFIX,
-            '##GTM_SONAR_ANALYSIS_MODE##': process.env.GTM_SONAR_ANALYSIS_MODE,
-            '##GTM_SONAR_SOURCES##': process.env.GTM_SONAR_SOURCES
+            '##PARENTBUILDNAME##': this.metaValue(parent, 'buildName')
         };
+
+        // just add all the GTM env vars to map
+        Object.keys(process.env).forEach(key => {
+            if (key.startsWith('GTM_')) {
+                mapDict[`##${key}##`] = process.env[key];
+            }
+        });
+
+        return mapDict;
     }
 
     static metaValue(parent, field) {

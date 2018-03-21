@@ -71,10 +71,24 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_DOCKER_IMAGE_WHITELIST| comma separated list of regex of allows docker images eg. alpine:*,bash:latest|
 |GTM_DOCKER_IMAGE_WHITELIST_FILE|use an optional docker whitelist file .dockerImageWhitelistExample|
 |GTM_DOCKER_COMMANDS_ALLOWED| default is false, set to true to enable docker executor|
+|GTM_DOCKER_ALLOW_PULL| allow agent to pull from registry |
+|GTM_DOCKER_DEFAULT_WORKER_IMAGE| for running ci tasks, default is `zotoio/gtm-worker:latest` |
 |IAM_ENABLED|agent host uses IAM ?|
 |LAUNCHDARKLY_API_TOKEN|token for launchdarkly sass executor|
 |GTM_LOGSTASH_HOST|optional logstash host for elasticsearch analysis|
 |GTM_LOGSTASH_PORT|optional logstash port|
+|GTM_SONAR_HOST_URL| sonar host url to connect to |
+|GTM_SONAR_LOGIN| sonar access token |
+|GTM_SONAR_PROJECTNAME_PREFIX| prefix if reporting to sonarqube |
+|GTM_SONAR_ANALYSIS_MODE| mode for sonar runner, default preview for PRs |
+|GTM_SONAR_GITHUB_OAUTH| github token for sonar to post comments and status |
+|GTM_SONAR_SOURCES| default source dir is `src`|
+|GTM_SONAR_JAVA_BINARIES| default is `target`|
+|GTM_SONAR_MODULES| comma separated modules|
+|GTM_SONAR_GITHUB_ENDPOINT| optional enterprise github api url|
+|GTM_TASK_CONFIG_DEFAULT_URL| url to default sample config used when repo is missing .githubTaskManager.json|
+|GTM_TASK_CONFIG_DEFAULT_MESSAGE_PATH| path to markdown comment file added to PRs when repo is missing .githubTaskManager.json|
+
 
 ## Configure and deploy
 - run: `npm run sls-deploy` - note that this will create aws re$ources..

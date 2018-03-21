@@ -40,7 +40,7 @@ export class ExecutorDockerSonar extends ExecutorDocker {
 
     mergeTaskOptions(task) {
         let options = {
-            image: 'zotoio/gtm-worker:latest',
+            image: process.env.GTM_DOCKER_DEFAULT_WORKER_IMAGE || 'zotoio/gtm-worker:latest',
             command: '/usr/workspace/sonar-pullrequest.sh',
             env: {
                 BUILD_TYPE: 'maven',
@@ -53,7 +53,10 @@ export class ExecutorDockerSonar extends ExecutorDocker {
                 SONAR_PROJECTNAME_PREFIX: '##GTM_SONAR_PROJECTNAME_PREFIX##',
                 SONAR_ANALYSIS_MODE: '##GTM_SONAR_ANALYSIS_MODE##',
                 SONAR_GITHUB_OAUTH: '##GTM_SONAR_GITHUB_OAUTH##',
-                SONAR_SOURCES: '##GTM_SONAR_SOURCES##'
+                SONAR_SOURCES: '##GTM_SONAR_SOURCES##',
+                SONAR_JAVA_BINARIES: '##GTM_SONAR_JAVA_BINARIES##',
+                SONAR_MODULES: '##GTM_SONAR_MODULES##',
+                SONAR_GITHUB_ENDPOINT: '##GTM_SONAR_GITHUB_ENDPOINT##'
             },
             validator: {
                 type: 'outputRegex',
