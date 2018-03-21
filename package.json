@@ -65,12 +65,12 @@
     "mocha": "^5.0.0",
     "node-sass": "^4.7.2",
     "nyc": "^11.5.0",
-    "prettier": "1.11.0",
+    "prettier": "1.11.1",
     "rimraf": "^2.6.2",
     "semantic-release": "^15.0.0",
     "serverless": "^1.25.0",
     "serverless-dotenv-plugin": "^1.0.1",
-    "serverless-webpack": "^4.2.0",
+    "serverless-webpack": "^5.1.0",
     "sinon": "^4.1.3",
     "sqs-producer": "^1.6.2",
     "supertest": "^3.0.0"
@@ -95,7 +95,7 @@
     }
   },
   "dependencies": {
-    "@octokit/rest": "15.1.3",
+    "@octokit/rest": "15.2.5",
     "app-root-path": "^2.0.1",
     "babel-plugin-source-map-support": "^2.0.1",
     "babel-plugin-transform-runtime": "^6.23.0",
@@ -113,7 +113,7 @@
     "highlight.js": "^9.12.0",
     "http": "^0.0.0",
     "jenkins": "^0.20.1",
-    "jsontoxml": "^0.1.0",
+    "jsontoxml": "^1.0.0",
     "launchdarkly-nodeutils": "^3.0.0",
     "ldclient-node": "^4.0.0",
     "lodash": "^4.17.5",
