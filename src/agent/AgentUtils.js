@@ -310,7 +310,7 @@ export class AgentUtils {
             log.info(`Replacing ${key} with ${varDict[key]}`);
             templateStr = templateStr.replace(re, varDict[key]);
         }
-        console.debug(templateStr);
+        log.debug(templateStr);
         return JSON.parse(templateStr);
     }
 
