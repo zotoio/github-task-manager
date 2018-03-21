@@ -20,8 +20,8 @@
     "docker-build": "docker build -t github-task-manager --no-cache .",
     "docker-start": "docker-compose up --force-recreate -d",
     "docker-build-tail": "npm run build && docker-compose up --force-recreate",
-    "docker-siblings": "docker run --rm --env-file ./.env --volume=\"/var/run/docker.sock:/var/run/docker.sock\" wyvern8/github-task-manager:latest",
-    "docker-hub-run": "docker pull wyvern8/github-task-manager:latest && docker run --env-file ./.env wyvern8/github-task-manager:latest",
+    "docker-siblings": "docker run --rm --env-file ./.env --volume=\"/var/run/docker.sock:/var/run/docker.sock\" zotoio/github-task-manager:latest",
+    "docker-hub-run": "docker pull zotoio/github-task-manager:latest && docker run --env-file ./.env zotoio/github-task-manager:latest",
     "docker-local-logs": "docker-compose logs --tail=0 --follow",
     "docker-local-bounce": "npm run agent-build && docker-compose restart && npm run docker-local-logs",
     "k8s-apply": "chmod 755 ./k8s.sh && ./k8s.sh apply",
@@ -29,19 +29,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wyvern8/github-task-manager.git"
+    "url": "git+https://github.com/zotoio/github-task-manager.git"
   },
   "keywords": [
     "github",
     "ci",
     "task"
   ],
-  "author": "Andrew Vaughan <andrewv@smartcreations.com.au> (https://halt.sh)",
+  "author": "zotoio <io@zoto.io> (https://zoto.io)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/wyvern8/github-task-manager/issues"
+    "url": "https://github.com/zotoio/github-task-manager/issues"
   },
-  "homepage": "https://github.com/wyvern8/github-task-manager#readme",
+  "homepage": "https://github.com/zotoio/github-task-manager#readme",
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",

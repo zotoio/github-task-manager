@@ -6,7 +6,7 @@ import { AgentUtils } from '../agent/AgentUtils';
 /**
  * Sample .githubTaskManager.json task config
  *
- * see: https://github.com/wyvern8/github-task-manager/wiki/Structure-of-.githubTaskManager.json
+ * see: https://github.com/zotoio/github-task-manager/wiki/Structure-of-.githubTaskManager.json
  *
 {
   "pull_request": {
@@ -55,7 +55,7 @@ export class ExecutorDockerSonar extends ExecutorDocker {
                 SONAR_GITHUB_OAUTH: '##GTM_SONAR_GITHUB_OAUTH##',
                 SONAR_MODULES: '##GTM_SONAR_MODULES##',
                 SONAR_SOURCES: '##GTM_SONAR_SOURCES##',
-                SONAR_JAVA_BINARIES: '##GTM_SONAR_JAVA_BINARIES##',
+                SONAR_JAVA_BINARIES: '##GTM_SONAR_JAVA_BINARIES##'
             },
             validator: {
                 type: 'outputRegex',

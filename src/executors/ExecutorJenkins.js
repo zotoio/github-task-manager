@@ -5,7 +5,7 @@ import { AgentUtils } from '../agent/AgentUtils';
 /**
  * Sample .githubTaskManager.json task config/
  *
- * see: https://github.com/wyvern8/github-task-manager/wiki/Structure-of-.githubTaskManager.json
+ * see: https://github.com/zotoio/github-task-manager/wiki/Structure-of-.githubTaskManager.json
  *
  * {
         "executor": "Jenkins",

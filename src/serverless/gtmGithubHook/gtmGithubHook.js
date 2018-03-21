@@ -114,7 +114,7 @@ async function getTaskConfig(type, body) {
             json: true,
             uri:
                 process.env.GTM_TASK_CONFIG_DEFAULT_URL ||
-                'https://raw.githubusercontent.com/wyvern8/github-task-manager/master/.githubTaskManager.json'
+                'https://raw.githubusercontent.com/zotoio/github-task-manager/master/.githubTaskManager.json'
         }).then(config => {
             config.pull_request.isDefaultConfig = true;
             return {

@@ -116,7 +116,7 @@ export class AgentUtils {
             sha: eventData.pull_request.head.sha || 'Missing SHA',
             number: eventData.pull_request.number,
             state: state,
-            target_url: url ? url : 'https://github.com/wyvern8/github-task-manager',
+            target_url: url ? url : 'https://github.com/zotoio/github-task-manager',
             description: description,
             context: context,
             eventData: eventData
