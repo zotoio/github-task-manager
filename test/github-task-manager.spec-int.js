@@ -14,7 +14,7 @@ dotenv.config();
 describe('GitHub Task Manager', () => {
     describe('should correctly update a pull request', () => {
         /**
-         * 1. fork github repo from template at github.com/wyvern8/gtm-test
+         * 1. fork github repo from template at github.com/zotoio/gtm-test
          * 2. add webhook with secret
          * 3. create a branch
          * 4. create a file
@@ -48,7 +48,7 @@ describe('GitHub Task Manager', () => {
 
             return gh.repos
                 .fork({
-                    owner: 'wyvern8',
+                    owner: 'zotoio',
                     repo: integration.config.testRepoName
                 })
                 .then(function(res) {

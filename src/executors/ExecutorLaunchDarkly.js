@@ -5,7 +5,7 @@ import { default as formatJson } from 'format-json';
 /**
  * Sample .githubTaskManager.json task config
  *
- * see: https://github.com/wyvern8/github-task-manager/wiki/Structure-of-.githubTaskManager.json
+ * see: https://github.com/zotoio/github-task-manager/wiki/Structure-of-.githubTaskManager.json
  *
  * {
         "executor": "LaunchDarkly",

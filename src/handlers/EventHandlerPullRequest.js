@@ -197,7 +197,7 @@ export class EventHandlerPullRequest extends EventHandler {
                             if (!task.results) {
                                 task.results = {
                                     passed: false,
-                                    url: 'https://github.com/wyvern8/github-task-manager',
+                                    url: 'https://github.com/zotoio/github-task-manager',
                                     message: e.message
                                 };
                             }

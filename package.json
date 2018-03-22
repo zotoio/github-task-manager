@@ -20,8 +20,8 @@
     "docker-build": "docker build -t github-task-manager --no-cache .",
     "docker-start": "docker-compose up --force-recreate -d",
     "docker-build-tail": "npm run build && docker-compose up --force-recreate",
-    "docker-siblings": "docker run --rm --env-file ./.env --volume=\"/var/run/docker.sock:/var/run/docker.sock\" wyvern8/github-task-manager:latest",
-    "docker-hub-run": "docker pull wyvern8/github-task-manager:latest && docker run --env-file ./.env wyvern8/github-task-manager:latest",
+    "docker-siblings": "docker run --rm --env-file ./.env --volume=\"/var/run/docker.sock:/var/run/docker.sock\" zotoio/github-task-manager:latest",
+    "docker-hub-run": "docker pull zotoio/github-task-manager:latest && docker run --env-file ./.env zotoio/github-task-manager:latest",
     "docker-local-logs": "docker-compose logs --tail=0 --follow",
     "docker-local-bounce": "npm run agent-build && docker-compose restart && npm run docker-local-logs",
     "k8s-apply": "chmod 755 ./k8s.sh && ./k8s.sh apply",
@@ -29,19 +29,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wyvern8/github-task-manager.git"
+    "url": "git+https://github.com/zotoio/github-task-manager.git"
   },
   "keywords": [
     "github",
     "ci",
     "task"
   ],
-  "author": "Andrew Vaughan <andrewv@smartcreations.com.au> (https://halt.sh)",
+  "author": "zotoio <io@zoto.io> (https://zoto.io)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/wyvern8/github-task-manager/issues"
+    "url": "https://github.com/zotoio/github-task-manager/issues"
   },
-  "homepage": "https://github.com/wyvern8/github-task-manager#readme",
+  "homepage": "https://github.com/zotoio/github-task-manager#readme",
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
@@ -65,12 +65,12 @@
     "mocha": "^5.0.0",
     "node-sass": "^4.7.2",
     "nyc": "^11.5.0",
-    "prettier": "1.11.0",
+    "prettier": "1.11.1",
     "rimraf": "^2.6.2",
     "semantic-release": "^15.0.0",
     "serverless": "^1.25.0",
     "serverless-dotenv-plugin": "^1.0.1",
-    "serverless-webpack": "^4.2.0",
+    "serverless-webpack": "^5.1.0",
     "sinon": "^4.1.3",
     "sqs-producer": "^1.6.2",
     "supertest": "^3.0.0"
@@ -113,7 +113,7 @@
     "highlight.js": "^9.12.0",
     "http": "^0.0.0",
     "jenkins": "^0.20.1",
-    "jsontoxml": "^0.1.0",
+    "jsontoxml": "^1.0.0",
     "launchdarkly-nodeutils": "^3.0.0",
     "ldclient-node": "^4.0.0",
     "lodash": "^4.17.5",

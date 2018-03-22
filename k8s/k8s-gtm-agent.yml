@@ -35,7 +35,7 @@ spec:
     spec:
       containers:
         - name: gtm-agent
-          image: wyvern8/github-task-manager:latest
+          image: zotoio/github-task-manager:latest
           envFrom:
             - configMapRef:
                 name: gtm-agent-configmap

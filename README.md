@@ -1,13 +1,13 @@
 # github-task-manager
 
 [![npm version](https://badge.fury.io/js/github-task-manager.svg)](https://badge.fury.io/js/github-task-manager)
-[![Build Status](https://travis-ci.org/wyvern8/github-task-manager.svg?branch=master)](https://travis-ci.org/wyvern8/github-task-manager)
-[![Code Climate](https://img.shields.io/codeclimate/maintainability/wyvern8/github-task-manager.svg)](https://codeclimate.com/github/wyvern8/github-task-manager)
-[![Test Coverage](https://codeclimate.com/github/wyvern8/github-task-manager/badges/coverage.svg)](https://codeclimate.com/github/wyvern8/github-task-manager/coverage)
-[![Greenkeeper badge](https://badges.greenkeeper.io/wyvern8/github-task-manager.svg)](https://greenkeeper.io/)
+[![Build Status](https://travis-ci.org/zotoio/github-task-manager.svg?branch=master)](https://travis-ci.org/zotoio/github-task-manager)
+[![Code Climate](https://img.shields.io/codeclimate/maintainability/zotoio/github-task-manager.svg)](https://codeclimate.com/github/zotoio/github-task-manager)
+[![Test Coverage](https://codeclimate.com/github/zotoio/github-task-manager/badges/coverage.svg)](https://codeclimate.com/github/zotoio/github-task-manager/coverage)
+[![Greenkeeper badge](https://badges.greenkeeper.io/zotoio/github-task-manager.svg)](https://greenkeeper.io/)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg?clear)](http://commitizen.github.io/cz-cli/)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
-[![Docker Build Status](https://img.shields.io/docker/build/wyvern8/github-task-manager.svg)](https://hub.docker.com/r/wyvern8/github-task-manager)
+[![Docker Build Status](https://img.shields.io/docker/build/zotoio/github-task-manager.svg)](https://hub.docker.com/r/zotoio/github-task-manager)
 
 receive github hook, notify agent, receive task results, notify github (Unofficial)
 
@@ -94,12 +94,12 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 - run: `npm run sls-deploy` - note that this will create aws re$ources..
 - capture the hook url output in console and add to github repo pull request conf
 - run: `npm run sls-logs-hook` or `npm run sls-logs-results` to tail the logs
-- create a .githubTaskManager.json in your repo per https://github.com/wyvern8/github-task-manager/wiki/Creating-a-Task-Configuration
+- create a .githubTaskManager.json in your repo per https://github.com/zotoio/github-task-manager/wiki/Creating-a-Task-Configuration
 - start an agent locally using `npm run build && npm start agent` (or use docker/k8s)
 - create a pull request and confirm the hook is being hit and agent processes event
 
 ## Docker and Kubernetes agents
-You can run the latest image from docker hub: https://hub.docker.com/r/wyvern8/github-task-manager
+You can run the latest image from docker hub: https://hub.docker.com/r/zotoio/github-task-manager
 ```
 npm run docker-hub-run
 ```
@@ -131,7 +131,7 @@ The GTM Agent provides an information page summarising the ongoing operation of 
 <image src="gtm-agent-homepage.png">
 
 ## Plugins
-Task executors for Jenkins, Teamcity, Travis, Http, Docker are in progress. Custom task executors can be added by adding this project as a dependency, and registering new Executors and EventHandlers.  Please see https://github.com/wyvern8/gtm-agent for an example that you can fork and modify as required while still using this project as the core.
+Task executors for Jenkins, Teamcity, Travis, Http, Docker are in progress. Custom task executors can be added by adding this project as a dependency, and registering new Executors and EventHandlers.  Please see https://github.com/zotoio/gtm-agent for an example that you can fork and modify as required while still using this project as the core.
 
 - Executors contain the logic to run tasks against a given system type, and format the results.
 - EventHandlers are used to map Github events to specific functionality such as pull requests.
@@ -147,4 +147,4 @@ npm install -g commitizen
 npm install -g cz-conventional-changelog
 echo '{ "path": "cz-conventional-changelog" }' > ~/.czrc
 ```
-..or you can just use `npm run commit` which will use local commitizen install.
+..or you can just use `npm run commit` which will use local commitizen install..
