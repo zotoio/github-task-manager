@@ -1,8 +1,9 @@
 'use strict';
 
-let json = require('format-json');
-let GitHubApi = require('@octokit/rest');
-let crypto = require('crypto');
+const json = require('format-json');
+const GitHubApi = require('@octokit/rest');
+const crypto = require('crypto');
+const HttpsProxyAgent = require('https-proxy-agent');
 let githubUpdaters = {
     pull_request: updateGitHubPullRequest,
     comment: updateGitHubComment
@@ -18,9 +19,12 @@ function connect(context) {
         debug: process.env.GTM_GITHUB_DEBUG || false,
         timeout: parseInt(process.env.GTM_GITHUB_TIMEOUT) || 5000,
         pathPrefix: process.env.GTM_GITHUB_PATH_PREFIX || '',
-        proxy: process.env.GTM_GITHUB_PROXY || '',
         rejectUnauthorized: ghEnforceValidSsl
     };
+
+    if (process.env.GTM_GITHUB_PROXY) {
+        githubOptions.agent = HttpsProxyAgent(process.env.GTM_GITHUB_PROXY);
+    }
 
     console.log('Creating GitHub API Connection');
     let github = new GitHubApi(githubOptions);
