@@ -132,6 +132,7 @@ export class ExecutorJenkins extends Executor {
             passed: resultBool,
             url: result.url,
             message: `${jobName} #${buildNumber} - ${result.result}`,
+            details: `Job '${jobName} #${buildNumber}' Finished: ${result.result}`,
             meta: {
                 jobName: jobName,
                 buildNumber: buildNumber
