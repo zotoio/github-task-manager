@@ -30,6 +30,18 @@ provider:
       Resource:
         Fn::GetAtt: [ ResultsQueue, Arn ]
 
+    - Effect: Allow
+      Action:
+        - dynamodb:BatchWriteItem
+      Resource:
+        Fn::GetAtt: [ LogsTable, Arn ]
+
+    - Effect: Allow
+      Action:
+        - dynamodb:UpdateItem
+      Resource:
+        Fn::GetAtt: [ EventsTable, Arn ]
+
 
 package:
   individually: true
@@ -66,6 +78,26 @@ functions:
     events:
       - sns: ${env:GTM_SNS_RESULTS_TOPIC}
 
+  gtmGithubMetricCapture:
+    handler: dist/src/serverless/gtmGithubMetricCapture/gtmGithubMetricCapture.handler
+    environment:
+      DYNAMO_DB_TABLE_LOGS:
+        Ref: LogsTable
+      DYNAMO_DB_TABLE_EVENTS:
+        Ref: EventsTable
+
+    package:
+      include:
+        - dist/src/serverless/gtmGithubMetricCapture/**
+
+    events:
+      - cloudwatchLog:
+          logGroup: '/aws/lambda/gtmGithubHook-dev-gtmGithubHook'
+      - cloudwatchLog:
+          logGroup: '/aws/lambda/gtmGithubHook-dev-gtmGithubResults'
+      - cloudwatchLog:
+          logGroup: 'gtmAgent'
+
 resources:
   Resources:
     PendingQueue:
@@ -81,6 +113,34 @@ resources:
         QueueName: ${env:GTM_SQS_RESULTS_QUEUE}
         MessageRetentionPeriod: 1209600
         VisibilityTimeout: 7200
+
+    LogsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: GtmLogs
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+
+    EventsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: GtmEvents
+        AttributeDefinitions:
+          - AttributeName: ghEventId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: ghEventId
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
 
 custom:
   dotenv:
