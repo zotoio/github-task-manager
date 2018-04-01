@@ -48,12 +48,12 @@ async function handler(event, context, callback) {
 
             /***
              * Capture event summary data
-             * gtmEvents table schema: ghEventId, startTime, eventDuration, endTime, taskStates, result, repo, eventUrl
+             * gtmEvents table schema: ghEventId, startTime, eventDuration, endTime, tasks, eventResult, repo, eventUrl
              */
             if (isObj) {
                 let updateParams;
 
-                if (msg.msg === 'New Event Received') {
+                if (msg.resultType === 'START') {
                     console.log(`recording event start ${msg.ghEventId}..`);
                     updateParams = {
                         TableName: EVENTS_TABLE,
@@ -61,13 +61,18 @@ async function handler(event, context, callback) {
                             ghEventId: msg.ghEventId
                         },
                         UpdateExpression:
-                            'set ghEventId = :ghEventId, startTime = :startTime, repo = :repo, eventUrl = :eventUrl',
+                            'set startTime = :startTime, repo = :repo, eventUrl = :eventUrl, tasks = :tasks, ' +
+                            'endTime = :endTime, eventDuration = :eventDuration, failed = :failed',
                         ConditionExpression: 'attribute_not_exists(ghEventId) OR ghEventId = :ghEventId',
                         ExpressionAttributeValues: {
                             ':ghEventId': msg.ghEventId,
                             ':startTime': msg.time,
                             ':repo': msg.repo,
-                            ':eventUrl': msg.url
+                            ':eventUrl': msg.url,
+                            ':tasks': [],
+                            ':endTime': '',
+                            ':eventDuration': '',
+                            ':failed': ''
                         },
                         ReturnValues: 'UPDATED_NEW'
                     };
@@ -89,8 +94,8 @@ async function handler(event, context, callback) {
                         Key: {
                             ghEventId: msg.ghEventId
                         },
-                        UpdateExpression: 'set task = list_append(task, :task)',
-                        ConditionExpression: 'ghEventId = :ghEventId',
+                        UpdateExpression: 'set tasks = list_append(tasks, :task)',
+                        ConditionExpression: 'attribute_not_exists(ghEventId) OR ghEventId = :ghEventId',
                         ExpressionAttributeValues: {
                             ':ghEventId': msg.ghEventId,
                             ':task': [task]
@@ -107,14 +112,13 @@ async function handler(event, context, callback) {
                         Key: {
                             ghEventId: msg.ghEventId
                         },
-                        UpdateExpression:
-                            'set endTime = :endTime, eventDuration = :eventDuration, eventResult = :eventResult',
-                        ConditionExpression: 'ghEventId = :ghEventId',
+                        UpdateExpression: 'set endTime = :endTime, eventDuration = :eventDuration, failed = :failed',
+                        ConditionExpression: 'attribute_not_exists(ghEventId) OR ghEventId = :ghEventId',
                         ExpressionAttributeValues: {
                             ':ghEventId': msg.ghEventId,
                             ':endTime': msg.time,
                             ':eventDuration': msg.duration,
-                            ':eventResult': msg.result
+                            ':failed': msg.failed
                         },
                         ReturnValues: 'UPDATED_NEW'
                     };
@@ -126,7 +130,7 @@ async function handler(event, context, callback) {
             }
         });
 
-        // aws only allows 25 at a time
+        // aws batchWrite only allows 25 at a time
         _.chunk(logItems, 20).forEach(items => {
             let params = {
                 RequestItems: {}
