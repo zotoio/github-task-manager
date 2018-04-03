@@ -1,0 +1,46 @@
+{
+  "repo": "zotoio/sandpit",
+  "startTime": "2018-04-02T02:27:18.544Z",
+  "failed": true,
+  "endTime": "2018-04-02T02:27:51.867Z",
+  "eventDuration": 33323,
+  "tasks": [
+    {
+      "context": "avtest",
+      "duration": 1207,
+      "failed": false,
+      "time": "2018-04-02T02:27:30.304Z",
+      "executor": "Http"
+    },
+    {
+      "context": "run ls in latest alpine1a",
+      "duration": 5269,
+      "failed": false,
+      "time": "2018-04-02T02:27:34.368Z",
+      "executor": "Docker"
+    },
+    {
+      "context": "run ls in latest alpine1b",
+      "duration": 5479,
+      "failed": false,
+      "time": "2018-04-02T02:27:34.580Z",
+      "executor": "Docker"
+    },
+    {
+      "context": "run ls in latest alpine2b",
+      "duration": 3267,
+      "failed": true,
+      "time": "2018-04-02T02:27:48.452Z",
+      "executor": "Docker"
+    },
+    {
+      "context": "run ls in latest alpine2a",
+      "duration": 5429,
+      "failed": false,
+      "time": "2018-04-02T02:27:50.611Z",
+      "executor": "Docker"
+    }
+  ],
+  "ghEventId": "c5169478-4814-4e03-81a9-b00b653b02ba",
+  "eventUrl": "https://github.com/zotoio/sandpit/pull/6"
+}
