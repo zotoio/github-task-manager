@@ -86,7 +86,7 @@ async function configureRoutes(app) {
             let logs = await getEventLogs(ghEventId);
 
             logs.forEach(log => {
-                res.write(log._source.message + '\n');
+                res.write(`${log._source['@timestamp']} ${log._source.message} \n`);
             });
 
             res.end();
