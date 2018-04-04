@@ -1,6 +1,5 @@
 'use strict';
 
-const _ = require('lodash');
 const AWS = require('aws-sdk');
 AWS.config.update({ region: process.env.GTM_AWS_REGION });
 const ddb = new AWS.DynamoDB.DocumentClient({
@@ -20,11 +19,9 @@ async function handler(event, context, callback) {
         const payload = JSON.parse(res.toString('utf8'));
         console.log('Decoded payload:', JSON.stringify(payload));
 
-        const LOGS_TABLE = process.env.GTM_DYNAMO_TABLE_LOGS;
         const EVENTS_TABLE = process.env.GTM_DYNAMO_TABLE_EVENTS;
 
         let promises = [];
-        let logItems = [];
 
         payload.logEvents.forEach(evt => {
             let msg;
@@ -33,22 +30,14 @@ async function handler(event, context, callback) {
                 msg = JSON.parse(evt.message);
             } catch (e) {
                 msg = evt.message;
+                console.error(`unable to parse event result ${msg}`);
                 isObj = false;
             }
-            // capture all logs to gtmLogs table
-            logItems.push({
-                PutRequest: {
-                    Item: {
-                        id: evt.id,
-                        timestamp: evt.timestamp,
-                        message: msg
-                    }
-                }
-            });
 
             /***
              * Capture event summary data
-             * gtmEvents table schema: ghEventId, startTime, eventDuration, endTime, tasks, eventResult, repo, eventUrl
+             * gtmEvents table schema: ghEventId, startTime, eventDuration, endTime,
+             * tasks, eventResult, repo, eventUrl, title, number, sha, eventUser
              */
             if (isObj) {
                 let updateParams;
@@ -62,7 +51,8 @@ async function handler(event, context, callback) {
                         },
                         UpdateExpression:
                             'set startTime = :startTime, repo = :repo, eventUrl = :eventUrl, tasks = :tasks, ' +
-                            'endTime = :endTime, eventDuration = :eventDuration, failed = :failed',
+                            'endTime = :endTime, eventDuration = :eventDuration, failed = :failed, ' +
+                            'pullTitle = :pullTitle, pullNumber = :pullNumber, sha = :sha, eventUser = :eventUser',
                         ConditionExpression: 'attribute_not_exists(ghEventId) OR ghEventId = :ghEventId',
                         ExpressionAttributeValues: {
                             ':ghEventId': msg.ghEventId,
@@ -72,7 +62,11 @@ async function handler(event, context, callback) {
                             ':tasks': [],
                             ':endTime': '',
                             ':eventDuration': '',
-                            ':failed': ''
+                            ':failed': '',
+                            ':pullTitle': msg.pullTitle,
+                            ':pullNumber': msg.pullNumber,
+                            ':sha': msg.sha,
+                            ':eventUser': msg.eventUser
                         },
                         ReturnValues: 'UPDATED_NEW'
                     };
@@ -128,16 +122,6 @@ async function handler(event, context, callback) {
                     promises.push(ddb.update(updateParams).promise());
                 }
             }
-        });
-
-        // aws batchWrite only allows 25 at a time
-        _.chunk(logItems, 20).forEach(items => {
-            let params = {
-                RequestItems: {}
-            };
-            params.RequestItems[LOGS_TABLE] = items;
-
-            promises.push(ddb.batchWrite(params).promise());
         });
 
         Promise.all(promises).then(() => {

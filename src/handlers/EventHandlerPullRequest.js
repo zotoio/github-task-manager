@@ -20,7 +20,11 @@ export class EventHandlerPullRequest extends EventHandler {
             resultType: 'START',
             eventType: 'pull_request',
             repo: this.eventData.repository.full_name,
-            url: this.eventData.pull_request.html_url
+            url: this.eventData.pull_request.html_url,
+            pullTitle: this.eventData.pull_request.title,
+            pullNumber: this.eventData.number,
+            sha: this.eventData.pull_request.head.sha,
+            eventUser: this.eventData.pull_request.user.login
         });
 
         log.info('---------------------------------');

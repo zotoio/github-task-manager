@@ -15,7 +15,6 @@ provider:
   environment:
       GTM_GITHUB_WEBHOOK_SECRET: ${env:GTM_GITHUB_WEBHOOK_SECRET}
 
-
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -29,12 +28,6 @@ provider:
         - sqs:DeleteMessage
       Resource:
         Fn::GetAtt: [ ResultsQueue, Arn ]
-
-    - Effect: Allow
-      Action:
-        - dynamodb:BatchWriteItem
-      Resource:
-        Fn::GetAtt: [ LogsTable, Arn ]
 
     - Effect: Allow
       Action:
@@ -81,8 +74,6 @@ functions:
   gtmGithubMetricCapture:
     handler: dist/src/serverless/gtmGithubMetricCapture/gtmGithubMetricCapture.handler
     environment:
-      DYNAMO_DB_TABLE_LOGS:
-        Ref: LogsTable
       DYNAMO_DB_TABLE_EVENTS:
         Ref: EventsTable
 
@@ -92,11 +83,8 @@ functions:
 
     events:
       - cloudwatchLog:
-          logGroup: '/aws/lambda/gtmGithubHook-dev-gtmGithubHook'
-      - cloudwatchLog:
-          logGroup: '/aws/lambda/gtmGithubHook-dev-gtmGithubResults'
-      - cloudwatchLog:
           logGroup: 'gtmAgent'
+          filter: '{$.resultType != ""}'
 
 resources:
   Resources:
@@ -114,20 +102,6 @@ resources:
         MessageRetentionPeriod: 1209600
         VisibilityTimeout: 7200
 
-    LogsTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: GtmLogs
-        AttributeDefinitions:
-          - AttributeName: id
-            AttributeType: S
-        KeySchema:
-          - AttributeName: id
-            KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 5
-          WriteCapacityUnits: 5
-
     EventsTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -143,6 +117,12 @@ resources:
           WriteCapacityUnits: 5
         StreamSpecification:
           StreamViewType: NEW_IMAGE
+
+#    DynamoVpcEndpoint:
+#      Type: AWS::EC2::VPCEndpoint
+#      Properties:
+#        ServiceName: com.amazonaws.${env:GTM_AWS_REGION}.dynamodb
+#        VpcId: ${env:GTM_AWS_VPC_ID}
 
 custom:
   dotenv:

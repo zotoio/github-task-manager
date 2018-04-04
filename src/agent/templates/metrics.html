@@ -30,13 +30,17 @@
             }
 
             entry.innerHTML = `<b>${data.repo}</b><br>
+                pullTitle: ${data.pullTitle} <br>
+                eventUser: ${data.eventUser} <br>
+                pullNumber: ${data.pullNumber} <br>
+                sha: ${data.sha} <br>
                 ghEventId: ${data.ghEventId} <br>
                 eventUrl: ${data.eventUrl} <br>
                 startTime: ${data.startTime} <br>
                 endTime: ${data.endTime} <br>
                 failed? ${data.failed} <br>
                 eventDuration: ${data.eventDuration}<br>
-                tasks: ${data.tasks.length}
+                tasks: ${data.tasks ? data.tasks.length : 0} <br><br>
             `;
 
             if (!existingEntry) {
