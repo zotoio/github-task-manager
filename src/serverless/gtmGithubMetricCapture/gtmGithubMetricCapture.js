@@ -37,7 +37,7 @@ async function handler(event, context, callback) {
             /***
              * Capture event summary data
              * gtmEvents table schema: ghEventId, startTime, eventDuration, endTime,
-             * tasks, eventResult, repo, eventUrl, title, number, sha, eventUser
+             * tasks, eventResult, repo, eventUrl, pullTitle, pullNumber, sha, eventUser
              */
             if (isObj) {
                 let updateParams;
