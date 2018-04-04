@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block maincontent %}
+<h1>Event Stream</h1>
+<link rel="stylesheet" href="/static/hljs/github.css">
+<script src="/static/jquery.js"></script>
+<div class="event_info">
+    <div id="event-stream"></div>
+</div>
+
+<script>
+    function stream() {
+
+        var streamElem = document.getElementById(`event-stream`);
+        var es = new EventSource(`/metrics/stream`);
+
+        es.onmessage = function (event) {
+
+            var data = JSON.parse(event.data);
+            console.log(data);
+
+            var existingEntry = document.getElementById(data.ghEventId);
+            var entry;
+            if (!existingEntry) {
+                entry = document.createElement('div');
+                entry.setAttribute('class', 'item');
+                entry.setAttribute('id', data.ghEventId);
+            } else {
+                entry = existingEntry;
+            }
+
+            entry.innerHTML = `<b>${data.repo}</b><br>
+                pullTitle: ${data.pullTitle} <br>
+                eventUser: ${data.eventUser} <br>
+                pullNumber: ${data.pullNumber} <br>
+                sha: ${data.sha} <br>
+                ghEventId: ${data.ghEventId} <br>
+                eventUrl: ${data.eventUrl} <br>
+                startTime: ${data.startTime} <br>
+                endTime: ${data.endTime} <br>
+                failed? ${data.failed} <br>
+                eventDuration: ${data.eventDuration}<br>
+                tasks: ${data.tasks ? data.tasks.length : 0} <br><br>
+            `;
+
+            if (!existingEntry) {
+                streamElem.prepend(entry);
+            }
+        };
+
+        es.onerror = function (e) {
+            console.log(e);
+        };
+    }
+    $(document).ready(stream);
+</script>
+
+{% endblock %}

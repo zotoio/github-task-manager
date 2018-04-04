@@ -16,6 +16,17 @@ export class EventHandlerPullRequest extends EventHandler {
             return;
         }
 
+        log.info({
+            resultType: 'START',
+            eventType: 'pull_request',
+            repo: this.eventData.repository.full_name,
+            url: this.eventData.pull_request.html_url,
+            pullTitle: this.eventData.pull_request.title,
+            pullNumber: this.eventData.number,
+            sha: this.eventData.pull_request.head.sha,
+            eventUser: this.eventData.pull_request.user.login
+        });
+
         log.info('---------------------------------');
         log.info('Repository Name: ' + this.eventData.repository.full_name);
         log.info('Pull Request: ' + this.eventData.pull_request.number);
@@ -27,6 +38,7 @@ export class EventHandlerPullRequest extends EventHandler {
                 let duration = endTime - startTime;
                 log.info({
                     resultType: 'EVENT',
+                    eventType: 'pull_request',
                     repo: event.eventData.repository.full_name,
                     url: event.eventData.pull_request.html_url,
                     duration: duration,
@@ -368,6 +380,7 @@ export class EventHandlerPullRequest extends EventHandler {
         if (!task.results.passed) event.failed = true;
         log.info({
             resultType: 'TASK',
+            eventType: 'pull_request',
             repo: event.eventData.repository.full_name,
             url: event.eventData.pull_request.html_url,
             executor: task.executor,
