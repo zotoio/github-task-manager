@@ -307,11 +307,19 @@ export class AgentUtils {
         let templateStr = JSON.stringify(template);
         for (let key in varDict) {
             let re = new RegExp(key, 'g');
-            log.info(`Replacing ${key} with ${varDict[key]}`);
+            log.info(`Replacing ${key} with ${this.varMask(key, varDict[key])}`);
             templateStr = templateStr.replace(re, varDict[key]);
         }
         log.debug(templateStr);
         return JSON.parse(templateStr);
+    }
+
+    static varMask(key, val) {
+        if (new RegExp('LOGIN|OAUTH|KEY|TOKEN|SECRET|PASSW').test(key)) {
+            return this.maskString(val);
+        } else {
+            return val;
+        }
     }
 
     /**

@@ -15,7 +15,6 @@ provider:
   environment:
       GTM_GITHUB_WEBHOOK_SECRET: ${env:GTM_GITHUB_WEBHOOK_SECRET}
 
-
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -29,6 +28,12 @@ provider:
         - sqs:DeleteMessage
       Resource:
         Fn::GetAtt: [ ResultsQueue, Arn ]
+
+    - Effect: Allow
+      Action:
+        - dynamodb:UpdateItem
+      Resource:
+        Fn::GetAtt: [ EventsTable, Arn ]
 
 
 package:
@@ -66,6 +71,21 @@ functions:
     events:
       - sns: ${env:GTM_SNS_RESULTS_TOPIC}
 
+  gtmGithubMetricCapture:
+    handler: dist/src/serverless/gtmGithubMetricCapture/gtmGithubMetricCapture.handler
+    environment:
+      DYNAMO_DB_TABLE_EVENTS:
+        Ref: EventsTable
+
+    package:
+      include:
+        - dist/src/serverless/gtmGithubMetricCapture/**
+
+    events:
+      - cloudwatchLog:
+          logGroup: 'gtmAgent'
+          filter: '{$.resultType != ""}'
+
 resources:
   Resources:
     PendingQueue:
@@ -81,6 +101,28 @@ resources:
         QueueName: ${env:GTM_SQS_RESULTS_QUEUE}
         MessageRetentionPeriod: 1209600
         VisibilityTimeout: 7200
+
+    EventsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: GtmEvents
+        AttributeDefinitions:
+          - AttributeName: ghEventId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: ghEventId
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+        StreamSpecification:
+          StreamViewType: NEW_IMAGE
+
+#    DynamoVpcEndpoint:
+#      Type: AWS::EC2::VPCEndpoint
+#      Properties:
+#        ServiceName: com.amazonaws.${env:GTM_AWS_REGION}.dynamodb
+#        VpcId: ${env:GTM_AWS_VPC_ID}
 
 custom:
   dotenv:
