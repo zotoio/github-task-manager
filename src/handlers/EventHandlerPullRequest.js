@@ -48,7 +48,7 @@ export class EventHandlerPullRequest extends EventHandler {
                     url
                 );
 
-                AgentUtils.postResultsAndTrigger(eventStatus, `Executing event: ${event.eventId}`, log);
+                AgentUtils.postResultsAndTrigger(eventStatus, `Executing event: ${event.eventId}`);
                 let endTime = new Date().getTime();
                 let duration = endTime - startTime;
                 log.info({
