@@ -131,6 +131,29 @@ async function updateGitHubPullRequest(status, done) {
 }
 
 /**
+ * Create a Status Object to Send to GitHub
+ * @param {object} eventData - Data from GitHub Event
+ * @param {string} state - Current Task State (pending, passed, failed)
+ * @param {string} context - Content Name to Display in GitHub
+ * @param {string} description - Short Description to Display in GitHub
+ * @param {string} url - Link to more detail
+ *
+ */
+function createPullRequestStatus(eventData, state, context, description, url) {
+    return {
+        owner: eventData.repository.owner.login || 'Default_Owner',
+        repo: eventData.repository.name || 'Default_Repository',
+        sha: eventData.pull_request.head.sha || 'Missing SHA',
+        number: eventData.pull_request.number,
+        state: state,
+        target_url: url ? url : 'https://github.com/zotoio/github-task-manager',
+        description: description,
+        context: context,
+        eventData: eventData
+    };
+}
+
+/**
  * export type ReposCreateStatusParams =
  & {
       owner: string;
@@ -224,5 +247,7 @@ module.exports = {
     invalidHook: invalidHook,
     decodeFileResponse: decodeFileResponse,
     getFile: getFile,
-    handleEventTaskResult: handleEventTaskResult
+    handleEventTaskResult: handleEventTaskResult,
+    updateGitHubPullRequestStatus: updateGitHubPullRequestStatus,
+    createPullRequestStatus: createPullRequestStatus
 };

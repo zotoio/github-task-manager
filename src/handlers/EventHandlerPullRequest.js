@@ -34,6 +34,21 @@ export class EventHandlerPullRequest extends EventHandler {
 
         return this.handleTasks(this, this).then(() => {
             return this.addPullRequestSummaryComment(this).then(event => {
+                let url;
+                if (process.env.GTM_ELASTIC_HOST && process.env.GTM_ELASTIC_PORT) {
+                    let baseUrl = process.env.GTM_BASE_URL || 'http://localhost:9091';
+                    url = `${baseUrl}/metrics/log/${event.eventId}/text`;
+                }
+                let status = event.failed ? 'failure' : 'success';
+                let eventStatus = AgentUtils.createPullRequestStatus(
+                    this.eventData,
+                    status,
+                    'GitHub Task Manager',
+                    `Completed ${event.eventId}`,
+                    url
+                );
+
+                AgentUtils.postResultsAndTrigger(eventStatus, `Executing event: ${event.eventId}`, log);
                 let endTime = new Date().getTime();
                 let duration = endTime - startTime;
                 log.info({
@@ -68,6 +83,22 @@ export class EventHandlerPullRequest extends EventHandler {
     async setIntialTaskState(event, parent) {
         let promises = [];
         let log = this.log;
+
+        let url;
+        if (process.env.GTM_ELASTIC_HOST && process.env.GTM_ELASTIC_PORT) {
+            let baseUrl = process.env.GTM_BASE_URL || 'http://localhost:9091';
+            url = `${baseUrl}/metrics/log/${event.eventId}/text`;
+        }
+
+        let eventStatus = AgentUtils.createPullRequestStatus(
+            this.eventData,
+            'pending',
+            'GitHub Task Manager',
+            `Executing ${event.eventId}`,
+            url
+        );
+
+        promises.push(AgentUtils.postResultsAndTrigger(eventStatus, `Executing event: ${event.eventId}`, log));
 
         if (event.taskConfig.pull_request.isDefaultConfig) {
             let warningPath =
