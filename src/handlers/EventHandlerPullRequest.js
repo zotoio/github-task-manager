@@ -37,7 +37,7 @@ export class EventHandlerPullRequest extends EventHandler {
                 let url;
                 if (process.env.GTM_ELASTIC_HOST && process.env.GTM_ELASTIC_PORT) {
                     let baseUrl = process.env.GTM_BASE_URL || 'http://localhost:9091';
-                    url = `${baseUrl}/metrics/log/${event.eventId}/text`;
+                    url = `${baseUrl}/metrics/log/gtm-${event.eventId}.txt`;
                 }
                 let status = event.failed ? 'failure' : 'success';
                 let eventStatus = AgentUtils.createPullRequestStatus(
@@ -87,7 +87,7 @@ export class EventHandlerPullRequest extends EventHandler {
         let url;
         if (process.env.GTM_ELASTIC_HOST && process.env.GTM_ELASTIC_PORT) {
             let baseUrl = process.env.GTM_BASE_URL || 'http://localhost:9091';
-            url = `${baseUrl}/metrics/log/${event.eventId}/text`;
+            url = `${baseUrl}/metrics/log/gtm-${event.eventId}.txt`;
         }
 
         let eventStatus = AgentUtils.createPullRequestStatus(
@@ -405,7 +405,7 @@ export class EventHandlerPullRequest extends EventHandler {
         // if elk stack is configured, link to rehydrated logs
         if (process.env.GTM_ELASTIC_HOST && process.env.GTM_ELASTIC_PORT) {
             let baseUrl = process.env.GTM_BASE_URL || 'http://localhost:9091';
-            commentBody += `<a href="${baseUrl}/metrics/log/${event.eventId}/text">View full log</a>`;
+            commentBody += `<a href="${baseUrl}/metrics/log/gtm-${event.eventId}.txt">View full log</a>`;
         }
         return this.addPullRequestComment(event, commentBody);
     }

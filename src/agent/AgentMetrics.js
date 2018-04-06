@@ -69,19 +69,7 @@ async function configureRoutes(app) {
         });
     });
 
-    app.get('/metrics/log/:ghEventId', async (req, res) => {
-        if (!elastic) {
-            res.json({ error: 'elasticsearch is not configured' });
-            res.end();
-            return;
-        }
-
-        let ghEventId = req.params.ghEventId;
-        let logs = await getEventLogs(ghEventId);
-        res.json(logs);
-    });
-
-    app.get('/metrics/log/:ghEventId/text', async (req, res) => {
+    app.get('/metrics/log/gtm-:ghEventId.txt', async (req, res) => {
         if (!elastic) {
             res.write('elasticsearch is not configured');
             res.end();
@@ -96,6 +84,18 @@ async function configureRoutes(app) {
         });
 
         res.end();
+    });
+
+    app.get('/metrics/log/gtm-:ghEventId.json', async (req, res) => {
+        if (!elastic) {
+            res.json({ error: 'elasticsearch is not configured' });
+            res.end();
+            return;
+        }
+
+        let ghEventId = req.params.ghEventId;
+        let logs = await getEventLogs(ghEventId);
+        res.json(logs);
     });
 
     async function getEventLogs(ghEventId) {
