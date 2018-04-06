@@ -116,14 +116,14 @@ async function configureRoutes(app) {
     }
 
     ddbStream.on('insert record', eventObject => {
-        log.info(`inserted ${json.plain(eventObject)}`);
+        log.debug(`inserted ${json.plain(eventObject)}`);
         INITIAL_DATA.push(eventObject);
         EventMetricStream.updateInit(INITIAL_DATA);
         EventMetricStream.send(eventObject);
     });
 
     ddbStream.on('modify record', eventObject => {
-        log.info(`updated ${json.plain(eventObject)}`);
+        log.debug(`updated ${json.plain(eventObject)}`);
         INITIAL_DATA.push(eventObject);
         EventMetricStream.updateInit(INITIAL_DATA);
         EventMetricStream.send(eventObject);
