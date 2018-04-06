@@ -371,6 +371,11 @@ export class EventHandlerPullRequest extends EventHandler {
             commentBody += `<details>${EventHandlerPullRequest.buildEventSummary(task, 0, '')}</details>`;
         });
 
+        // if elk stack is configured, link to rehydrated logs
+        if (process.env.GTM_ELASTIC_HOST && process.env.GTM_ELASTIC_PORT) {
+            let baseUrl = process.env.GTM_BASE_URL || 'http://localhost:9091';
+            commentBody += `<a href="${baseUrl}/metrics/log/${event.eventId}/text">View full log</a>`;
+        }
         return this.addPullRequestComment(event, commentBody);
     }
 
