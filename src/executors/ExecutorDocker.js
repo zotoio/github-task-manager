@@ -223,6 +223,9 @@ export class ExecutorDocker extends Executor {
                         logBuffer = [];
                         logStream.end('!stop!');
 
+                        log.info('container stopped, removing..');
+                        container.remove();
+
                         resolve(executor.taskOutputTail);
                     });
                 }

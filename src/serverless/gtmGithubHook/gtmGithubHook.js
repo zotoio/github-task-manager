@@ -101,6 +101,11 @@ async function handleEvent(type, body, signature) {
     producer.send(event, function(err) {
         if (err) console.log(err);
     });
+
+    // set pull request status to pending for each task
+    if (type === 'pull_request') {
+        setPullRequestEventStatus(ghEventId, body);
+    }
 }
 
 async function getTaskConfig(type, body) {
@@ -168,6 +173,23 @@ function getFileParams(type, body) {
 
 function decodeEventBody(event) {
     return JSON.parse(decodeURIComponent(event.body.replace(/\+/g, ' ')).replace('payload={', '{'));
+}
+
+function setPullRequestEventStatus(ghEventId, eventBody) {
+    let url;
+    if (process.env.GTM_ELASTIC_HOST && process.env.GTM_ELASTIC_PORT) {
+        let baseUrl = process.env.GTM_BASE_URL || 'http://localhost:9091';
+        url = `${baseUrl}/metrics/log/${ghEventId}/text`;
+    }
+
+    let status = githubUtils.createPullRequestStatus(
+        eventBody,
+        'pending',
+        'GitHub Task Manager',
+        `Queued ${ghEventId}`,
+        url
+    );
+    githubUtils.updateGitHubPullRequestStatus(status, () => {});
 }
 
 module.exports = {
