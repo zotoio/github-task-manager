@@ -108,18 +108,8 @@ async function getTaskConfig(type, body) {
 
     console.log(`file request params for ${type} = ${json.plain(fileParams)}`);
 
-    let fileResponse = await githubUtils.getFile(fileParams);
-
-    let taskConfig = githubUtils.decodeFileResponse(fileResponse);
-
-    if (!taskConfig[type] || !taskConfig[type].tasks || !taskConfig[type].tasks.length > 0) {
-        console.error(
-            `repository config not found for event type '${type}' in config ${json.plain(
-                taskConfig
-            )}.. loading defaults.`
-        );
-
-        taskConfig = await rp({
+    let fileResponse = await githubUtils.getFile(fileParams).catch(() => {
+        return rp({
             proxy: process.env.https_proxy || process.env.http_proxy || null,
             json: true,
             uri:
@@ -133,6 +123,13 @@ async function getTaskConfig(type, body) {
                 }
             };
         });
+    });
+
+    let taskConfig = githubUtils.decodeFileResponse(fileResponse);
+
+    if (!taskConfig[type] || !taskConfig[type].tasks || !taskConfig[type].tasks.length > 0) {
+        console.error(`repository config not found for event type '${type}' in config ${json.plain(taskConfig)}`);
+        return false;
     }
 
     console.log(`task config for ${type} = ${json.plain(taskConfig[type])}`);
