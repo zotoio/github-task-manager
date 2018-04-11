@@ -212,12 +212,12 @@ export class AgentUtils {
                 return sns.publish(params).promise();
             })
             .then(data => {
-                log.info(`Published Message '${message}' to Queue`);
-                log.debug(data);
+                log && log.info(`Published Message '${message}' to Queue`);
+                log && log.debug(data);
                 return Promise.resolve(true);
             })
             .catch(e => {
-                log.error(e);
+                log && log.error(e);
                 throw e;
             });
     }
