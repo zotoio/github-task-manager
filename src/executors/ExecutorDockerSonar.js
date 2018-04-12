@@ -43,7 +43,6 @@ export class ExecutorDockerSonar extends ExecutorDocker {
             image: process.env.GTM_DOCKER_DEFAULT_WORKER_IMAGE || 'zotoio/gtm-worker:latest',
             command: '/usr/workspace/sonar-pullrequest.sh',
             env: {
-                BUILD_TYPE: 'maven',
                 GIT_CLONE: '##GH_CLONE_URL##',
                 GIT_PR_ID: '##GHPRNUM##',
                 GIT_PR_BRANCHNAME: '##GH_PR_BRANCHNAME##',
