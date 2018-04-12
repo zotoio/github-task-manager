@@ -15,7 +15,7 @@ let STREAM_USER_LAST_ACTIVITY = Date.now();
 let logGroupMap = [];
 logGroupMap['gtmGithubHook'] = '/aws/lambda/gtmGithubHook-dev-gtmGithubHook';
 logGroupMap['gtmGithubResults'] = '/aws/lambda/gtmGithubHook-dev-gtmGithubResults';
-logGroupMap[process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP] = process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP;
+logGroupMap['gtmAgent'] = process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP || 'gtmAgent';
 
 let CWLogFilterEventStream = require('smoketail').CWLogFilterEventStream;
 let janitorInterval;
@@ -40,7 +40,7 @@ function create(agentId) {
     }
 
     let cloudWatchStream = new CWLogsWritable({
-        logGroupName: process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP || 'gtmAgent',
+        logGroupName: logGroupMap['gtmAgent'],
         logStreamName: 'AGENT_ID=' + agentId,
         cloudWatchLogsOptions: CWLogOptions
     }).on('error', console.error);

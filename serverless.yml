@@ -118,6 +118,12 @@ resources:
         StreamSpecification:
           StreamViewType: NEW_IMAGE
 
+    GtmS3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${env:GTM_S3_BUCKET}
+            # add additional custom bucket configuration here
+
 #    DynamoVpcEndpoint:
 #      Type: AWS::EC2::VPCEndpoint
 #      Properties:
