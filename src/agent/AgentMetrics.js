@@ -1,5 +1,6 @@
 import { default as ExpressSSE } from 'express-sse';
 import { default as AWS } from 'aws-sdk';
+import { default as DynamoAWS } from 'aws-sdk';
 import { default as AgentLogger } from './AgentLogger';
 import { default as json } from 'format-json';
 import { default as DynamoDBStream } from 'dynamodb-stream';
@@ -25,9 +26,29 @@ if (process.env.GTM_ELASTIC_HOST && process.env.GTM_ELASTIC_PORT) {
     });
 }
 
+if (process.env.IAM_ENABLED) {
+    AWS.config.update({
+        httpOptions: {
+            agent: proxy(process.env.HTTP_PROXY)
+        }
+    });
+    if (process.env.GTM_DYNAMO_VPCE) {
+        DynamoAWS.config.update({
+            region: process.env.GTM_AWS_REGION
+        });
+    } else {
+        DynamoAWS.config.update({
+            region: process.env.GTM_AWS_REGION,
+            httpOptions: {
+                agent: proxy(process.env.HTTP_PROXY)
+            }
+        });
+    }
+}
+
 async function configureRoutes(app) {
-    let ddb = new AWS.DynamoDB();
-    let ddbDocClient = new AWS.DynamoDB.DocumentClient({
+    let ddb = new DynamoAWS.DynamoDB();
+    let ddbDocClient = new DynamoAWS.DynamoDB.DocumentClient({
         convertEmptyValues: true
     });
     let tableDetails = await ddb.describeTable({ TableName: EVENTS_TABLE }).promise();
