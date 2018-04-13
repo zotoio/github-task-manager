@@ -10,6 +10,7 @@ import { AgentUtils } from './AgentUtils';
 import { default as rp } from 'request-promise-native';
 import { version as agentVersion } from '../../../package.json';
 import { default as proxy } from 'proxy-agent';
+import { default as https } from 'https';
 
 const agentGroup = process.env.GTM_AGENT_GROUP || 'default';
 
@@ -34,23 +35,22 @@ if (process.env.IAM_ENABLED) {
             agent: proxy(process.env.HTTP_PROXY)
         }
     });
-    if (process.env.GTM_DYNAMO_VPCE) {
-        DynamoAWS.config.update({
-            region: process.env.GTM_AWS_REGION
-        });
-    } else {
-        DynamoAWS.config.update({
-            region: process.env.GTM_AWS_REGION,
-            httpOptions: {
-                agent: proxy(process.env.HTTP_PROXY)
-            }
-        });
-    }
 }
 
 async function configureRoutes(app) {
-    let ddb = new DynamoAWS.DynamoDB();
-    let ddbDocClient = new DynamoAWS.DynamoDB.DocumentClient({
+    let ddb;
+    if (process.env.GTM_DYNAMO_VPCE) {
+        console.log('Configuring DynamoDB to use VPC Endpoint');
+        ddb = new DynamoAWS.DynamoDB({
+            httpOptions: {
+                agent: new https.Agent()
+            }
+        });
+    } else {
+        console.log('Configuring DynamoDB to use Global AWS Config');
+        ddb = new DynamoAWS.DynamoDB();
+    }
+    let ddbDocClient = new ddb.DocumentClient({
         convertEmptyValues: true
     });
     let tableDetails = await ddb.describeTable({ TableName: EVENTS_TABLE }).promise();
