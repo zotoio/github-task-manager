@@ -12,13 +12,16 @@ let STREAM = [];
 let LOG = process.env.NODE_ENV === 'test' ? console : create(AGENT_ID);
 let STREAM_USER_LAST_ACTIVITY = Date.now();
 
-let logGroupMap = [];
-logGroupMap['gtmGithubHook'] = '/aws/lambda/gtmGithubHook-dev-gtmGithubHook';
-logGroupMap['gtmGithubResults'] = '/aws/lambda/gtmGithubHook-dev-gtmGithubResults';
-logGroupMap['gtmAgent'] = process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP || 'gtmAgent';
-
 let CWLogFilterEventStream = require('smoketail').CWLogFilterEventStream;
 let janitorInterval;
+
+function getLogGroupMap() {
+    let logGroupMap = {};
+    logGroupMap['gtmGithubHook'] = '/aws/lambda/gtmGithubHook-dev-gtmGithubHook';
+    logGroupMap['gtmGithubResults'] = '/aws/lambda/gtmGithubHook-dev-gtmGithubResults';
+    logGroupMap['gtmAgent'] = process.env.GTM_AGENT_CLOUDWATCH_LOGS_GROUP || 'gtmAgent';
+    return logGroupMap;
+}
 
 function create(agentId) {
     if (!agentId) console.warn('agentId is not set.');
@@ -40,7 +43,7 @@ function create(agentId) {
     }
 
     let cloudWatchStream = new CWLogsWritable({
-        logGroupName: logGroupMap['gtmAgent'],
+        logGroupName: getLogGroupMap()['gtmAgent'],
         logStreamName: 'AGENT_ID=' + agentId,
         cloudWatchLogsOptions: CWLogOptions
     }).on('error', console.error);
@@ -90,7 +93,7 @@ function stream(groupName, streamName) {
     }
 
     let filterOpts = {
-        logGroupName: logGroupMap[groupName],
+        logGroupName: getLogGroupMap()[groupName],
         logStreamNames: streamName && streamName !== 'ALL' ? [streamName] : undefined,
         startTime: Date.now(),
         follow: true,
