@@ -1,6 +1,5 @@
 import { default as ExpressSSE } from 'express-sse';
 import { default as AWS } from 'aws-sdk';
-import { default as DynamoAWS } from 'aws-sdk';
 import { default as AgentLogger } from './AgentLogger';
 import { default as json } from 'format-json';
 import { default as DynamoDBStream } from 'dynamodb-stream';
@@ -41,17 +40,18 @@ async function configureRoutes(app) {
     let ddb;
     if (process.env.GTM_DYNAMO_VPCE) {
         console.log('Configuring DynamoDB to use VPC Endpoint');
-        ddb = new DynamoAWS.DynamoDB({
+        ddb = new AWS.DynamoDB({
             httpOptions: {
                 agent: new https.Agent()
             }
         });
     } else {
         console.log('Configuring DynamoDB to use Global AWS Config');
-        ddb = new DynamoAWS.DynamoDB();
+        ddb = new AWS.DynamoDB();
     }
-    let ddbDocClient = new ddb.DocumentClient({
-        convertEmptyValues: true
+    let ddbDocClient = new AWS.DynamoDB.DocumentClient({
+        convertEmptyValues: true,
+        service: ddb
     });
     let tableDetails = await ddb.describeTable({ TableName: EVENTS_TABLE }).promise();
     log.debug(json.plain(tableDetails));
