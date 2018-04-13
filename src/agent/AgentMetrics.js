@@ -9,6 +9,8 @@ import { schedule } from 'tempus-fugit';
 import { AgentUtils } from './AgentUtils';
 import { default as rp } from 'request-promise-native';
 import { version as agentVersion } from '../../../package.json';
+import { default as proxy } from 'proxy-agent';
+
 const agentGroup = process.env.GTM_AGENT_GROUP || 'default';
 
 AWS.config.update({ region: process.env.GTM_AWS_REGION });
