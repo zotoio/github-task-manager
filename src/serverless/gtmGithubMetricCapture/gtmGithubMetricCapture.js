@@ -6,34 +6,37 @@ const PROXY_AGENT = require('https-proxy-agent');
 
 AWS.config.update({ region: process.env.GTM_AWS_REGION });
 
-if (process.env.IAM_ENABLED) {
-    AWS.config.update({
-        httpOptions: {
-            agent: PROXY_AGENT(process.env.AWS_PROXY)
-        }
-    });
-}
-
-let dynamo;
-if (process.env.GTM_DYNAMO_VPCE) {
-    console.log('Configuring DynamoDB to use VPC Endpoint');
-    dynamo = new AWS.DynamoDB({
-        httpOptions: {
-            agent: new HTTPS.Agent()
-        }
-    });
-} else {
-    console.log('Configuring DynamoDB to use Global AWS Config');
-    dynamo = new AWS.DynamoDB();
-}
-let ddb = new AWS.DynamoDB.DocumentClient({
-    convertEmptyValues: true,
-    service: dynamo
-});
 const zlib = require('zlib');
 
 async function handler(event, context, callback) {
-    console.log('recording metrics..');
+
+    if (process.env.IAM_ENABLED) {
+        AWS.config.update({
+            httpOptions: {
+                agent: PROXY_AGENT(process.env.AWS_PROXY)
+            }
+        });
+    }
+    
+    let dynamo;
+    if (process.env.GTM_DYNAMO_VPCE) {
+        console.log('Configuring DynamoDB to use VPC Endpoint');
+        dynamo = new AWS.DynamoDB({
+            httpOptions: {
+                agent: new HTTPS.Agent()
+            }
+        });
+    } else {
+        console.log('Configuring DynamoDB to use Global AWS Config');
+        dynamo = new AWS.DynamoDB();
+    }
+    
+    let ddb = new AWS.DynamoDB.DocumentClient({
+        convertEmptyValues: true,
+        service: dynamo
+    });
+
+    console.log('Recording Metrics...');
 
     const payload = new Buffer(event.awslogs.data, 'base64');
     zlib.gunzip(payload, (err, res) => {
@@ -42,7 +45,7 @@ async function handler(event, context, callback) {
             return callback(err);
         }
         const payload = JSON.parse(res.toString('utf8'));
-        console.log('Decoded payload:', JSON.stringify(payload));
+        console.log('Decoded Payload:', JSON.stringify(payload));
 
         const EVENTS_TABLE = process.env.GTM_DYNAMO_TABLE_EVENTS;
 
@@ -55,7 +58,7 @@ async function handler(event, context, callback) {
                 msg = JSON.parse(evt.message);
             } catch (e) {
                 msg = evt.message;
-                console.error(`unable to parse event result ${msg}`);
+                console.error(`Unable to Parse Event Payload: ${msg}`);
                 isObj = false;
             }
 
@@ -68,7 +71,7 @@ async function handler(event, context, callback) {
                 let updateParams;
 
                 if (msg.resultType === 'START') {
-                    console.log(`recording event start ${msg.ghEventId}..`);
+                    console.log(`Recording Event Start: ${msg.ghEventId}..`);
                     updateParams = {
                         TableName: EVENTS_TABLE,
                         Key: {
@@ -98,7 +101,7 @@ async function handler(event, context, callback) {
                 }
 
                 if (msg.resultType === 'TASK') {
-                    console.log(`recording event progress ${msg.ghEventId}..`);
+                    console.log(`Recording Event Progress: ${msg.ghEventId}..`);
 
                     let task = {
                         executor: msg.executor,
@@ -124,7 +127,7 @@ async function handler(event, context, callback) {
                 }
 
                 if (msg.resultType === 'EVENT') {
-                    console.log(`recording event completion ${msg.ghEventId}..`);
+                    console.log(`Recording Event Completion: ${msg.ghEventId}..`);
 
                     updateParams = {
                         TableName: EVENTS_TABLE,
