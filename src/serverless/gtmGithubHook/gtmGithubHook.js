@@ -176,7 +176,7 @@ function setPullRequestEventStatus(ghEventId, eventBody) {
     let url;
     if (process.env.GTM_ELASTIC_HOST && process.env.GTM_ELASTIC_PORT) {
         let baseUrl = process.env.GTM_BASE_URL || 'http://localhost:9091';
-        url = `${baseUrl}/metrics/log/${ghEventId}/text`;
+        url = `${baseUrl}/metrics/log/${ghEventId}.txt`;
     }
 
     let status = githubUtils.createPullRequestStatus(
