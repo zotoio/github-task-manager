@@ -19,7 +19,7 @@ if (process.env.GTM_DYNAMO_VPCE) {
     console.log('Configuring DynamoDB to use VPC Endpoint');
     dynamo = new AWS.DynamoDB({
         httpOptions: {
-            agent: new https.Agent()
+            agent: new HTTPS.Agent()
         }
     });
 } else {
