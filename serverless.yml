@@ -105,7 +105,7 @@ resources:
     EventsTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: GtmEvents
+        TableName: ${env:GTM_DYNAMO_TABLE_EVENTS}
         AttributeDefinitions:
           - AttributeName: ghEventId
             AttributeType: S

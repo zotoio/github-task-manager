@@ -117,7 +117,7 @@ export class EventHandlerPullRequest extends EventHandler {
 
                 task.options = AgentUtils.applyTransforms(
                     AgentUtils.templateReplace(
-                        AgentUtils.createBasicTemplate(this.eventData, parent, log),
+                        AgentUtils.createBasicTemplate(event.eventData, parent, log),
                         task.options,
                         log
                     )
