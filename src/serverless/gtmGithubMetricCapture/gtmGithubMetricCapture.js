@@ -1,9 +1,34 @@
 'use strict';
 
 const AWS = require('aws-sdk');
+const HTTPS = require('https');
+const PROXY_AGENT = require('https-proxy-agent');
+
 AWS.config.update({ region: process.env.GTM_AWS_REGION });
-const ddb = new AWS.DynamoDB.DocumentClient({
-    convertEmptyValues: true
+
+if (process.env.IAM_ENABLED) {
+    AWS.config.update({
+        httpOptions: {
+            agent: PROXY_AGENT(process.env.AWS_PROXY)
+        }
+    });
+}
+
+let dynamo;
+if (process.env.GTM_DYNAMO_VPCE) {
+    console.log('Configuring DynamoDB to use VPC Endpoint');
+    dynamo = new AWS.DynamoDB({
+        httpOptions: {
+            agent: new HTTPS.Agent()
+        }
+    });
+} else {
+    console.log('Configuring DynamoDB to use Global AWS Config');
+    dynamo = new AWS.DynamoDB();
+}
+let ddb = new AWS.DynamoDB.DocumentClient({
+    convertEmptyValues: true,
+    service: dynamo
 });
 const zlib = require('zlib');
 
