@@ -131,7 +131,7 @@ export class EventHandlerPullRequest extends EventHandler {
                     initialDesc = 'Unknown Executor: ' + task.executor;
                 }
 
-                if (!parent.hash) {
+                if (!parent || !parent.hash) {
                     log.info('No Parent Hash Found. Creating Child Hash');
                     task.hash = AgentUtils.createMd5Hash(task);
                 } else {
