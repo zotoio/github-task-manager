@@ -2,7 +2,7 @@
 
 import 'babel-polyfill';
 import { default as AgentLogger } from './AgentLogger';
-import { default as AgentMetrics } from './AgentMetrics';
+import { AgentMetrics } from './AgentMetrics';
 import { default as express } from 'express';
 import { default as bodyParser } from 'body-parser';
 import { default as expressNunjucks } from 'express-nunjucks';

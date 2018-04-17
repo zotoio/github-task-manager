@@ -118,10 +118,26 @@ resources:
         StreamSpecification:
           StreamViewType: NEW_IMAGE
 
+    AgentsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${env:GTM_DYNAMO_TABLE_AGENTS}
+        AttributeDefinitions:
+          - AttributeName: agentId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: agentId
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+        StreamSpecification:
+          StreamViewType: NEW_IMAGE
+
     GtmS3Bucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${env:GTM_S3_BUCKET}
+        BucketName: ${env:GTM_S3_DEPENDENCY_BUCKET}
             # add additional custom bucket configuration here
 
 #    DynamoVpcEndpoint:
