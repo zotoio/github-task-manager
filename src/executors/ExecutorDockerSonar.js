@@ -65,6 +65,12 @@ export class ExecutorDockerSonar extends ExecutorDocker {
             }
         };
 
+        if (!process.env.IAM_ENABLED) {
+            options.env['GTM_AWS_ACCESS_KEY_ID'] = process.env.GTM_AGENT_AWS_ACCESS_KEY_ID;
+            options.env['GTM_AWS_SECRET_ACCESS_KEY'] = process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY;
+            options.env['GTM_AWS_REGION'] = process.env.GTM_AWS_REGION;
+        }
+
         // options defined above can be overidden by options in .githubTaskManager.json
         task.options = _.merge(options, task.options);
 
