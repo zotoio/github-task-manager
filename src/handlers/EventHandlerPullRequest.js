@@ -100,7 +100,10 @@ export class EventHandlerPullRequest extends EventHandler {
 
         promises.push(AgentUtils.postResultsAndTrigger(eventStatus, `Executing event: ${event.eventId}`, log));
 
-        if (event.taskConfig.pull_request.isDefaultConfig) {
+        // Only send the welcome message if variable is not 'false'
+        let showWelcomeMessage = process.env.GTM_WELCOME_MESSAGE_ENABLED !== 'false';
+
+        if (event.taskConfig.pull_request.isDefaultConfig && showWelcomeMessage) {
             let warningPath =
                 process.env.GTM_TASK_CONFIG_DEFAULT_MESSAGE_PATH || __dirname + '/PullRequestDefaultConfigWarning.md';
 
