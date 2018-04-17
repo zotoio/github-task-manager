@@ -9,7 +9,6 @@ AWS.config.update({ region: process.env.GTM_AWS_REGION });
 const zlib = require('zlib');
 
 async function handler(event, context, callback) {
-
     if (process.env.IAM_ENABLED) {
         AWS.config.update({
             httpOptions: {
@@ -17,7 +16,7 @@ async function handler(event, context, callback) {
             }
         });
     }
-    
+
     let dynamo;
     if (process.env.GTM_DYNAMO_VPCE) {
         console.log('Configuring DynamoDB to use VPC Endpoint');
@@ -30,7 +29,7 @@ async function handler(event, context, callback) {
         console.log('Configuring DynamoDB to use Global AWS Config');
         dynamo = new AWS.DynamoDB();
     }
-    
+
     let ddb = new AWS.DynamoDB.DocumentClient({
         convertEmptyValues: true,
         service: dynamo
