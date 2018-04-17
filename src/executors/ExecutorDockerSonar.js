@@ -55,7 +55,8 @@ export class ExecutorDockerSonar extends ExecutorDocker {
                 SONAR_SOURCES: '##GTM_SONAR_SOURCES##',
                 SONAR_JAVA_BINARIES: '##GTM_SONAR_JAVA_BINARIES##',
                 SONAR_MODULES: '##GTM_SONAR_MODULES##',
-                SONAR_GITHUB_ENDPOINT: '##GTM_SONAR_GITHUB_ENDPOINT##'
+                SONAR_GITHUB_ENDPOINT: '##GTM_SONAR_GITHUB_ENDPOINT##',
+                S3_DEPENDENCY_BUCKET: '##GTM_S3_DEPENDENCY_BUCKET##'
             },
             validator: {
                 type: 'outputRegex',
