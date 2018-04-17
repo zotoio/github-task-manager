@@ -305,6 +305,10 @@ export class AgentUtils {
      */
     static templateReplace(varDict, template, log) {
         let templateStr = JSON.stringify(template);
+        if (!templateStr) {
+            log.error(`invalid template string for ${template}`);
+            return template;
+        }
         for (let key in varDict) {
             let re = new RegExp(key, 'g');
             log.info(`Replacing ${key} with ${this.varMask(key, varDict[key])}`);

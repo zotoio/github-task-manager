@@ -56,13 +56,20 @@ export class ExecutorDockerSonar extends ExecutorDocker {
                 SONAR_JAVA_BINARIES: '##GTM_SONAR_JAVA_BINARIES##',
                 SONAR_MODULES: '##GTM_SONAR_MODULES##',
                 SONAR_GITHUB_ENDPOINT: '##GTM_SONAR_GITHUB_ENDPOINT##',
-                S3_DEPENDENCY_BUCKET: '##GTM_S3_DEPENDENCY_BUCKET##'
+                S3_DEPENDENCY_BUCKET: '##GTM_S3_DEPENDENCY_BUCKET##',
+                AWS_S3_PROXY: '##GTM_AWS_S3_PROXY##'
             },
             validator: {
                 type: 'outputRegex',
                 regex: '.*ANALYSIS SUCCESSFUL.*'
             }
         };
+
+        if (!process.env.IAM_ENABLED) {
+            options.env['GTM_AWS_ACCESS_KEY_ID'] = process.env.GTM_AGENT_AWS_ACCESS_KEY_ID;
+            options.env['GTM_AWS_SECRET_ACCESS_KEY'] = process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY;
+            options.env['GTM_AWS_REGION'] = process.env.GTM_AWS_REGION;
+        }
 
         // options defined above can be overidden by options in .githubTaskManager.json
         task.options = _.merge(options, task.options);
