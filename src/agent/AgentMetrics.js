@@ -9,6 +9,7 @@ import { AgentUtils } from './AgentUtils';
 import { default as rp } from 'request-promise-native';
 import { version as agentVersion } from '../../../package.json';
 import { default as proxy } from 'proxy-agent';
+import { default as os } from 'os';
 
 const agentGroup = process.env.GTM_AGENT_GROUP || 'default';
 
@@ -192,8 +193,31 @@ export class AgentMetrics {
             node: await this.getProcessInfo(includeDetails),
             elastic: await this.getElasticInfo(includeDetails),
             dynamodb: await this.getDynamoInfo(ddb, includeDetails),
-            sqs: await this.getSQSInfo(includeDetails)
+            sqs: await this.getSQSInfo(includeDetails),
+            os: await this.getOSInfo(includeDetails)
         };
+    }
+
+    static async getOSInfo(includeDetails) {
+        if (!includeDetails) {
+            return {
+                hostname: os.hostname()
+            };
+        } else {
+            return {
+                hostname: os.hostname(),
+                type: os.type(),
+                platform: os.platform(),
+                arch: os.arch(),
+                release: os.release(),
+                uptime: os.uptime(),
+                loadavg: os.loadavg(),
+                totalmem: os.totalmem(),
+                freemem: os.freemem(),
+                cpus: os.cpus(),
+                networkInterfaces: os.networkInterfaces()
+            };
+        }
     }
 
     static async getAgentInfo(includeDetails) {
