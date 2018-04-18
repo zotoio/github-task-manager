@@ -92,7 +92,9 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_AWS_VPC_ID| vpc id - only required for ddb endpoints |
 |GTM_BASE_URL| Base url used to render links to agent ui - eg elb cname |
 |GTM_WELCOME_MESSAGE_ENABLED| If not 'false', send a warning message on unconfigured repository pull requests |
+|GTM_S3_DEPENDENCY_BUCKET| aws s3 storage of build dependencies|
 |GTM_AWS_S3_PROXY| https_proxy for aws s3 |
+|GTM_REPO_BLACKLIST| comma separated list of regex to blackist repo names from triggering events |
 
 ## Configure and deploy
 - run: `npm run sls-deploy` - note that this will create aws re$ources..

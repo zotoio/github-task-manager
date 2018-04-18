@@ -24,6 +24,16 @@ async function listener(event, context, callback) {
     // decode and parse event body
     let eventBody = decodeEventBody(event);
 
+    // blacklisted repos result in null error and 200 as this is a valid result
+    err = checkRepoBlacklisted(eventBody);
+    if (err) {
+        return callback(null, {
+            statusCode: 200,
+            headers: { 'Content-Type': 'text/plain' },
+            body: err.message
+        });
+    }
+
     /* eslint-disable */
     console.log('---------------------------------');
     console.log(`Github-Event: "${githubEvent}"`);
@@ -187,6 +197,27 @@ function setPullRequestEventStatus(ghEventId, eventBody) {
         url
     );
     githubUtils.updateGitHubPullRequestStatus(status, () => {});
+}
+
+function checkRepoBlacklisted(body) {
+    let repoName = body.pull_request.head.repo.name || body.repository.name;
+
+    let blacklist = process.env.GTM_REPO_BLACKLIST ? process.env.GTM_REPO_BLACKLIST.split(',') : [];
+
+    let blacklisted = false;
+    if (blacklist && blacklist.length > 0) {
+        blacklist.forEach(blacklistPattern => {
+            if (!blacklisted) {
+                let pattern = new RegExp(blacklistPattern.trim());
+                if (pattern.test(repoName)) {
+                    let msg = `matched blacklist repo pattern '${blacklistPattern.trim()}' - skipping.`;
+                    console.log(msg);
+                    blacklisted = new Error(msg);
+                }
+            }
+        });
+    }
+    return blacklisted;
 }
 
 module.exports = {
