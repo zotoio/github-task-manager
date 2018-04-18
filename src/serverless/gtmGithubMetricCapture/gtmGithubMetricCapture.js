@@ -117,7 +117,6 @@ async function handler(event, context, callback) {
                             ':agentId': msg.agentId,
                             ':startTime': msg.time,
                             ':agentGroup': msg.agentGroup,
-                            ':eventUrl': msg.url,
                             ':version': msg.version,
                             ':details': msg.details
                         },
