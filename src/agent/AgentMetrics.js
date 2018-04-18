@@ -316,7 +316,7 @@ export class AgentMetrics {
             .then(data => {
                 let topicArn = data.TopicArn;
                 let params = {
-                    Message: message,
+                    Message: JSON.stringify(message),
                     TopicArn: topicArn
                 };
                 return Promise.resolve(params);
@@ -343,14 +343,16 @@ export class AgentMetrics {
     }
 
     static async subscribeAgent() {
-
-        sns.subscribe({
-            Protocol: 'http',
-            //You don't just subscribe to "news", but the whole Amazon Resource Name (ARN)
-            TopicArn: AGENT_SNS_ARN,
-            Endpoint: '//your-endpoint-url.com'
-        }, function( error, data ) {
-            console.log( error || data );
-        });
+        sns.subscribe(
+            {
+                Protocol: 'http',
+                //You don't just subscribe to "news", but the whole Amazon Resource Name (ARN)
+                TopicArn: AGENT_SNS_ARN,
+                Endpoint: '//your-endpoint-url.com'
+            },
+            function(error, data) {
+                console.log(error || data);
+            }
+        );
     }
 }
