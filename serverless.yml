@@ -2,6 +2,7 @@ service: gtmGithubHook
 plugins:
   - serverless-dotenv-plugin
   - serverless-webpack
+  - serverless-offline
 
 provider:
   name: aws
@@ -34,6 +35,12 @@ provider:
         - dynamodb:UpdateItem
       Resource:
         Fn::GetAtt: [ EventsTable, Arn ]
+
+    - Effect: Allow
+      Action:
+        - dynamodb:UpdateItem
+      Resource:
+        Fn::GetAtt: [ AgentsTable, Arn ]
 
 
 package:
@@ -76,6 +83,8 @@ functions:
     environment:
       DYNAMO_DB_TABLE_EVENTS:
         Ref: EventsTable
+      DYNAMO_DB_TABLE_AGENTS:
+        Ref: AgentsTable
 
     package:
       include:

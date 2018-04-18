@@ -310,7 +310,15 @@ export class Agent {
             log.error(err.message);
         });
 
-        app.listen(process.env.GTM_AGENT_PORT, function() {
+        app.listen(process.env.GTM_AGENT_PORT, async function() {
+            log.info({
+                resultType: 'AGENT_START',
+                agentId: AgentUtils.agentId(),
+                agentGroup: AGENT_GROUP,
+                version: GTMVersion,
+                details: await AgentMetrics.getHealth(AgentUtils.getDynamoDB(), true)
+            });
+
             AgentUtils.printBanner();
             log.info(`GTM Version ${GTMVersion}`);
             log.info('AGENT_ID: ' + AgentUtils.agentId());

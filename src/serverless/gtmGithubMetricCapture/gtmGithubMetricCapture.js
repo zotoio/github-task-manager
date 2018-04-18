@@ -47,6 +47,7 @@ async function handler(event, context, callback) {
         console.log('Decoded Payload:', JSON.stringify(payload));
 
         const EVENTS_TABLE = process.env.GTM_DYNAMO_TABLE_EVENTS;
+        const AGENTS_TABLE = process.env.GTM_DYNAMO_TABLE_AGENTS;
 
         let promises = [];
 
@@ -79,7 +80,8 @@ async function handler(event, context, callback) {
                         UpdateExpression:
                             'set startTime = :startTime, repo = :repo, eventUrl = :eventUrl, tasks = :tasks, ' +
                             'endTime = :endTime, eventDuration = :eventDuration, failed = :failed, ' +
-                            'pullTitle = :pullTitle, pullNumber = :pullNumber, sha = :sha, eventUser = :eventUser',
+                            'pullTitle = :pullTitle, pullNumber = :pullNumber, sha = :sha, eventUser = :eventUser, ' +
+                            'agentId = :agentId',
                         ConditionExpression: 'attribute_not_exists(ghEventId) OR ghEventId = :ghEventId',
                         ExpressionAttributeValues: {
                             ':ghEventId': msg.ghEventId,
@@ -93,7 +95,31 @@ async function handler(event, context, callback) {
                             ':pullTitle': msg.pullTitle,
                             ':pullNumber': msg.pullNumber,
                             ':sha': msg.sha,
-                            ':eventUser': msg.eventUser
+                            ':eventUser': msg.eventUser,
+                            ':agentId': msg.agentId
+                        },
+                        ReturnValues: 'UPDATED_NEW'
+                    };
+                }
+
+                if (msg.resultType === 'AGENT_START') {
+                    console.log(`Recording Agent Start: ${msg.agentId}..`);
+                    updateParams = {
+                        TableName: AGENTS_TABLE,
+                        Key: {
+                            agentId: msg.agentId
+                        },
+                        UpdateExpression:
+                            'set agentGroup = :agentGroup, startTime = :startTime, ' +
+                            'version = :version, details = :details',
+                        ConditionExpression: 'attribute_not_exists(agentId) OR agentId = :agentId',
+                        ExpressionAttributeValues: {
+                            ':agentId': msg.agentId,
+                            ':startTime': msg.time,
+                            ':agentGroup': msg.agentGroup,
+                            ':eventUrl': msg.url,
+                            ':version': msg.version,
+                            ':details': msg.details
                         },
                         ReturnValues: 'UPDATED_NEW'
                     };

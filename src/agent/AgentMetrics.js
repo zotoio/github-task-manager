@@ -9,7 +9,6 @@ import { AgentUtils } from './AgentUtils';
 import { default as rp } from 'request-promise-native';
 import { version as agentVersion } from '../../../package.json';
 import { default as proxy } from 'proxy-agent';
-import { default as https } from 'https';
 
 const agentGroup = process.env.GTM_AGENT_GROUP || 'default';
 
@@ -39,22 +38,10 @@ if (process.env.IAM_ENABLED) {
 }
 
 let sns = new AWS.SNS({ apiVersion: '2010-03-31' });
-let AGENT_SNS_ARN;
 
 export class AgentMetrics {
     static async configureRoutes(app) {
-        let ddb;
-        if (process.env.GTM_DYNAMO_VPCE) {
-            log.info('Configuring DynamoDB to use VPC Endpoint');
-            ddb = new AWS.DynamoDB({
-                httpOptions: {
-                    agent: new https.Agent()
-                }
-            });
-        } else {
-            log.info('Configuring DynamoDB to use Global AWS Config');
-            ddb = new AWS.DynamoDB();
-        }
+        let ddb = AgentUtils.getDynamoDB();
 
         await this.bridgeStreams(app, ddb, EVENTS_TABLE, '/metrics/stream');
         await this.bridgeStreams(app, ddb, AGENTS_TABLE, '/metrics/agents/stream');
@@ -124,10 +111,10 @@ export class AgentMetrics {
     }
 
     static async bridgeStreams(app, ddb, tableName, uri) {
-        let ddbEventStream = await this.getDDBStream(ddb, tableName);
+        let ddbStream = await this.getDDBStream(ddb, tableName);
 
         // fetch stream state initially
-        ddbEventStream.fetchStreamState(async err => {
+        ddbStream.fetchStreamState(async err => {
             if (err) {
                 log.error(err);
                 return;
@@ -139,30 +126,30 @@ export class AgentMetrics {
             });
 
             // fetch initial data
-            let eventData = await ddbDocClient.scan({ TableName: tableName }).promise();
-            INITIAL_DATA[tableName] = eventData.Items;
+            let data = await ddbDocClient.scan({ TableName: tableName }).promise();
+            INITIAL_DATA[tableName] = data.Items;
             log.debug(`Initial data for ${tableName}: ${json.plain(INITIAL_DATA[tableName])}`);
 
             // poll
             schedule({ second: 10 }, function(job) {
-                ddbEventStream.fetchStreamState(job.callback());
+                ddbStream.fetchStreamState(job.callback());
             });
 
-            let sseEventStream = new ExpressSSE(INITIAL_DATA[tableName]);
-            app.get(uri, sseEventStream.init);
+            let sseStream = new ExpressSSE(INITIAL_DATA[tableName]);
+            app.get(uri, sseStream.init);
 
-            ddbEventStream.on('insert record', eventObject => {
-                log.debug(`inserted ${json.plain(eventObject)}`);
-                INITIAL_DATA[tableName].push(eventObject);
-                sseEventStream.updateInit(INITIAL_DATA[tableName]);
-                sseEventStream.send(eventObject);
+            ddbStream.on('insert record', object => {
+                log.debug(`inserted ${json.plain(object)}`);
+                INITIAL_DATA[tableName].push(object);
+                sseStream.updateInit(INITIAL_DATA[tableName]);
+                sseStream.send(object);
             });
 
-            ddbEventStream.on('modify record', eventObject => {
-                log.debug(`updated ${json.plain(eventObject)}`);
-                INITIAL_DATA[tableName].push(eventObject);
-                sseEventStream.updateInit(INITIAL_DATA[tableName]);
-                sseEventStream.send(eventObject);
+            ddbStream.on('modify record', object => {
+                log.debug(`updated ${json.plain(object)}`);
+                INITIAL_DATA[tableName].push(object);
+                sseStream.updateInit(INITIAL_DATA[tableName]);
+                sseStream.send(object);
             });
         });
     }
@@ -201,8 +188,8 @@ export class AgentMetrics {
 
     static async getHealth(ddb, includeDetails) {
         return {
-            agent: this.getAgentInfo(includeDetails),
-            node: this.getProcessInfo(includeDetails),
+            agent: await this.getAgentInfo(includeDetails),
+            node: await this.getProcessInfo(includeDetails),
             elastic: await this.getElasticInfo(includeDetails),
             dynamodb: await this.getDynamoInfo(ddb, includeDetails),
             sqs: await this.getSQSInfo(includeDetails)
@@ -340,19 +327,5 @@ export class AgentMetrics {
             agentId: agentId
         };
         return await this.broadcast(msg);
-    }
-
-    static async subscribeAgent() {
-        sns.subscribe(
-            {
-                Protocol: 'http',
-                //You don't just subscribe to "news", but the whole Amazon Resource Name (ARN)
-                TopicArn: AGENT_SNS_ARN,
-                Endpoint: '//your-endpoint-url.com'
-            },
-            function(error, data) {
-                console.log(error || data);
-            }
-        );
     }
 }

@@ -5,11 +5,13 @@ const { URL } = require('url');
 const crypto = require('crypto');
 import { default as AgentLogger } from './AgentLogger';
 import { default as yamljs } from 'yamljs';
+import { default as https } from 'https';
 let log = AgentLogger.log();
 
 const AWS = require('aws-sdk');
 const proxy = require('proxy-agent');
 AWS.config.update({ region: process.env.GTM_AWS_REGION });
+let DDB;
 
 if (process.env.IAM_ENABLED) {
     AWS.config.update({
@@ -373,5 +375,24 @@ export class AgentUtils {
             }
         });
         return foundItem;
+    }
+
+    static getDynamoDB() {
+        if (!DDB) {
+            if (process.env.GTM_DYNAMO_VPCE) {
+                log.info('Configuring DynamoDB to use VPC Endpoint');
+                DDB = new AWS.DynamoDB({
+                    httpOptions: {
+                        agent: new https.Agent()
+                    }
+                });
+            } else {
+                log.info('Configuring DynamoDB to use Global AWS Config');
+                DDB = new AWS.DynamoDB();
+            }
+        } else {
+            log.info('returning existing DynamoDB client');
+        }
+        return DDB;
     }
 }
