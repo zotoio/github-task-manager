@@ -121,7 +121,7 @@ resources:
     GtmS3Bucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${env:GTM_S3_BUCKET}
+        BucketName: ${env:GTM_S3_DEPENDENCY_BUCKET}
             # add additional custom bucket configuration here
 
 #    DynamoVpcEndpoint:
