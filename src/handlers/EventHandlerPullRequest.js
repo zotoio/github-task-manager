@@ -24,7 +24,8 @@ export class EventHandlerPullRequest extends EventHandler {
             pullTitle: this.eventData.pull_request.title,
             pullNumber: this.eventData.number,
             sha: this.eventData.pull_request.head.sha,
-            eventUser: this.eventData.pull_request.user.login
+            eventUser: this.eventData.pull_request.user.login,
+            agentId: AgentUtils.agentId()
         });
 
         log.info('---------------------------------');

@@ -89,6 +89,7 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_TASK_CONFIG_DEFAULT_URL| url to default sample config used when repo is missing .githubTaskManager.json|
 |GTM_TASK_CONFIG_DEFAULT_MESSAGE_PATH| path to markdown comment file added to PRs when repo is missing .githubTaskManager.json|
 |GTM_DYNAMO_TABLE_EVENTS| DynamoDB table to store event summaries |
+|GTM_DYNAMO_TABLE_AGENTS| DynamoDB table to store agent summaries |
 |GTM_AWS_VPC_ID| vpc id - only required for ddb endpoints |
 |GTM_BASE_URL| Base url used to render links to agent ui - eg elb cname |
 |GTM_WELCOME_MESSAGE_ENABLED| If not 'false', send a warning message on unconfigured repository pull requests |

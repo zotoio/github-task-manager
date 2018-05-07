@@ -2,7 +2,7 @@
 
 import 'babel-polyfill';
 import { default as AgentLogger } from './AgentLogger';
-import { default as AgentMetrics } from './AgentMetrics';
+import { AgentMetrics } from './AgentMetrics';
 import { default as express } from 'express';
 import { default as bodyParser } from 'body-parser';
 import { default as expressNunjucks } from 'express-nunjucks';
@@ -310,7 +310,15 @@ export class Agent {
             log.error(err.message);
         });
 
-        app.listen(process.env.GTM_AGENT_PORT, function() {
+        app.listen(process.env.GTM_AGENT_PORT, async function() {
+            log.info({
+                resultType: 'AGENT_START',
+                agentId: AgentUtils.agentId(),
+                agentGroup: AGENT_GROUP,
+                version: GTMVersion,
+                details: await AgentMetrics.getHealth(AgentUtils.getDynamoDB(), true)
+            });
+
             AgentUtils.printBanner();
             log.info(`GTM Version ${GTMVersion}`);
             log.info('AGENT_ID: ' + AgentUtils.agentId());

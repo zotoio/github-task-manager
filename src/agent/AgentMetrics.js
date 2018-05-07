@@ -9,7 +9,7 @@ import { AgentUtils } from './AgentUtils';
 import { default as rp } from 'request-promise-native';
 import { version as agentVersion } from '../../../package.json';
 import { default as proxy } from 'proxy-agent';
-import { default as https } from 'https';
+import { default as os } from 'os';
 
 const agentGroup = process.env.GTM_AGENT_GROUP || 'default';
 
@@ -17,8 +17,10 @@ AWS.config.update({ region: process.env.GTM_AWS_REGION });
 
 let log = AgentLogger.log();
 const EVENTS_TABLE = process.env.GTM_DYNAMO_TABLE_EVENTS;
+const AGENTS_TABLE = process.env.GTM_DYNAMO_TABLE_AGENTS;
 let INITIAL_DATA = [];
-let EventMetricStream;
+INITIAL_DATA[EVENTS_TABLE] = [];
+INITIAL_DATA[AGENTS_TABLE] = [];
 
 let elastic;
 if (process.env.GTM_ELASTIC_HOST && process.env.GTM_ELASTIC_PORT) {
@@ -36,95 +38,142 @@ if (process.env.IAM_ENABLED) {
     });
 }
 
-async function configureRoutes(app) {
-    let ddb;
-    if (process.env.GTM_DYNAMO_VPCE) {
-        console.log('Configuring DynamoDB to use VPC Endpoint');
-        ddb = new AWS.DynamoDB({
-            httpOptions: {
-                agent: new https.Agent()
-            }
-        });
-    } else {
-        console.log('Configuring DynamoDB to use Global AWS Config');
-        ddb = new AWS.DynamoDB();
-    }
-    let ddbDocClient = new AWS.DynamoDB.DocumentClient({
-        convertEmptyValues: true,
-        service: ddb
-    });
-    let tableDetails = await ddb.describeTable({ TableName: EVENTS_TABLE }).promise();
-    log.debug(json.plain(tableDetails));
-    let tableStreamArn = tableDetails.Table.LatestStreamArn;
+let sns = new AWS.SNS({ apiVersion: '2010-03-31' });
 
-    let ddbStream = new DynamoDBStream(new AWS.DynamoDBStreams(), tableStreamArn);
+export class AgentMetrics {
+    static async configureRoutes(app) {
+        let ddb = AgentUtils.getDynamoDB();
 
-    ddbStream.on('error', err => {
-        log.error(err);
-    });
-
-    ddbStream.on('end', () => {
-        log.info(`stream closed`);
-    });
-
-    // fetch stream state initially
-    ddbStream.fetchStreamState(async err => {
-        if (err) {
-            log.error(err);
-            return process.exit(1);
-        }
-
-        // fetch initial data
-        let eventData = await ddbDocClient.scan({ TableName: EVENTS_TABLE }).promise();
-        INITIAL_DATA = eventData.Items;
-        log.debug(`INITIAL_DATA: ${json.plain(INITIAL_DATA)}`);
-
-        // poll
-        schedule({ second: 10 }, function(job) {
-            ddbStream.fetchStreamState(job.callback());
-        });
-
-        EventMetricStream = new ExpressSSE(INITIAL_DATA);
-        app.get('/metrics/stream', EventMetricStream.init);
+        await this.bridgeStreams(app, ddb, EVENTS_TABLE, '/metrics/stream');
+        await this.bridgeStreams(app, ddb, AGENTS_TABLE, '/metrics/agents/stream');
 
         app.get('/metrics', (req, res) => {
             res.render('metrics.html');
         });
-    });
 
-    app.get('/metrics/log/gtm-:ghEventId.txt', async (req, res) => {
-        if (!elastic) {
-            res.write('elasticsearch is not configured');
+        app.get('/metrics/log/gtm-:ghEventId.txt', async (req, res) => {
+            if (!elastic) {
+                res.write('elasticsearch is not configured');
+                res.end();
+                return;
+            }
+
+            let ghEventId = req.params.ghEventId;
+            let logs = await this.getEventLogs(ghEventId);
+
+            logs.forEach(log => {
+                res.write(`${log._source['@timestamp']} ${log._source.message} \n`);
+            });
+
             res.end();
-            return;
-        }
-
-        let ghEventId = req.params.ghEventId;
-        let logs = await getEventLogs(ghEventId);
-
-        logs.forEach(log => {
-            res.write(`${log._source['@timestamp']} ${log._source.message} \n`);
         });
 
-        res.end();
-    });
+        app.get('/metrics/log/gtm-:ghEventId.json', async (req, res) => {
+            if (!elastic) {
+                res.json({ error: 'elasticsearch is not configured' });
+                res.end();
+                return;
+            }
 
-    app.get('/metrics/log/gtm-:ghEventId.json', async (req, res) => {
-        if (!elastic) {
-            res.json({ error: 'elasticsearch is not configured' });
+            let ghEventId = req.params.ghEventId;
+            let logs = await this.getEventLogs(ghEventId);
+            res.json(logs);
+        });
+
+        app.get('/metrics/health', async (req, res) => {
+            let includeDetail = false;
+            let result = await this.getHealth(ddb, includeDetail);
+            res.json(result);
             res.end();
-            return;
-        }
+        });
 
-        let ghEventId = req.params.ghEventId;
-        let logs = await getEventLogs(ghEventId);
-        res.json(logs);
-    });
+        app.get('/metrics/health/detail', async (req, res) => {
+            let includeDetail = true;
+            let result = await this.getHealth(ddb, includeDetail);
+            res.json(result);
+            res.end();
+        });
 
-    async function getEventLogs(ghEventId) {
+        app.get('/metrics/agent/kill/:agentId', async (req, res) => {
+            let agentId = req.params.agentId;
+            log.info(`sending kill code for agent: ${agentId}`);
+            let result = await this.broadcastKill(agentId);
+            res.json(result);
+            res.end();
+        });
+
+        app.get('/metrics/agent/info/:agentId', async (req, res) => {
+            let agentId = req.params.agentId || '*';
+            log.info(`sending info request to all agents`);
+            let result = await this.broadcastInfoRequest(agentId);
+            res.json(result);
+            res.end();
+        });
+    }
+
+    static async bridgeStreams(app, ddb, tableName, uri) {
+        let ddbStream = await this.getDDBStream(ddb, tableName);
+
+        // fetch stream state initially
+        ddbStream.fetchStreamState(async err => {
+            if (err) {
+                log.error(err);
+                return;
+            }
+
+            let ddbDocClient = new AWS.DynamoDB.DocumentClient({
+                convertEmptyValues: true,
+                service: ddb
+            });
+
+            // fetch initial data
+            let data = await ddbDocClient.scan({ TableName: tableName }).promise();
+            INITIAL_DATA[tableName] = data.Items;
+            log.debug(`Initial data for ${tableName}: ${json.plain(INITIAL_DATA[tableName])}`);
+
+            // poll
+            schedule({ second: 10 }, function(job) {
+                ddbStream.fetchStreamState(job.callback());
+            });
+
+            let sseStream = new ExpressSSE(INITIAL_DATA[tableName]);
+            app.get(uri, sseStream.init);
+
+            ddbStream.on('insert record', object => {
+                log.debug(`inserted ${json.plain(object)}`);
+                INITIAL_DATA[tableName].push(object);
+                sseStream.updateInit(INITIAL_DATA[tableName]);
+                sseStream.send(object);
+            });
+
+            ddbStream.on('modify record', object => {
+                log.debug(`updated ${json.plain(object)}`);
+                INITIAL_DATA[tableName].push(object);
+                sseStream.updateInit(INITIAL_DATA[tableName]);
+                sseStream.send(object);
+            });
+        });
+    }
+
+    static async getDDBStream(ddb, tableName) {
+        let tableDetails = await ddb.describeTable({ TableName: tableName }).promise();
+        log.debug(json.plain(tableDetails));
+        let tableStreamArn = tableDetails.Table.LatestStreamArn;
+        let ddbStream = new DynamoDBStream(new AWS.DynamoDBStreams(), tableStreamArn);
+        ddbStream.on('error', err => {
+            log.error(err);
+        });
+
+        ddbStream.on('end', () => {
+            log.info(`stream closed`);
+        });
+        return ddbStream;
+    }
+
+    static async getEventLogs(ghEventId) {
         let results = await elastic.search({
             index: 'logstash*',
-            size: 1000,
+            size: 10000,
             body: {
                 query: {
                     match: {
@@ -138,57 +187,52 @@ async function configureRoutes(app) {
         return results.hits.hits;
     }
 
-    ddbStream.on('insert record', eventObject => {
-        log.debug(`inserted ${json.plain(eventObject)}`);
-        INITIAL_DATA.push(eventObject);
-        EventMetricStream.updateInit(INITIAL_DATA);
-        EventMetricStream.send(eventObject);
-    });
-
-    ddbStream.on('modify record', eventObject => {
-        log.debug(`updated ${json.plain(eventObject)}`);
-        INITIAL_DATA.push(eventObject);
-        EventMetricStream.updateInit(INITIAL_DATA);
-        EventMetricStream.send(eventObject);
-    });
-
-    app.get('/metrics/health', async (req, res) => {
-        let includeDetail = false;
-        let result = await getHealth(includeDetail);
-        res.json(result);
-        res.end();
-    });
-
-    app.get('/metrics/health/detail', async (req, res) => {
-        let includeDetail = true;
-        let result = await getHealth(includeDetail);
-        res.json(result);
-        res.end();
-    });
-
-    async function getHealth(includeDetails) {
+    static async getHealth(ddb, includeDetails) {
         return {
-            agent: getAgentInfo(includeDetails),
-            node: getProcessInfo(includeDetails),
-            elastic: await getElasticInfo(includeDetails),
-            dynamodb: await getDynamoInfo(includeDetails),
-            sqs: await getSQSInfo(includeDetails)
+            agent: await this.getAgentInfo(includeDetails),
+            node: await this.getProcessInfo(includeDetails),
+            elastic: await this.getElasticInfo(includeDetails),
+            dynamodb: await this.getDynamoInfo(ddb, includeDetails),
+            sqs: await this.getSQSInfo(includeDetails),
+            os: await this.getOSInfo(includeDetails)
         };
     }
 
-    function getAgentInfo(includeDetails) {
+    static async getOSInfo(includeDetails) {
+        if (!includeDetails) {
+            return {
+                hostname: os.hostname()
+            };
+        } else {
+            return {
+                hostname: os.hostname(),
+                type: os.type(),
+                platform: os.platform(),
+                arch: os.arch(),
+                release: os.release(),
+                uptime: os.uptime(),
+                loadavg: os.loadavg(),
+                totalmem: os.totalmem(),
+                freemem: os.freemem(),
+                cpus: os.cpus(),
+                networkInterfaces: os.networkInterfaces()
+            };
+        }
+    }
+
+    static async getAgentInfo(includeDetails) {
         let result = {
             id: AgentUtils.agentId(),
             version: agentVersion,
             group: agentGroup
         };
         if (includeDetails) {
-            result.env = getEnvParams();
+            result.env = this.getEnvParams();
         }
         return result;
     }
 
-    async function getElasticInfo(includeDetails) {
+    static async getElasticInfo(includeDetails) {
         let result = 'not configured';
         if (process.env.GTM_ELASTIC_HOST && process.env.GTM_ELASTIC_PORT) {
             result = await rp({
@@ -202,9 +246,9 @@ async function configureRoutes(app) {
         return result;
     }
 
-    async function getSQSInfo(includeDetails) {
-        let sqsPendingStats = await describeQueue(process.env.GTM_SQS_PENDING_QUEUE, ['All'], true);
-        let sqsResultsStats = await describeQueue(process.env.GTM_SQS_RESULTS_QUEUE, ['All'], true);
+    static async getSQSInfo(includeDetails) {
+        let sqsPendingStats = await this.describeQueue(process.env.GTM_SQS_PENDING_QUEUE, ['All'], true);
+        let sqsResultsStats = await this.describeQueue(process.env.GTM_SQS_RESULTS_QUEUE, ['All'], true);
         if (!includeDetails) {
             sqsPendingStats = 'found';
             sqsResultsStats = 'found';
@@ -215,20 +259,22 @@ async function configureRoutes(app) {
         };
     }
 
-    async function getDynamoInfo(includeDetails) {
-        let result = 'not configured';
-        if (EVENTS_TABLE) {
-            result = {
-                events: await ddb.describeTable({ TableName: EVENTS_TABLE }).promise()
-            };
-            if (!includeDetails) {
-                result = 'found';
-            }
+    static async getDynamoInfo(ddb, includeDetails) {
+        let eventsTableStatus = await ddb.describeTable({ TableName: EVENTS_TABLE }).promise();
+        let agentsTableStatus = await ddb.describeTable({ TableName: AGENTS_TABLE }).promise();
+
+        if (!includeDetails) {
+            eventsTableStatus = 'found';
+            agentsTableStatus = 'found';
         }
-        return result;
+
+        return {
+            events: eventsTableStatus,
+            agents: agentsTableStatus
+        };
     }
 
-    function getProcessInfo() {
+    static getProcessInfo() {
         return {
             version: process.version,
             pid: process.pid,
@@ -238,7 +284,7 @@ async function configureRoutes(app) {
         };
     }
 
-    function getEnvParams() {
+    static getEnvParams() {
         let env = {};
         Object.keys(process.env)
             .sort()
@@ -250,7 +296,7 @@ async function configureRoutes(app) {
         return env;
     }
 
-    async function describeQueue(queueName, attributeNameArray, includeDetails) {
+    static async describeQueue(queueName, attributeNameArray, includeDetails) {
         let sqs = new AWS.SQS();
         if (!includeDetails) {
             return 'found';
@@ -271,8 +317,39 @@ async function configureRoutes(app) {
         log.debug(`sqs queue details: ${result}`);
         return result;
     }
-}
 
-module.exports = {
-    configureRoutes: configureRoutes
-};
+    static async broadcast(message) {
+        return sns
+            .createTopic({
+                Name: process.env.GTM_SNS_AGENTS_TOPIC
+            })
+            .promise()
+            .then(data => {
+                let topicArn = data.TopicArn;
+                let params = {
+                    Message: JSON.stringify(message),
+                    TopicArn: topicArn
+                };
+                return Promise.resolve(params);
+            })
+            .then(params => {
+                return sns.publish(params).promise();
+            });
+    }
+
+    static async broadcastKill(agentId) {
+        let msg = {
+            action: 'KILL',
+            agentId: agentId
+        };
+        return await this.broadcast(msg);
+    }
+
+    static async broadcastInfoRequest(agentId) {
+        let msg = {
+            action: 'INFO',
+            agentId: agentId
+        };
+        return await this.broadcast(msg);
+    }
+}
