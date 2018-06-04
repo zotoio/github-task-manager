@@ -113,10 +113,35 @@ export class AgentUtils {
      */
     static createPullRequestStatus(eventData, state, context, description, url) {
         return {
+            eventType: 'pull_request',
             owner: eventData.repository.owner.login || 'Default_Owner',
             repo: eventData.repository.name || 'Default_Repository',
             sha: eventData.pull_request.head.sha || 'Missing SHA',
             number: eventData.pull_request.number,
+            state: state,
+            target_url: url ? url : 'https://github.com/zotoio/github-task-manager',
+            description: description,
+            context: context,
+            eventData: eventData
+        };
+    }
+
+    /**
+     * Create a Status Object to Send to GitHub
+     * @param {object} eventData - Data from GitHub Event
+     * @param {string} state - Current Task State (pending, passed, failed)
+     * @param {string} context - Content Name to Display in GitHub
+     * @param {string} description - Short Description to Display in GitHub
+     * @param {string} url - Link to more detail
+     *
+     */
+    static createPushStatus(eventData, state, context, description, url) {
+        return {
+            eventType: 'push',
+            owner: eventData.repository.owner.login || 'Default_Owner',
+            repo: eventData.repository.name || 'Default_Repository',
+            sha: eventData.after || 'Missing SHA',
+            number: 'n/a',
             state: state,
             target_url: url ? url : 'https://github.com/zotoio/github-task-manager',
             description: description,
@@ -345,11 +370,11 @@ export class AgentUtils {
         }
 
         let mapDict = {
-            '##GHPRNUM##': obj.pull_request.number,
+            '##GHPRNUM##': obj.pull_request ? obj.pull_request.number : 'n/a',
             '##GHREPONAME##': obj.repository.name,
             '##GH_REPOSITORY_FULLNAME##': obj.repository.full_name,
             '##GH_CLONE_URL##': obj.repository.clone_url,
-            '##GH_PR_BRANCHNAME##': obj.pull_request.head.ref,
+            '##GH_PR_BRANCHNAME##': obj.pull_request ? obj.pull_request.head.ref : 'n/a',
             '##PARENTBUILDNUMBER##': this.metaValue(parent, 'buildNumber'),
             '##PARENTBUILDNAME##': this.metaValue(parent, 'buildName')
         };

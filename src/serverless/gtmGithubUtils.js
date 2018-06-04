@@ -5,7 +5,8 @@ let GitHubApi = require('@octokit/rest');
 let crypto = require('crypto');
 let githubUpdaters = {
     pull_request: updateGitHubPullRequest,
-    comment: updateGitHubComment
+    comment: updateGitHubComment,
+    push: updateGitHubPush
 };
 
 let ghEnforceValidSsl = process.env.NODE_TLS_REJECT_UNAUTHORIZED === 0;
@@ -130,6 +131,10 @@ async function updateGitHubPullRequest(status, done) {
     }
 }
 
+async function updateGitHubPush(status, done) {
+    return await addGitHubPushComments(status, done);
+}
+
 /**
  * Create a Status Object to Send to GitHub
  * @param {object} eventData - Data from GitHub Event
@@ -211,6 +216,43 @@ async function addGitHubPullRequestComment(status, done) {
             .then(() => {
                 done();
             });
+    } catch (e) {
+        console.log('----- ERROR COMMUNICATING WITH GITHUB -----');
+        console.log(e);
+        done();
+    }
+}
+
+async function addGitHubPushComments(status, done) {
+    console.log(`add comment on push completion ${status.eventData.ghEventId}`);
+    /**
+     * declare type ReposCreateCommitCommentParams =
+     & {
+      owner: string;
+      repo: string;
+      sha: string;
+      body: string;
+      path?: string;
+      position?: number;
+    };
+     */
+    try {
+        let github = connect();
+        let promises = [];
+        // adding the same comment to each commit in the push for now..
+        status.eventData.commits.forEach(commit => {
+            promises.push(
+                github.repos.createCommitComment({
+                    owner: status.owner,
+                    repo: status.repo,
+                    sha: commit.id,
+                    body: status.description
+                })
+            );
+        });
+        return Promise.all(promises).then(() => {
+            done();
+        });
     } catch (e) {
         console.log('----- ERROR COMMUNICATING WITH GITHUB -----');
         console.log(e);
