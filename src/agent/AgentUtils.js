@@ -117,7 +117,7 @@ export class AgentUtils {
             owner: eventData.repository.owner.login || 'Default_Owner',
             repo: eventData.repository.name || 'Default_Repository',
             sha: eventData.ghEventType === 'pull_request' ? eventData.pull_request.head.sha : eventData.after,
-            number: eventData.ghEventType === 'pull_request' ? eventData.pull_request.number : 'n/a',
+            number: eventData.ghEventType === 'pull_request' ? eventData.pull_request.number : '',
             state: state,
             target_url: url ? url : 'https://github.com/zotoio/github-task-manager',
             description: description,
@@ -350,11 +350,11 @@ export class AgentUtils {
         }
 
         let mapDict = {
-            '##GHPRNUM##': obj.pull_request ? obj.pull_request.number : 'n/a',
+            '##GHPRNUM##': obj.pull_request ? obj.pull_request.number : '',
             '##GHREPONAME##': obj.repository.name,
             '##GH_REPOSITORY_FULLNAME##': obj.repository.full_name,
             '##GH_CLONE_URL##': obj.repository.clone_url,
-            '##GH_PR_BRANCHNAME##': obj.pull_request ? obj.pull_request.head.ref : 'n/a',
+            '##GH_PR_BRANCHNAME##': obj.pull_request ? obj.pull_request.head.ref : '',
             '##PARENTBUILDNUMBER##': this.metaValue(parent, 'buildNumber'),
             '##PARENTBUILDNAME##': this.metaValue(parent, 'buildName')
         };
