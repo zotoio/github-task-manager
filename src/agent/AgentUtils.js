@@ -111,37 +111,13 @@ export class AgentUtils {
      * @param {string} url - Link to more detail
      *
      */
-    static createPullRequestStatus(eventData, state, context, description, url) {
+    static createEventStatus(eventData, state, context, description, url) {
         return {
-            eventType: 'pull_request',
+            eventType: eventData.ghEventType,
             owner: eventData.repository.owner.login || 'Default_Owner',
             repo: eventData.repository.name || 'Default_Repository',
-            sha: eventData.pull_request.head.sha || 'Missing SHA',
-            number: eventData.pull_request.number,
-            state: state,
-            target_url: url ? url : 'https://github.com/zotoio/github-task-manager',
-            description: description,
-            context: context,
-            eventData: eventData
-        };
-    }
-
-    /**
-     * Create a Status Object to Send to GitHub
-     * @param {object} eventData - Data from GitHub Event
-     * @param {string} state - Current Task State (pending, passed, failed)
-     * @param {string} context - Content Name to Display in GitHub
-     * @param {string} description - Short Description to Display in GitHub
-     * @param {string} url - Link to more detail
-     *
-     */
-    static createPushStatus(eventData, state, context, description, url) {
-        return {
-            eventType: 'push',
-            owner: eventData.repository.owner.login || 'Default_Owner',
-            repo: eventData.repository.name || 'Default_Repository',
-            sha: eventData.after || 'Missing SHA',
-            number: 'n/a',
+            sha: eventData.ghEventType === 'pull_request' ? eventData.pull_request.head.sha : eventData.after,
+            number: eventData.ghEventType === 'pull_request' ? eventData.pull_request.number : 'n/a',
             state: state,
             target_url: url ? url : 'https://github.com/zotoio/github-task-manager',
             description: description,
@@ -208,6 +184,10 @@ export class AgentUtils {
     }
 
     static async postResultsAndTrigger(results, message, log) {
+        // if this is a commit, only add comments for result.
+        if (results.eventData.pusher && !message.startsWith('Result')) {
+            return Promise.resolve(true);
+        }
         return AgentUtils.getQueueUrl(process.env.GTM_SQS_RESULTS_QUEUE)
             .then(function(sqsQueueUrl) {
                 let params = {
