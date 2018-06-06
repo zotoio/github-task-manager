@@ -200,7 +200,7 @@ function setPullRequestEventStatus(ghEventId, eventBody) {
 }
 
 function checkRepoBlacklisted(body) {
-    let repoName = body.pull_request.head.repo.name || body.repository.name;
+    let repoName = body.pull_request ? body.pull_request.head.repo.name : body.repository.name;
 
     let blacklist = process.env.GTM_REPO_BLACKLIST ? process.env.GTM_REPO_BLACKLIST.split(',') : [];
 

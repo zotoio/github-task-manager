@@ -81,7 +81,7 @@ async function handler(event, context, callback) {
                             'set startTime = :startTime, repo = :repo, eventUrl = :eventUrl, tasks = :tasks, ' +
                             'endTime = :endTime, eventDuration = :eventDuration, failed = :failed, ' +
                             'pullTitle = :pullTitle, pullNumber = :pullNumber, sha = :sha, eventUser = :eventUser, ' +
-                            'agentId = :agentId',
+                            'agentId = :agentId, eventType = :eventType',
                         ConditionExpression: 'attribute_not_exists(ghEventId) OR ghEventId = :ghEventId',
                         ExpressionAttributeValues: {
                             ':ghEventId': msg.ghEventId,
@@ -96,7 +96,8 @@ async function handler(event, context, callback) {
                             ':pullNumber': msg.pullNumber,
                             ':sha': msg.sha,
                             ':eventUser': msg.eventUser,
-                            ':agentId': msg.agentId
+                            ':agentId': msg.agentId,
+                            ':eventType': msg.eventType
                         },
                         ReturnValues: 'UPDATED_NEW'
                     };
