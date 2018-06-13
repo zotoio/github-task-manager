@@ -11,6 +11,6 @@ if [ $# -eq 0 ]; then
 fi
 
 export $(cat .env | grep -v ^# | xargs)
-node ./node_modules/serverless/bin/serverless encrypt -k $GTM_AWS_KMS_KEY_ID -n $1 -v $2
+node --require ./dotenv.js ./node_modules/serverless/bin/serverless encrypt -k $GTM_AWS_KMS_KEY_ID -n $1 -v $2
 
 # todo add encrypted values to .env from kms secrets

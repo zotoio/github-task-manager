@@ -32,6 +32,7 @@ export class ExecutorDockerSonar extends ExecutorDocker {
         super(eventData, log);
         this.eventData = eventData;
         this.log = log;
+        KmsUtils.logger = log;
     }
 
     async executeTask(task) {

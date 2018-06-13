@@ -1,6 +1,5 @@
 service: gtmGithubHook
 plugins:
-  - serverless-dotenv-plugin
   - serverless-webpack
   - serverless-kms-secrets
   - serverless-offline
@@ -14,8 +13,7 @@ provider:
   stage: dev
   region: ${env:GTM_AWS_REGION}
 
-  environment:
-    PLACE: HOLDER
+  environment: ${file(./serverless-aws-environment.yml):environment}
 
   iamRoleStatements:
     - Effect: Allow
@@ -157,5 +155,4 @@ resources:
 #        VpcId: ${env:GTM_AWS_VPC_ID}
 
 custom:
-  dotenv:
-    path: .env
+  kmsSecrets: ${file(kms-secrets.${opt:stage, self:provider.stage}.${opt:region, self:provider.region}.yml)}

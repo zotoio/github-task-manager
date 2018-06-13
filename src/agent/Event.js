@@ -6,6 +6,7 @@ import { default as AgentLogger } from './AgentLogger';
 import { Agent } from './Agent';
 import KmsUtils from '../KmsUtils';
 let log = AgentLogger.log();
+KmsUtils.logger = log;
 
 /**
  * representation of an event generated from a github hook SQS message

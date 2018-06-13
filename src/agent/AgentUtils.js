@@ -10,6 +10,7 @@ import { default as AgentLogger } from './AgentLogger';
 import { default as yamljs } from 'yamljs';
 import { default as https } from 'https';
 let log = AgentLogger.log();
+KmsUtils.logger = log;
 
 const AWS = require('aws-sdk');
 const proxy = require('proxy-agent');

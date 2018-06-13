@@ -74,9 +74,8 @@ export class ExecutorDockerServerless extends ExecutorDocker {
                 IAM_ENABLED: process.env.IAM_ENABLED,
                 S3_DEPENDENCY_BUCKET: '##GTM_S3_DEPENDENCY_BUCKET##',
                 AWS_S3_PROXY: '##GTM_AWS_S3_PROXY##',
-                SLS_AWS_STAGE: process.env.SLS_AWS_STAGE,
-                SLS_AWS_REGION: process.env.SLS_AWS_REGION,
-                SLS_CUSTOM_DOMAIN: process.env.SLS_CUSTOM_DOMAIN
+                AWS_STAGE: process.env.GTM_AWS_STAGE,
+                AWS_REGION: process.env.GTM_AWS_REGION
             },
             validator: {
                 type: 'outputRegex',
@@ -106,7 +105,7 @@ export class ExecutorDockerServerless extends ExecutorDocker {
         // add token into clone url
         task.options.env.GIT_CLONE = task.options.env.GIT_CLONE.replace(
             'https://',
-            `https://${task.options.env.SLS_GITHUB_OAUTH}@`
+            `https://${task.options.env.GTM_CRYPT_GITHUB_TOKEN}@`
         );
 
         return task.options;

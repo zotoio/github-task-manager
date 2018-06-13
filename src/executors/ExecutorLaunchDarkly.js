@@ -26,6 +26,7 @@ export class ExecutorLaunchDarkly extends Executor {
     constructor(eventData, log) {
         super(eventData, log);
         this.log = log;
+        KmsUtils.logger = log;
         this.options = this.getOptions();
     }
 
