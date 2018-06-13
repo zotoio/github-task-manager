@@ -1,7 +1,7 @@
 import { Executor } from '../agent/Executor';
 import { LaunchDarklyUtils } from 'launchdarkly-nodeutils';
 import { default as formatJson } from 'format-json';
-import { KmsUtils } from '../KmsUtils';
+import KmsUtils from '../KmsUtils';
 
 /**
  * Sample .githubTaskManager.json task config

@@ -5,7 +5,7 @@ import { default as x2j } from 'xml2js';
 import { default as URL } from 'url';
 import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
-import { KmsUtils } from '../KmsUtils';
+import KmsUtils from '../KmsUtils';
 
 /**
  * Sample .githubTaskManager.json task config

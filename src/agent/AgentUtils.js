@@ -4,7 +4,7 @@ const pullRequestData = require('./pullrequest.json');
 const { URL } = require('url');
 const crypto = require('crypto');
 
-const { KmsUtils } = require('../KmsUtils');
+import KmsUtils from '../KmsUtils';
 
 import { default as AgentLogger } from './AgentLogger';
 import { default as yamljs } from 'yamljs';

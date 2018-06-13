@@ -10,14 +10,17 @@ describe('gtmGithubUtils', function() {
         process.env.GTM_AWS_KMS_KEY_ID = '';
     });
     describe('connect', function() {
-        it('should throw without creds', function(done) {
-            assert.throws(githubUtils.connect, Error);
-            done();
+        it('should throw without creds', async function() {
+            try {
+                await githubUtils.connect();
+            } catch (e) {
+                return assert.equal(e.message, 'OAuth2 authentication requires a token or key & secret to be set');
+            }
         });
     });
 
     describe('signRequestBody', function() {
-        it('should encrypt correctly', function(done) {
+        it('should encrypt correctly', function() {
             let key = 'abc';
             let body = 'def';
 
@@ -28,12 +31,11 @@ describe('gtmGithubUtils', function() {
 
             let actual = githubUtils.signRequestBody(key, body);
             assert.equal(actual, expected);
-            done();
         });
     });
 
     describe('invalidHook', function() {
-        it('should return error if event header missing', function(done) {
+        it('should return error if event header missing', async function() {
             process.env.GTM_AWS_KMS_KEY_ID = '';
             process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET = 'abc';
 
@@ -45,9 +47,8 @@ describe('gtmGithubUtils', function() {
             };
 
             let expected = 'Error: No X-Github-Event found on request';
-            let actual = githubUtils.invalidHook(event);
+            let actual = await githubUtils.invalidHook(event);
             assert.equal(actual, expected);
-            done();
         });
     });
 

@@ -1,7 +1,7 @@
 import { default as JenkinsLib } from 'jenkins';
 import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
-import { KmsUtils } from '../KmsUtils';
+import KmsUtils from '../KmsUtils';
 
 /**
  * Sample .githubTaskManager.json task config/

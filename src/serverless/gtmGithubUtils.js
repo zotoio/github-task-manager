@@ -8,11 +8,11 @@ let githubUpdaters = {
     comment: updateGitHubComment,
     push: updateGitHubPush
 };
-const KmsUtils = require('../KmsUtils').KmsUtils;
+import KmsUtils from './../KmsUtils';
 
 let ghEnforceValidSsl = process.env.NODE_TLS_REJECT_UNAUTHORIZED === 0;
 
-function connect(context) {
+async function connect(context) {
     console.log('Connecting to GitHub');
     console.log('GitHub SSL Validation: ' + String(ghEnforceValidSsl));
     let githubOptions = {
@@ -27,19 +27,19 @@ function connect(context) {
     console.log('Creating GitHub API Connection');
     let github = new GitHubApi(githubOptions);
 
-    let token = KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_TOKEN);
+    let token = await KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_TOKEN);
     if (context) {
         token =
-            KmsUtils.getDecrypted(process.env['GTM_CRYPT_GITHUB_TOKEN_' + context.toUpperCase().replace('-', '_')]) ||
-            KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_TOKEN);
+            (await KmsUtils.getDecrypted(
+                process.env['GTM_CRYPT_GITHUB_TOKEN_' + context.toUpperCase().replace('-', '_')]
+            )) || (await KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_TOKEN));
     }
 
-    console.log('Authenticating with GitHub' + token);
+    console.log('Authenticating with GitHub');
     github.authenticate({
         type: 'oauth',
         token: token
     });
-
     return github;
 }
 
@@ -50,10 +50,10 @@ function signRequestBody(key, body) {
         .digest('hex')}`;
 }
 
-function invalidHook(event) {
+async function invalidHook(event) {
     let err = null;
     let errMsg = null;
-    const token = KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET);
+    const token = await KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET);
     const headers = event.headers;
     const sig = headers['X-Hub-Signature'] || headers['x-hub-signature'];
     const githubEvent = headers['X-GitHub-Event'] || headers['x-github-event'];
@@ -113,7 +113,7 @@ function decodeFileResponse(fileResponse) {
 }
 
 async function getFile(params) {
-    let github = connect();
+    let github = await connect();
 
     return new Promise((resolve, reject) => {
         try {
@@ -177,7 +177,7 @@ async function updateGitHubPullRequestStatus(status, done) {
     //console.log(status);
 
     try {
-        let github = connect(status.context);
+        let github = await connect(status.context);
         return await github.repos.createStatus(status).then(() => {
             done();
         });
@@ -206,7 +206,7 @@ async function addGitHubPullRequestComment(status, done) {
     };
      */
     try {
-        let github = connect();
+        let github = await connect();
         return await github.pullRequests
             .createReview({
                 owner: status.owner,
@@ -239,7 +239,7 @@ async function addGitHubPushComments(status, done) {
     };
      */
     try {
-        let github = connect();
+        let github = await connect();
         let promises = [];
         // adding the same comment to each commit in the push for now..
         status.eventData.commits.forEach(commit => {

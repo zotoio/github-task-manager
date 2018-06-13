@@ -1,7 +1,7 @@
 import { default as Travis } from 'travis-ci';
 import { Executor } from '../agent/Executor';
 import { default as json } from 'format-json';
-import { KmsUtils } from '../KmsUtils';
+import KmsUtils from '../KmsUtils';
 
 /**
  * Sample .githubTaskManager.json task config - NOT READY FOR USE

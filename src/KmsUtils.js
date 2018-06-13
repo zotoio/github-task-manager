@@ -2,74 +2,71 @@ import * as AWS from 'aws-sdk';
 import * as bunyan from 'bunyan';
 const log = bunyan.createLogger({ name: 'KmsUtils' });
 
-let STORE = {};
-
-const KMS = new AWS.KMS({ region: process.env.GTM_AWS_REGION });
-
-export class KmsUtils {
+class KmsUtils {
     constructor() {
+        this.KMS = new AWS.KMS({ region: process.env.GTM_AWS_REGION });
+        this.primeStore();
         log.info('KmsUtils created');
     }
 
-    static getStore() {
-        return STORE;
+    get store() {
+        if (!this._store) this._store = {};
+        return this._store;
     }
-    static decrypt(encrypted, callback) {
-        let result = '';
+
+    async decrypt(encrypted) {
         if (encrypted) {
             if (!process.env.GTM_AWS_KMS_KEY_ID) {
                 log.warn(`no encryption key configured, using raw values`);
-                KmsUtils.setDecrypted(encrypted, encrypted);
-                callback(null, encrypted);
+                this.setDecrypted(encrypted, encrypted);
+                return encrypted;
             } else {
                 log.info(`decrypting: ${encrypted}`);
-                if (KmsUtils.hasDecrypted(encrypted)) {
+                if (this.hasDecrypted(encrypted)) {
                     log.info('returning stored decrypted value');
-                    callback(null, KmsUtils.getDecrypted(encrypted));
+                    return this.getDecrypted(encrypted);
                 }
                 try {
-                    KMS.decrypt({ CiphertextBlob: new Buffer(encrypted, 'base64') })
+                    return this.KMS.decrypt({ CiphertextBlob: new Buffer(encrypted, 'base64') })
                         .promise()
                         .then(data => {
                             log.info(`storing decrypted result.`);
-                            KmsUtils.setDecrypted(encrypted, data.Plaintext);
-                            return callback(null, data.Plaintext);
+                            let decrypted = data.Plaintext.toString();
+                            this.setDecrypted(encrypted, decrypted);
+                            return decrypted;
                         });
                 } catch (e) {
                     log.error(e);
-                    return callback(e);
                 }
             }
         }
-        return result;
+        //return result;
     }
-    static primeStore() {
+    async primeStore() {
         log.info(`priming decrypted var store`);
+        let promises = [];
         Object.keys(process.env).forEach(key => {
             if (key.startsWith('GTM_CRYPT_')) {
-                KmsUtils.decrypt(process.env[key], err => {
-                    if (err) log.error(err);
-                    log.info(`stored decrypted value of ${key}`);
-                });
+                promises.push(this.decrypt(process.env[key]));
+                log.info(`decrypting value of ${key}`);
             }
         });
+        return Promise.all(promises);
     }
-    static hasDecrypted(encrypted) {
-        return Object.keys(STORE).includes(encrypted);
+    hasDecrypted(encrypted) {
+        return Object.keys(this.store).includes(encrypted);
     }
-    static getDecrypted(encrypted) {
+    async getDecrypted(encrypted) {
         if (this.hasDecrypted(encrypted)) {
-            return STORE[encrypted];
+            return this.store[encrypted];
         } else {
-            KmsUtils.decrypt(encrypted, (err, decrypted) => {
-                if (err) log.error(err);
-                log.warn(`returning newly decrypted value`);
-                return decrypted;
-            });
+            log.info(`returning newly decrypted value`);
+            return await this.decrypt(encrypted);
         }
     }
-    static setDecrypted(encrypted, decrypted) {
-        STORE[encrypted] = decrypted;
+    setDecrypted(encrypted, decrypted) {
+        this.store[encrypted] = decrypted;
     }
 }
-KmsUtils.primeStore();
+
+export default new KmsUtils();

@@ -7,7 +7,7 @@ let UUID = require('uuid/v4');
 let Producer = require('sqs-producer');
 let githubUtils = require('../gtmGithubUtils.js');
 
-const KmsUtils = require('./../../KmsUtils').KmsUtils;
+import KmsUtils from './../../KmsUtils';
 
 process.on('unhandledRejection', (reason, p) => {
     console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
@@ -17,8 +17,7 @@ process.on('unhandledRejection', (reason, p) => {
 async function listener(event, context, callback) {
     const githubEvent = event.headers['X-GitHub-Event'] || event.headers['x-github-event'];
     const githubSignature = event.headers['X-Hub-Signature'] || event.headers['x-hub-signature'];
-
-    let err = githubUtils.invalidHook(event);
+    let err = await githubUtils.invalidHook(event);
     if (err) {
         return callback(err, {
             statusCode: 401,
@@ -106,7 +105,7 @@ async function handleEvent(type, body, signature) {
     ];
 
     signature = githubUtils.signRequestBody(
-        KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET),
+        await KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET),
         JSON.stringify(event[0])
     );
 

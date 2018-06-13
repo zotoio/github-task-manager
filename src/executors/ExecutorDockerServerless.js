@@ -2,7 +2,7 @@ import { Executor } from '../agent/Executor';
 import { ExecutorDocker } from './ExecutorDocker';
 import { default as _ } from 'lodash';
 import { AgentUtils } from '../agent/AgentUtils';
-import { KmsUtils } from '../KmsUtils';
+import KmsUtils from '../KmsUtils';
 
 /**
  * Sample .githubTaskManager.json task config

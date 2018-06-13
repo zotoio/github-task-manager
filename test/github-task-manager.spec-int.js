@@ -29,7 +29,7 @@ describe('GitHub Task Manager', () => {
             let testName = `test_${Date.now()}`;
             let hookUrl = await firstline('./sls-hook-url.out');
             console.log(`hook url: ${hookUrl}`);
-            let github = githubUtils.connect();
+            let github = await githubUtils.connect();
 
             let gh = {
                 repos: {

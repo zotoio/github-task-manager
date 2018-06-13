@@ -230,7 +230,8 @@ export class Agent {
 
                     let event;
                     try {
-                        event = new Event(message);
+                        let messageAttrs = await Event.validateMessage(message);
+                        event = new Event(message, messageAttrs);
                     } catch (e) {
                         log.error(e);
                         done(); //todo dead letter queue here rather than discard
