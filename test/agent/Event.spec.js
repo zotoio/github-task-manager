@@ -6,16 +6,17 @@ import { Event } from '../../src/agent/Event';
 describe('Event', function() {
     let temp;
     before(() => {
-        temp = process.env.GTM_GITHUB_WEBHOOK_SECRET;
-        process.env.GTM_GITHUB_WEBHOOK_SECRET = 'squirrel';
+        temp = process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET;
+        process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET = 'squirrel';
     });
 
     after(() => {
-        process.env.GTM_GITHUB_WEBHOOK_SECRET = temp;
+        process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET = temp;
     });
 
     let message;
     beforeEach(() => {
+        process.env.GTM_AWS_KMS_KEY_ID = '';
         message = JSON.parse(fs.readFileSync(__dirname + '/../fixtures/githubMessage.json', 'utf-8'));
     });
 

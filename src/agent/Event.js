@@ -4,7 +4,8 @@ import 'babel-polyfill';
 import { default as crypto } from 'crypto';
 import { default as AgentLogger } from './AgentLogger';
 import { Agent } from './Agent';
-
+import { KmsUtils } from '../KmsUtils';
+console.log(KmsUtils.getStore());
 let log = AgentLogger.log();
 
 /**
@@ -61,8 +62,9 @@ export class Event {
         let checkEvent = Event.buildCheckObject(message);
         log.debug(`eventString for signature check: ${JSON.stringify(checkEvent)}`);
 
+        console.log(KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET));
         let calculatedSig = `sha1=${crypto
-            .createHmac('sha1', process.env.GTM_GITHUB_WEBHOOK_SECRET)
+            .createHmac('sha1', KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET))
             .update(JSON.stringify(checkEvent), 'utf-8')
             .digest('hex')}`;
 

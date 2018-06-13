@@ -8,13 +8,15 @@
     "patch": "cp -rf ./patches/* ./node_modules/",
     "commit": "./node_modules/.bin/git-cz",
     "lint": "node ./node_modules/.bin/eslint ./src ./test --fix --ext=.js --ignore-pattern src/agent/static/ --ignore-pattern node_modules/ --ignore-pattern dist/ --ignore-pattern coverage/ --quiet",
-    "test": "npm run build && cross-env NODE_ENV=test nyc ./node_modules/.bin/mocha --timeout 10000 --require babel-core/register --require babel-polyfill './dist/test/**/*.spec.js'",
+    "test": "npm run build && cross-env NODE_ENV=test GTM_CRYPT_GITHUB_WEBHOOK_SECRET=abc GTM_AWS_KMS_KEY_ID='' nyc ./node_modules/.bin/mocha --timeout 10000 --require babel-core/register --require babel-polyfill './dist/test/**/*.spec.js'",
     "test-integration": "npm run agent-build && npm run sls-deploy && npm run docker-start && EDGEGRID_ENV=test node ./node_modules/.bin/mocha --timeout 10000 --require babel-core/register --require babel-polyfill ./dist/test/**/*.spec-int.js",
     "semantic-release": "semantic-release",
     "sls-deploy": "npm run build && node ./node_modules/serverless/bin/serverless deploy -v | tee ./sls.out && cat ./sls.out | grep ServiceEndpoint | sed 's/ServiceEndpoint[^https]*\\(https:\\/\\/.*\\)/\\1\\/gtm-github-hook/' | sed 's/\\x1b\\[[0-9;]*m//g' > ./sls-hook-url.out",
     "sls-undeploy": "node ./node_modules/serverless/bin/serverless remove",
     "sls-logs-hook": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubHook -t",
     "sls-logs-results": "node ./node_modules/serverless/bin/serverless logs -f gtmGithubResults -t",
+    "sls-encrypt": "chmod 755 ./encrypt.sh && ./encrypt.sh",
+    "sls-decrypt": "node ./node_modules/serverless/bin/serverless decrypt -n",
     "agent": "export $(cat .env | grep -v ^# | xargs) && node dist/src/agent/startAgent.js",
     "agent-build": "node ./dist/src/agent/sass.js && cp ./src/agent/static/*.js ./dist/src/agent/static/",
     "docker-build": "docker build -t github-task-manager --no-cache .",
@@ -139,6 +141,7 @@
     "webpack": "^4.0.0",
     "xml2js": "^0.4.19",
     "yamljs": "^0.3.0",
-    "zlib": "^1.0.5"
+    "zlib": "^1.0.5",
+    "serverless-kms-secrets": "^1.0.3"
   }
 }

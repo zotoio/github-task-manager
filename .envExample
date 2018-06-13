@@ -2,9 +2,6 @@ GTM_AWS_REGION=ap-southeast-2
 GTM_SQS_PENDING_QUEUE=gtmPendingQueue
 GTM_SQS_RESULTS_QUEUE=gtmResultsQueue
 GTM_SNS_RESULTS_TOPIC=gtmResultsSNSTopic
-GTM_GITHUB_WEBHOOK_SECRET=<redacted>
-GTM_GITHUB_TOKEN=<redacted>
-GTM_GITHUB_TOKEN_FUNCTIONAL_TESTS=<redacted>
 GTM_GITHUB_HOST=api.github.com
 GTM_GITHUB_DEBUG=true
 GTM_GITHUB_TIMEOUT=5000
@@ -12,13 +9,10 @@ GTM_GITHUB_PATH_PREFIX=
 GTM_GITHUB_PROXY=
 GTM_TASK_CONFIG_FILENAME=.githubTaskManager.json
 GTM_AGENT_PORT=9091
-GTM_AGENT_AWS_ACCESS_KEY_ID=<redacted>
-GTM_AGENT_AWS_SECRET_ACCESS_KEY=<redacted>
 GTM_JENKINS_USER=<redacted>
 GTM_JENKINS_URL=<redacted>
 GTM_JENKINS_CSRF=<true|false>
 GTM_TEAMCITY_USER=<redacted>
-GTM_TEAMCITY_PASSCODE=<redacted>
 GTM_TEAMCITY_URL=<redacted>
 GTM_DOCKER_IMAGE_WHITELIST=alpine:*,zotoio/*
 GTM_DOCKER_IMAGE_WHITELIST_FILE=.dockerImageWhitelistExample
@@ -26,11 +20,9 @@ GTM_DOCKER_COMMANDS_ALLOWED=true
 GTM_DOCKER_ALLOW_PULL=true
 GTM_DOCKER_DEFAULT_WORKER_IMAGE=zotoio/gtm-worker:latest
 IAM_ENABLED=<true|undefined>
-LAUNCHDARKLY_API_TOKEN=<redacted>
 GTM_LOGSTASH_HOST=
 GTM_LOGSTASH_PORT=
 GTM_SONAR_HOST_URL=http://localhost:9000
-GTM_SONAR_GITHUB_OAUTH=<redacted>
 GTM_SONAR_GITHUB_ENDPOINT=<http://enterprise.github/api/v3/>
 GTM_SONAR_LOGIN=<redacted>
 GTM_SONAR_PROJECTNAME_PREFIX=github::
@@ -47,3 +39,23 @@ GTM_BASE_URL=http://localhost:9091
 GTM_S3_DEPENDENCY_BUCKET=gtmstorage
 GTM_WELCOME_MESSAGE_ENABLED=true
 GTM_REPO_BLACKLIST=.*ignore-repo.*,.*another-repo.*
+GTM_AWS_KMS_KEY_ID=<redacted>
+
+GTM_CRYPT_GITHUB_TOKEN=<redacted>
+GTM_CRYPT_GITHUB_WEBHOOK_SECRET=<redacted>
+GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID=<redacted>
+GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY=<redacted>
+GTM_CRYPT_LAUNCHDARKLY_API_TOKEN=<redacted>
+GTM_CRYPT_SONAR_GITHUB_OAUTH=<redacted>
+GTM_CRYPT_SONAR_LOGIN=<redacted>
+GTM_CRYPT_JENKINS_TOKEN=<redacted>
+
+# use the following to encrypt values, collect from kms-secrets-* file created, and add above
+#npm run sls-encrypt GTM_CRYPT_GITHUB_TOKEN <redacted>
+#npm run sls-encrypt GTM_CRYPT_GITHUB_WEBHOOK_SECRET <redacted>
+#npm run sls-encrypt GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID <redacted>
+#npm run sls-encrypt GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY <redacted>
+#npm run sls-encrypt GTM_CRYPT_LAUNCHDARKLY_API_TOKEN <redacted>
+#npm run sls-encrypt GTM_CRYPT_SONAR_GITHUB_OAUTH <redacted>
+#npm run sls-encrypt GTM_CRYPT_SONAR_LOGIN <redacted>
+#npm run sls-encrypt GTM_CRYPT_JENKINS_TOKEN <redacted>

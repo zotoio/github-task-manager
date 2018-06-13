@@ -5,6 +5,7 @@ import { default as x2j } from 'xml2js';
 import { default as URL } from 'url';
 import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
+import { KmsUtils } from '../KmsUtils';
 
 /**
  * Sample .githubTaskManager.json task config
@@ -38,7 +39,7 @@ export class ExecutorTeamCity extends Executor {
         this.teamCity = TeamCity.create({
             url: this.options.GTM_TEAMCITY_URL,
             username: this.options.GTM_TEAMCITY_USER,
-            password: this.options.GTM_TEAMCITY_PASSCODE
+            password: KmsUtils.getDecrypted(this.options.GTM_CRYPT_TEAMCITY_PASSCODE)
         });
     }
 
@@ -96,7 +97,7 @@ export class ExecutorTeamCity extends Executor {
         if (task.options.parameters.hasOwnProperty('cuke_tags')) {
             let statisticsUrl = AgentUtils.formatBasicAuth(
                 this.options.GTM_TEAMCITY_USER,
-                this.options.GTM_TEAMCITY_PASSCODE,
+                KmsUtils.getDecrypted(this.options.GTM_CRYPT_TEAMCITY_PASSCODE),
                 URL.resolve(this.options.GTM_TEAMCITY_URL, `/app/rest/builds/id:${teamCityBuildId.id}/statistics`)
             );
 

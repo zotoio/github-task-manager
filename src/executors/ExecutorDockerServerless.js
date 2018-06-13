@@ -2,6 +2,7 @@ import { Executor } from '../agent/Executor';
 import { ExecutorDocker } from './ExecutorDocker';
 import { default as _ } from 'lodash';
 import { AgentUtils } from '../agent/AgentUtils';
+import { KmsUtils } from '../KmsUtils';
 
 /**
  * Sample .githubTaskManager.json task config
@@ -84,8 +85,10 @@ export class ExecutorDockerServerless extends ExecutorDocker {
         };
 
         if (!process.env.IAM_ENABLED) {
-            options.env['GTM_AWS_ACCESS_KEY_ID'] = process.env.GTM_AGENT_AWS_ACCESS_KEY_ID;
-            options.env['GTM_AWS_SECRET_ACCESS_KEY'] = process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY;
+            options.env['GTM_AWS_ACCESS_KEY_ID'] = KmsUtils.getDecrypted(process.env.GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID);
+            options.env['GTM_AWS_SECRET_ACCESS_KEY'] = KmsUtils.getDecrypted(
+                process.env.GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY
+            );
             options.env['GTM_AWS_REGION'] = process.env.GTM_AWS_REGION;
         }
 

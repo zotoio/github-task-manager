@@ -1,6 +1,7 @@
 import { default as JenkinsLib } from 'jenkins';
 import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
+import { KmsUtils } from '../KmsUtils';
 
 /**
  * Sample .githubTaskManager.json task config/
@@ -30,7 +31,7 @@ export class ExecutorJenkins extends Executor {
         this.jenkins = JenkinsLib({
             baseUrl: AgentUtils.formatBasicAuth(
                 this.options.GTM_JENKINS_USER,
-                this.options.GTM_JENKINS_TOKEN,
+                KmsUtils.getDecrypted(this.options.GTM_CRYPT_JENKINS_TOKEN),
                 this.options.GTM_JENKINS_URL
             ),
             crumbIssuer: useCsrf,

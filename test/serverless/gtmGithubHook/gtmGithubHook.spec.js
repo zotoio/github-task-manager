@@ -1,11 +1,14 @@
 import { default as sinon } from 'sinon';
 import { default as assert } from 'assert';
-import { before, after, describe, it } from 'mocha';
+import { before, after, describe, it, beforeEach } from 'mocha';
 import { default as crypto } from 'crypto';
 import { default as gtmGithubHook } from '../../../src/serverless/gtmGithubHook/gtmGithubHook.js';
 import { default as githubUtils } from '../../../src/serverless/gtmGithubUtils.js';
 
 describe('gtmGithubHook', function() {
+    beforeEach(() => {
+        process.env.GTM_AWS_KMS_KEY_ID = '';
+    });
     describe('decodeEventBody', function() {
         it('should remove prefix and parse body', function(done) {
             let expected = { action: 'test' };
@@ -24,7 +27,7 @@ describe('gtmGithubHook', function() {
             event.body = 'payload=%7B%22action%22%3A%20%22test%22%7D';
 
             let key = 'abc';
-            process.env.GTM_GITHUB_WEBHOOK_SECRET = key;
+            process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET = key;
             let sig = `sha1=${crypto
                 .createHmac('sha1', key)
                 .update(event.body, 'utf-8')

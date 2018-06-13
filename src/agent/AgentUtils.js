@@ -3,6 +3,9 @@
 const pullRequestData = require('./pullrequest.json');
 const { URL } = require('url');
 const crypto = require('crypto');
+
+const { KmsUtils } = require('../KmsUtils');
+
 import { default as AgentLogger } from './AgentLogger';
 import { default as yamljs } from 'yamljs';
 import { default as https } from 'https';
@@ -20,9 +23,9 @@ if (process.env.IAM_ENABLED) {
         }
     });
 } else {
-    // due to serverless .env issue
-    process.env.AWS_ACCESS_KEY_ID = process.env.GTM_AGENT_AWS_ACCESS_KEY_ID;
-    process.env.AWS_SECRET_ACCESS_KEY = process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY;
+    // due to serverless .env restrictions
+    process.env.AWS_ACCESS_KEY_ID = KmsUtils.getDecrypted(process.env.GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID);
+    process.env.AWS_SECRET_ACCESS_KEY = KmsUtils.getDecrypted(process.env.GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY);
 }
 
 let sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
@@ -362,7 +365,11 @@ export class AgentUtils {
         // just add all the GTM env vars to map
         Object.keys(process.env).forEach(key => {
             if (key.startsWith('GTM_')) {
-                mapDict[`##${key}##`] = process.env[key];
+                if (key.startsWith('GTM_CRYPT')) {
+                    mapDict[`##${key}##`] = KmsUtils.getDecrypted(process.env[key]);
+                } else {
+                    mapDict[`##${key}##`] = process.env[key];
+                }
             }
         });
 

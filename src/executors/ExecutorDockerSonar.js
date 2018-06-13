@@ -2,6 +2,7 @@ import { Executor } from '../agent/Executor';
 import { ExecutorDocker } from './ExecutorDocker';
 import { default as _ } from 'lodash';
 import { AgentUtils } from '../agent/AgentUtils';
+import { KmsUtils } from '../KmsUtils';
 
 /**
  * Sample .githubTaskManager.json task config
@@ -48,10 +49,10 @@ export class ExecutorDockerSonar extends ExecutorDocker {
                 GIT_PR_BRANCHNAME: '##GH_PR_BRANCHNAME##',
                 SONAR_GITHUB_REPOSITORY: '##GH_REPOSITORY_FULLNAME##',
                 SONAR_HOST_URL: '##GTM_SONAR_HOST_URL##',
-                SONAR_LOGIN: '##GTM_SONAR_LOGIN##',
+                SONAR_LOGIN: '##GTM_CRYPT_SONAR_LOGIN##',
                 SONAR_PROJECTNAME_PREFIX: '##GTM_SONAR_PROJECTNAME_PREFIX##',
                 SONAR_ANALYSIS_MODE: '##GTM_SONAR_ANALYSIS_MODE##',
-                SONAR_GITHUB_OAUTH: '##GTM_SONAR_GITHUB_OAUTH##',
+                SONAR_GITHUB_OAUTH: '##GTM_CRYPT_SONAR_GITHUB_OAUTH##',
                 SONAR_SOURCES: '##GTM_SONAR_SOURCES##',
                 SONAR_JAVA_BINARIES: '##GTM_SONAR_JAVA_BINARIES##',
                 SONAR_MODULES: '##GTM_SONAR_MODULES##',
@@ -67,8 +68,10 @@ export class ExecutorDockerSonar extends ExecutorDocker {
         };
 
         if (!process.env.IAM_ENABLED) {
-            options.env['GTM_AWS_ACCESS_KEY_ID'] = process.env.GTM_AGENT_AWS_ACCESS_KEY_ID;
-            options.env['GTM_AWS_SECRET_ACCESS_KEY'] = process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY;
+            options.env['GTM_AWS_ACCESS_KEY_ID'] = KmsUtils.getDecrypted(process.env.GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID);
+            options.env['GTM_AWS_SECRET_ACCESS_KEY'] = KmsUtils.getDecrypted(
+                process.env.GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY
+            );
             options.env['GTM_AWS_REGION'] = process.env.GTM_AWS_REGION;
         }
 

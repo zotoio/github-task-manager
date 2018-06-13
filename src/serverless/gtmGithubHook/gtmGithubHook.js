@@ -5,8 +5,14 @@ let rp = require('request-promise-native');
 let json = require('format-json');
 let UUID = require('uuid/v4');
 let Producer = require('sqs-producer');
-
 let githubUtils = require('../gtmGithubUtils.js');
+
+const KmsUtils = require('./../../KmsUtils').KmsUtils;
+
+process.on('unhandledRejection', (reason, p) => {
+    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+    // application specific logging, throwing an error, or other logic here
+});
 
 async function listener(event, context, callback) {
     const githubEvent = event.headers['X-GitHub-Event'] || event.headers['x-github-event'];
@@ -99,7 +105,10 @@ async function handleEvent(type, body, signature) {
         }
     ];
 
-    signature = githubUtils.signRequestBody(process.env.GTM_GITHUB_WEBHOOK_SECRET, JSON.stringify(event[0]));
+    signature = githubUtils.signRequestBody(
+        KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET),
+        JSON.stringify(event[0])
+    );
 
     event[0].messageAttributes.ghEventSignature = {
         DataType: 'String',

@@ -2,6 +2,7 @@ service: gtmGithubHook
 plugins:
   - serverless-dotenv-plugin
   - serverless-webpack
+  - serverless-kms-secrets
   - serverless-offline
 
 provider:
@@ -14,7 +15,7 @@ provider:
   region: ${env:GTM_AWS_REGION}
 
   environment:
-      GTM_GITHUB_WEBHOOK_SECRET: ${env:GTM_GITHUB_WEBHOOK_SECRET}
+    PLACE: HOLDER
 
   iamRoleStatements:
     - Effect: Allow

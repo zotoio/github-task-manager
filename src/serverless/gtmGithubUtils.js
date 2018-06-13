@@ -8,6 +8,7 @@ let githubUpdaters = {
     comment: updateGitHubComment,
     push: updateGitHubPush
 };
+const KmsUtils = require('../KmsUtils').KmsUtils;
 
 let ghEnforceValidSsl = process.env.NODE_TLS_REJECT_UNAUTHORIZED === 0;
 
@@ -26,13 +27,14 @@ function connect(context) {
     console.log('Creating GitHub API Connection');
     let github = new GitHubApi(githubOptions);
 
-    let token = process.env.GTM_GITHUB_TOKEN;
+    let token = KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_TOKEN);
     if (context) {
         token =
-            process.env['GTM_GITHUB_TOKEN_' + context.toUpperCase().replace('-', '_')] || process.env.GTM_GITHUB_TOKEN;
+            KmsUtils.getDecrypted(process.env['GTM_CRYPT_GITHUB_TOKEN_' + context.toUpperCase().replace('-', '_')]) ||
+            KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_TOKEN);
     }
 
-    console.log('Authenticating with GitHub');
+    console.log('Authenticating with GitHub' + token);
     github.authenticate({
         type: 'oauth',
         token: token
@@ -51,7 +53,7 @@ function signRequestBody(key, body) {
 function invalidHook(event) {
     let err = null;
     let errMsg = null;
-    const token = process.env.GTM_GITHUB_WEBHOOK_SECRET;
+    const token = KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET);
     const headers = event.headers;
     const sig = headers['X-Hub-Signature'] || headers['x-hub-signature'];
     const githubEvent = headers['X-GitHub-Event'] || headers['x-github-event'];
@@ -62,7 +64,7 @@ function invalidHook(event) {
         {
             name: 'github secret',
             check: typeof token !== 'string',
-            msg: `Must provide a 'GITHUB_WEBHOOK_SECRET' env variable`
+            msg: `Must provide a 'GTM_CRYPT_GITHUB_WEBHOOK_SECRET' env variable`
         },
         {
             name: 'X-Hub-Signature',
@@ -180,7 +182,7 @@ async function updateGitHubPullRequestStatus(status, done) {
             done();
         });
     } catch (e) {
-        if (e.message == 'OAuth2 authentication requires a token or key & secret to be set') {
+        if (e.message === 'OAuth2 authentication requires a token or key & secret to be set') {
             throw e;
         }
         console.log('----- ERROR COMMUNICATING WITH GITHUB -----');

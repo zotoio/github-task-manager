@@ -29,9 +29,9 @@ describe('Agent', function() {
 
     describe('start', () => {
         before(() => {
-            process.env.GTM_AGENT_AWS_ACCESS_KEY_ID = 'aws_key_id';
-            process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY = 'aws_key_secret';
-            process.env.GTM_GITHUB_WEBHOOK_SECRET = 'webhook_secret';
+            process.env.GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID = 'aws_key_id';
+            process.env.GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY = 'aws_key_secret';
+            process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET = 'webhook_secret';
         });
 
         it('should start the agent', () => {
