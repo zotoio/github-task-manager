@@ -32,9 +32,12 @@ export class ExecutorDockerServerless extends ExecutorDocker {
         super(eventData, log);
         this.eventData = eventData;
         this.log = log;
-        this.packagesToDeploy = this.identifyChangedPackages();
+        this._packagesToDeploy = this.identifyChangedPackages();
         this.refParts = this.eventData.ref ? this.eventData.ref.split('/') : [];
         this.pushBranch = this.refParts.length > 0 ? this.refParts[this.refParts.length] : null;
+    }
+    get packagesToDeploy() {
+        return this._packagesToDeploy;
     }
 
     async executeTask(task) {
