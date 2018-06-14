@@ -35,7 +35,7 @@ export class ExecutorLaunchDarkly extends Executor {
         if (!this.ldUtils) {
             let that = this;
             return new LaunchDarklyUtils()
-                .create(KmsUtils.getDecrypted(process.env.GTM_CRYPT_LAUNCHDARKLY_API_TOKEN), log)
+                .create(await KmsUtils.getDecrypted(process.env.GTM_CRYPT_LAUNCHDARKLY_API_TOKEN), log)
                 .then(handle => {
                     that.ldUtils = handle;
                     return Promise.resolve(handle);

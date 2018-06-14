@@ -30,24 +30,50 @@ describe('ExecutorLaunchDarkly', () => {
         });
     });
 
-    describe('getLDUtils', () => {
-        it('should return a promise', async () => {
-            let ldUtils = executorLaunchDarkly.getLDUtils();
-            assert.equal(ldUtils instanceof Promise, true);
-        });
-    });
-
     describe('getFlagValue', () => {
+        let stubCall;
+        let customResult;
+        before(function() {
+            customResult = {
+                flags: {
+                    getFeatureFlagState: () => {
+                        return true;
+                    }
+                }
+            };
+            stubCall = sinon.stub(ExecutorLaunchDarkly.prototype, 'getLDUtils').returns(Promise.resolve(customResult));
+        });
         it('should return a promise', async () => {
             let flagValue = executorLaunchDarkly.getFlagValue(eventData, 'test-one');
             assert.equal(flagValue instanceof Promise, true);
         });
+        after(() => {
+            stubCall.restore();
+        });
     });
 
     describe('setFlagValue', () => {
+        let stubCall;
+        let customResult;
+        before(function() {
+            customResult = {
+                flags: {
+                    getFeatureFlagState: () => {
+                        return true;
+                    },
+                    toggleFeatureFlag: () => {
+                        return true;
+                    }
+                }
+            };
+            stubCall = sinon.stub(ExecutorLaunchDarkly.prototype, 'getLDUtils').returns(Promise.resolve(customResult));
+        });
         it('should return a promise', async () => {
             let flagValue = executorLaunchDarkly.setFlagValue(eventData, 'test-one', true);
             assert.equal(flagValue instanceof Promise, true);
+        });
+        after(() => {
+            stubCall.restore();
         });
     });
 

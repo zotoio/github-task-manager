@@ -4,6 +4,7 @@ import { before, after, describe, it, beforeEach } from 'mocha';
 import { default as crypto } from 'crypto';
 import { default as gtmGithubHook } from '../../../src/serverless/gtmGithubHook/gtmGithubHook.js';
 import { default as githubUtils } from '../../../src/serverless/gtmGithubUtils.js';
+import { default as Producer } from 'sqs-producer';
 
 describe('gtmGithubHook', function() {
     beforeEach(() => {
@@ -21,10 +22,21 @@ describe('gtmGithubHook', function() {
         });
     });
     describe('listener', function() {
+        let stubCall;
+        let customResult;
+        before(() => {
+            process.env.GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID = 'aws_key_id';
+            process.env.GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY = 'aws_key_secret';
+            process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET = 'webhook_secret';
+
+            customResult = {};
+            stubCall = sinon.stub(Producer, 'create').returns(Promise.resolve(customResult));
+        });
         it('should run', function(done) {
             let event = {};
             event.type = 'pull_request';
-            event.body = 'payload=%7B%22action%22%3A%20%22test%22%7D';
+            event.body =
+                'payload=%7B%22pull_request%22%3A%20%7B%22ref%22%3A%20%22sha123%22%2C%22head%22%3A%20%7B%22repo%22%3A%20%7B%22name%22%3A%20%22code%22%2C%20%22owner%22%3A%20%7B%20%22login%22%3A%20%22bob%22%20%7D%7D%7D%7D%7D';
 
             let key = 'abc';
             process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET = key;
@@ -43,27 +55,8 @@ describe('gtmGithubHook', function() {
             assert.equal('1', '1'); //todo
             done();
         });
-    });
-    describe('handleEvent', function() {
-        it('should fire', function(done) {
-            let type = 'pull_request';
-            let body = {
-                pull_request: {
-                    ref: 'sha123',
-                    head: {
-                        repo: {
-                            name: 'code',
-                            owner: {
-                                login: 'bob'
-                            }
-                        }
-                    }
-                }
-            };
-
-            gtmGithubHook.handleEvent(type, body);
-            assert.equal(1, 1); //todo
-            done();
+        after(() => {
+            stubCall.restore();
         });
     });
 
