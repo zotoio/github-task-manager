@@ -98,6 +98,9 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_S3_DEPENDENCY_BUCKET| aws s3 storage of build dependencies|
 |GTM_AWS_S3_PROXY| https_proxy for aws s3 |
 |GTM_REPO_BLACKLIST| comma separated list of regex to blackist repo names from triggering events |
+|GTM_SLS_EXECUTOR_AWS_STAGE| stage override from default calculation of dev/test|
+|GTM_SLS_EXECUTOR_AWS_REGION| aws region for lambdas default ap-southeast-2|
+|GTM_SLS_EXECUTOR_AWS_EXECUTION_ROLE| docker serverless lambda execution role |
 
 > important: values of env vars prefixed with `GTM_CRYPT_*` must be created via `npm run sls-encrypt [name] [value]`
 

@@ -360,7 +360,9 @@ export class AgentUtils {
             '##GH_CLONE_URL##': obj.repository.clone_url,
             '##GH_PR_BRANCHNAME##': obj.pull_request ? obj.pull_request.head.ref : '',
             '##PARENTBUILDNUMBER##': this.metaValue(parent, 'buildNumber'),
-            '##PARENTBUILDNAME##': this.metaValue(parent, 'buildName')
+            '##PARENTBUILDNAME##': this.metaValue(parent, 'buildName'),
+            '##GIT_URL##': obj.pull_request ? obj.pull_request.html_url : obj.compare,
+            '##GIT_COMMIT##': obj.pull_request ? obj.pull_request.head.sha : obj.head_commit.id
         };
 
         // just add all the GTM env vars to map

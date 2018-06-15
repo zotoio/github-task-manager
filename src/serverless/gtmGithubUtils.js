@@ -285,6 +285,19 @@ async function handleEventTaskResult(message, done) {
     }
 }
 
+async function isCommitForPullRequest(commitSha) {
+    try {
+        let github = await connect();
+        let query = `${commitSha}+is:pr+state:open`;
+        const prResult = await github.search.issues({ q: query });
+        console.log(`isCommitForPullRequest result: ${json.plain(prResult)}`);
+        return prResult.data.items && prResult.data.items.length > 0;
+    } catch (e) {
+        console.log('----- ERROR COMMUNICATING WITH GITHUB -----');
+        console.log(e);
+    }
+}
+
 module.exports = {
     connect: connect,
     signRequestBody: signRequestBody,
@@ -293,5 +306,6 @@ module.exports = {
     getFile: getFile,
     handleEventTaskResult: handleEventTaskResult,
     updateGitHubPullRequestStatus: updateGitHubPullRequestStatus,
-    createPullRequestStatus: createPullRequestStatus
+    createPullRequestStatus: createPullRequestStatus,
+    isCommitForPullRequest: isCommitForPullRequest
 };

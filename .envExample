@@ -41,6 +41,9 @@ GTM_S3_DEPENDENCY_BUCKET=gtmstorage
 GTM_WELCOME_MESSAGE_ENABLED=true
 GTM_REPO_BLACKLIST=.*ignore-repo.*,.*another-repo.*
 GTM_AWS_KMS_KEY_ID=<redacted>
+GTM_SLS_EXECUTOR_AWS_STAGE=<stage for lambdas deployed by ExecutorDockerServerless>
+GTM_SLS_EXECUTOR_AWS_REGION=<region for lambdas>
+GTM_SLS_EXECUTOR_AWS_EXECUTION_ROLE=<iam role for lambda execution>
 
 GTM_CRYPT_GITHUB_TOKEN=<redacted>
 GTM_CRYPT_GITHUB_WEBHOOK_SECRET=<redacted>

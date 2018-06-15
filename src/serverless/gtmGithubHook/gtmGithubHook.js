@@ -83,11 +83,15 @@ async function handleEvent(type, body, signature) {
         queueUrl: process.env.SQS_PENDING_QUEUE_URL,
         region: process.env.GTM_AWS_REGION
     });
-
+    let pushForPullRequest = false;
+    // if this is a push, determine whether related to an open pull_request
+    if (type === 'push' && body.commits.length > 0) {
+        pushForPullRequest = await githubUtils.isCommitForPullRequest(body.commits[0].id);
+    }
+    body.pushForPullRequest = pushForPullRequest;
     let bodyString = JSON.stringify(body);
     let ghEventId = UUID();
     let ghAgentGroup = taskConfig[type] && taskConfig[type].agentGroup ? taskConfig[type].agentGroup : 'default';
-
     let event = [
         {
             id: ghEventId,
