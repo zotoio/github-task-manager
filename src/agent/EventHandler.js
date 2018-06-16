@@ -147,7 +147,7 @@ export class EventHandler extends Plugin {
             if (event.taskConfig.pull_request.isDefaultConfig && showWelcomeMessage) {
                 let warningPath =
                     process.env.GTM_TASK_CONFIG_DEFAULT_MESSAGE_PATH ||
-                    __dirname + '/PullRequestDefaultConfigWarning.md';
+                    __dirname + '/../handlers/PullRequestDefaultConfigWarning.md';
 
                 let warning = fs.readFileSync(warningPath, 'utf-8');
                 await this.addEventComment(event, warning, null);
