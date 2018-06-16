@@ -13,9 +13,10 @@ describe('ExecutorTeamCity', function() {
     process.env.GTM_TEAMCITY_PASSCODE = 'admin';
     process.env.GTM_TEAMCITY_URL = 'http://localhost:8111';
 
-    beforeEach(() => {
+    beforeEach(async () => {
         eventData = JSON.parse(fs.readFileSync(__dirname + '/../fixtures/executorTeamCityTaskPayLoad.json', 'utf-8'));
         executorTeamcity = new ExecutorTeamCity(eventData, console);
+        await executorTeamcity.initTeamCity();
     });
 
     describe('constructor', () => {

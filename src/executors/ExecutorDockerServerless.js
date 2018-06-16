@@ -114,7 +114,7 @@ export class ExecutorDockerServerless extends ExecutorDocker {
 
         task.options = AgentUtils.applyTransforms(
             AgentUtils.templateReplace(
-                AgentUtils.createBasicTemplate(this.eventData, {}, this.log),
+                await AgentUtils.createBasicTemplate(this.eventData, {}, this.log),
                 task.options,
                 this.log
             )

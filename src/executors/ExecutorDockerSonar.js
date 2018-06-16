@@ -36,11 +36,11 @@ export class ExecutorDockerSonar extends ExecutorDocker {
     }
 
     async executeTask(task) {
-        task.options = this.mergeTaskOptions(task);
+        task.options = await this.mergeTaskOptions(task);
         return super.executeTask(task);
     }
 
-    mergeTaskOptions(task) {
+    async mergeTaskOptions(task) {
         let options = {
             image: process.env.GTM_DOCKER_DEFAULT_WORKER_IMAGE || 'zotoio/gtm-worker:latest',
             command: '/usr/workspace/sonar-pullrequest.sh',
@@ -69,8 +69,10 @@ export class ExecutorDockerSonar extends ExecutorDocker {
         };
 
         if (!process.env.IAM_ENABLED) {
-            options.env['GTM_AWS_ACCESS_KEY_ID'] = KmsUtils.getDecrypted(process.env.GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID);
-            options.env['GTM_AWS_SECRET_ACCESS_KEY'] = KmsUtils.getDecrypted(
+            options.env['GTM_AWS_ACCESS_KEY_ID'] = await KmsUtils.getDecrypted(
+                process.env.GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID
+            );
+            options.env['GTM_AWS_SECRET_ACCESS_KEY'] = await KmsUtils.getDecrypted(
                 process.env.GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY
             );
             options.env['GTM_AWS_REGION'] = process.env.GTM_AWS_REGION;
@@ -78,10 +80,11 @@ export class ExecutorDockerSonar extends ExecutorDocker {
 
         // options defined above can be overidden by options in .githubTaskManager.json
         task.options = _.merge(options, task.options);
+        console.log(task.options);
 
         task.options = AgentUtils.applyTransforms(
             AgentUtils.templateReplace(
-                AgentUtils.createBasicTemplate(this.eventData, {}, this.log),
+                await AgentUtils.createBasicTemplate(this.eventData, {}, this.log),
                 task.options,
                 this.log
             )

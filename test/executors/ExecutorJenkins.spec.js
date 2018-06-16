@@ -12,9 +12,10 @@ describe('ExecutorJenkins', function() {
     process.env.GTM_JENKINS_URL = 'http://localhost:8211';
     let NON_EXISTING_JENKINS_SERVER = ': connect ECONNREFUSED 127.0.0.1:8211';
 
-    beforeEach(() => {
+    beforeEach(async () => {
         eventData = JSON.parse(fs.readFileSync(__dirname + '/../fixtures/executorJenkinsTaskPayload.json', 'utf-8'));
         executorJenkins = new ExecutorJenkins(eventData, console);
+        await executorJenkins.initJenkins();
     });
 
     describe('constructor', function() {

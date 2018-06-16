@@ -35,7 +35,7 @@ export class ExecutorTravis extends Executor {
 
         this.travis.authenticate(
             {
-                github_token: KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_TOKEN)
+                github_token: await KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_TOKEN)
             },
             function(err) {
                 if (err) {

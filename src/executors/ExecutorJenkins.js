@@ -25,19 +25,24 @@ export class ExecutorJenkins extends Executor {
         this.log = log;
         KmsUtils.logger = log;
         this.options = this.getOptions();
+    }
 
-        // If set, this will return bool:true, else bool:false
-        let useCsrf = this.options.GTM_JENKINS_CSRF === 'true';
+    async initJenkins() {
+        if (!this.jenkins) {
+            // If set, this will return bool:true, else bool:false
+            let useCsrf = this.options.GTM_JENKINS_CSRF === 'true';
 
-        this.jenkins = JenkinsLib({
-            baseUrl: AgentUtils.formatBasicAuth(
-                this.options.GTM_JENKINS_USER,
-                KmsUtils.getDecrypted(this.options.GTM_CRYPT_JENKINS_TOKEN),
-                this.options.GTM_JENKINS_URL
-            ),
-            crumbIssuer: useCsrf,
-            promisify: true
-        });
+            this.jenkins = JenkinsLib({
+                baseUrl: AgentUtils.formatBasicAuth(
+                    this.options.GTM_JENKINS_USER,
+                    await KmsUtils.getDecrypted(this.options.GTM_CRYPT_JENKINS_TOKEN),
+                    this.options.GTM_JENKINS_URL
+                ),
+                crumbIssuer: useCsrf,
+                promisify: true
+            });
+        }
+        return this.jenkins;
     }
 
     async waitForBuildToExist(buildName, buildNumber) {
@@ -100,6 +105,7 @@ export class ExecutorJenkins extends Executor {
     }
 
     async executeTask(task) {
+        this.jenkins = await this.initJenkins();
         let log = this.log;
         let jobName = task.options.jobName || null;
         let buildParams = task.options.parameters || null;

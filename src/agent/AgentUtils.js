@@ -341,7 +341,7 @@ export class AgentUtils {
      * Create a Templating Object from a Configuration Object
      * @param {Object} obj - EventData Object to Return Variables From
      */
-    static createBasicTemplate(obj, parent, log) {
+    static async createBasicTemplate(obj, parent, log) {
         if (!parent.results) {
             log.info('No Parent Build. Providing Safe Defaults');
             parent.results = {
@@ -366,10 +366,10 @@ export class AgentUtils {
         };
 
         // just add all the GTM env vars to map
-        Object.keys(process.env).forEach(key => {
+        Object.keys(process.env).forEach(async key => {
             if (key.startsWith('GTM_')) {
                 if (key.startsWith('GTM_CRYPT')) {
-                    mapDict[`##${key}##`] = KmsUtils.getDecrypted(process.env[key]);
+                    mapDict[`##${key}##`] = await KmsUtils.getDecrypted(process.env[key]);
                 } else {
                     mapDict[`##${key}##`] = process.env[key];
                 }
