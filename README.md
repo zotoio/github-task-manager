@@ -40,33 +40,37 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 - npm install
 - setup serverless aws creds per https://github.com/serverless/serverless/blob/master/docs/providers/aws/guide/credentials.md
 - setup a .env file in the repo root (copy from .envExample and modify)
+- create and AWS KMS key, and capture the id for var `GTM_AWS_KMS_KEY_ID`
 
 | Environment variable | description |
 | -------------------- | ----------- |
+|GTM_AWS_KMS_KEY_ID | aws kms key id |
+|GTM_CRYPT_GITHUB_TOKEN | encrypted access token for accessing github |
+|GTM_CRYPT_GITHUB_WEBHOOK_SECRET | encrypted shared secret from github webook config |
+|GTM_CRYPT_AWS_ACCESS_KEY_ID | encrypted aws key id - for agent only |
+|GTM_CRYPT_AWS_SECRET_ACCESS_KEY | encrypted aws secret - for agent only |
+|GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY|secret key for agent|
+|GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID|access key for agent|
+|GTM_CRYPT_JENKINS_TOKEN| encrypted token |
+|GTM_CRYPT_TEAMCITY_PASSCODE| encrypted teamcity executor passcode|
+|GTM_CRYPT_SONAR_LOGIN| encrypted sonar access token |
+|GTM_CRYPT_SONAR_GITHUB_OAUTH| encrypted github token for sonar to post comments and status |
 |GTM_AWS_REGION | awsregion to create resources in |
 |GTM_SQS_PENDING_QUEUE | name of SQS queue for new event |
 |GTM_SQS_RESULTS_QUEUE | name of SQS queue for results |
 |GTM_SNS_RESULTS_TOPIC | name of SNS topic for result ping |
-|GTM_GITHUB_WEBHOOK_SECRET | shared secret from github webook config |
-|GTM_GITHUB_TOKEN | access token for accessing github |
-|GTM_GITHUB_TOKEN_FUNCTIONAL_TESTS | access token for individual test type.  each task type can have a different token |
 |GTM_GITHUB_HOST | api hostname can be updated for github enterprise |
 |GTM_GITHUB_DEBUG | debug mode for api calls |
 |GTM_GITHUB_TIMEOUT | github api timeout |
 |GTM_GITHUB_PATH_PREFIX | path prefix for github enterprise |
 |GTM_GITHUB_PROXY | github api client proxy |
 |GTM_TASK_CONFIG_FILENAME | filename in repo to look for for task config - default is .githubTaskManager |
-|GTM_AWS_ACCESS_KEY_ID | aws key id - for agent only |
-|GTM_AWS_SECRET_ACCESS_KEY | aws secret - for agent only |
 |AWS_PROXY|URL of proxy to use for network requests. Optional|
 |GTM_AGENT_PORT| defaults to 9091 |
-|GTM_AGENT_AWS_ACCESS_KEY_ID|access key for agent|
-|GTM_AGENT_AWS_SECRET_ACCESS_KEY|secret key for agent|
 |GTM_JENKINS_USER|login for jenkins executor|
 |GTM_JENKINS_URL|url executor uses to talk to jenkins|
 |GTM_JENKINS_CSRF| is csrf enabled? true or false|
 |GTM_TEAMCITY_USER|teamcity executor user|
-|GTM_TEAMCITY_PASSCODE|teamcity executor passcode|
 |GTM_TEAMCITY_URL|teamcity api url|
 |GTM_DOCKER_IMAGE_WHITELIST| comma separated list of regex of allows docker images eg. alpine:*,bash:latest|
 |GTM_DOCKER_IMAGE_WHITELIST_FILE|use an optional docker whitelist file .dockerImageWhitelistExample|
@@ -78,10 +82,8 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_LOGSTASH_HOST|optional logstash host for elasticsearch analysis|
 |GTM_LOGSTASH_PORT|optional logstash port|
 |GTM_SONAR_HOST_URL| sonar host url to connect to |
-|GTM_SONAR_LOGIN| sonar access token |
 |GTM_SONAR_PROJECTNAME_PREFIX| prefix if reporting to sonarqube |
 |GTM_SONAR_ANALYSIS_MODE| mode for sonar runner, default preview for PRs |
-|GTM_SONAR_GITHUB_OAUTH| github token for sonar to post comments and status |
 |GTM_SONAR_SOURCES| default source dir is `src`|
 |GTM_SONAR_JAVA_BINARIES| default is `target`|
 |GTM_SONAR_MODULES| comma separated modules|
@@ -96,6 +98,11 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_S3_DEPENDENCY_BUCKET| aws s3 storage of build dependencies|
 |GTM_AWS_S3_PROXY| https_proxy for aws s3 |
 |GTM_REPO_BLACKLIST| comma separated list of regex to blackist repo names from triggering events |
+|GTM_SLS_EXECUTOR_AWS_STAGE| stage override from default calculation of dev/test|
+|GTM_SLS_EXECUTOR_AWS_REGION| aws region for lambdas default ap-southeast-2|
+|GTM_SLS_EXECUTOR_AWS_EXECUTION_ROLE| docker serverless lambda execution role |
+
+> important: values of env vars prefixed with `GTM_CRYPT_*` must be created via `npm run sls-encrypt [name] [value]`
 
 ## Configure and deploy
 - run: `npm run sls-deploy` - note that this will create aws re$ources..

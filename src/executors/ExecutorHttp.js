@@ -43,11 +43,7 @@ export class ExecutorHttp extends Executor {
 
         log.info(`Starting http request..`);
 
-        return rp({
-            proxy: task.options.proxy || this.options.proxy || null,
-            resolveWithFullResponse: true,
-            har: har
-        })
+        return this.sendRequest(task, har)
             .then(response => {
                 let res = json.plain(response);
                 log.info(res);
@@ -80,6 +76,13 @@ export class ExecutorHttp extends Executor {
                 };
                 return Promise.reject(task);
             });
+    }
+    sendRequest(task, har) {
+        return rp({
+            proxy: task.options.proxy || this.options.proxy || null,
+            resolveWithFullResponse: true,
+            har: har
+        });
     }
 
     validate(task, response) {

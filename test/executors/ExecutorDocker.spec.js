@@ -7,6 +7,7 @@ import { ExecutorDocker } from '../../src/executors/ExecutorDocker';
 describe('ExecutorDocker', () => {
     let executorDocker;
     let eventData;
+    process.env.GTM_DOCKER_ALLOW_PULL = 'false';
 
     beforeEach(() => {
         eventData = {
@@ -49,7 +50,7 @@ describe('ExecutorDocker', () => {
 
     describe('containerLogs', () => {
         it('should return a promise', async () => {
-            let result = executorDocker.containerLogs({ logs: () => {} });
+            let result = executorDocker.containerLogs(executorDocker, { logs: () => {} });
             assert.equal(result instanceof Promise, true);
         });
     });

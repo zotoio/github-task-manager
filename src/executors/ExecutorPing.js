@@ -28,7 +28,7 @@ export class ExecutorPing extends Executor {
         let promises = [];
 
         for (let i = 1; i <= count; i++) {
-            let status = AgentUtils.createPullRequestStatus(
+            let status = AgentUtils.createEventStatus(
                 this.eventData,
                 'pending',
                 `${task.executor}: ${task.context}`,

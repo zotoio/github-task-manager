@@ -5,6 +5,7 @@ import { default as x2j } from 'xml2js';
 import { default as URL } from 'url';
 import { Executor } from '../agent/Executor';
 import { AgentUtils } from '../agent/AgentUtils';
+import KmsUtils from '../KmsUtils';
 
 /**
  * Sample .githubTaskManager.json task config
@@ -33,13 +34,18 @@ export class ExecutorTeamCity extends Executor {
     constructor(eventData, log) {
         super(eventData, log);
         this.log = log;
+        KmsUtils.logger = log;
         this.options = this.getOptions();
-
-        this.teamCity = TeamCity.create({
-            url: this.options.GTM_TEAMCITY_URL,
-            username: this.options.GTM_TEAMCITY_USER,
-            password: this.options.GTM_TEAMCITY_PASSCODE
-        });
+    }
+    async initTeamCity() {
+        if (!this.teamCity) {
+            this.teamCity = await TeamCity.create({
+                url: this.options.GTM_TEAMCITY_URL,
+                username: this.options.GTM_TEAMCITY_USER,
+                password: await KmsUtils.getDecrypted(this.options.GTM_CRYPT_TEAMCITY_PASSCODE)
+            });
+        }
+        return this.teamCity;
     }
 
     createTeamCityBuildNode(task, jobName) {
@@ -70,6 +76,7 @@ export class ExecutorTeamCity extends Executor {
     }
 
     async executeTask(task) {
+        this.teamCity = await this.initTeamCity();
         let log = this.log;
         let jobName = task.options.jobName;
 
@@ -96,7 +103,7 @@ export class ExecutorTeamCity extends Executor {
         if (task.options.parameters.hasOwnProperty('cuke_tags')) {
             let statisticsUrl = AgentUtils.formatBasicAuth(
                 this.options.GTM_TEAMCITY_USER,
-                this.options.GTM_TEAMCITY_PASSCODE,
+                await KmsUtils.getDecrypted(this.options.GTM_CRYPT_TEAMCITY_PASSCODE),
                 URL.resolve(this.options.GTM_TEAMCITY_URL, `/app/rest/builds/id:${teamCityBuildId.id}/statistics`)
             );
 

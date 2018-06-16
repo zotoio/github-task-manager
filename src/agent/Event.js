@@ -4,15 +4,16 @@ import 'babel-polyfill';
 import { default as crypto } from 'crypto';
 import { default as AgentLogger } from './AgentLogger';
 import { Agent } from './Agent';
-
+import KmsUtils from '../KmsUtils';
 let log = AgentLogger.log();
+KmsUtils.logger = log;
 
 /**
  * representation of an event generated from a github hook SQS message
  */
 export class Event {
-    constructor(message) {
-        this.attrs = Event.validateMessage(message);
+    constructor(message, attrs) {
+        this.attrs = attrs;
         this.payload = Event.prepareEventPayload(message, this.attrs);
         this.log = log.child({ ghEventId: this.attrs.ghEventId });
         Agent.systemConfig.event.current = this.payload;
@@ -31,7 +32,7 @@ export class Event {
      * @param message
      * @returns {{}} result attribute object
      */
-    static validateMessage(message) {
+    static async validateMessage(message) {
         let result = {};
 
         Event.requiredAttributes.forEach(attr => {
@@ -42,7 +43,7 @@ export class Event {
             }
         });
 
-        if (!Event.checkEventSignature(result.ghEventSignature, message)) {
+        if (!(await Event.checkEventSignature(result.ghEventSignature, message))) {
             throw new Error('Event signature mismatch - discarding Event!');
         } else {
             log.info('Event signature verified. processing event..');
@@ -57,12 +58,12 @@ export class Event {
      * @param message
      * @returns {boolean}
      */
-    static checkEventSignature(signature, message) {
+    static async checkEventSignature(signature, message) {
         let checkEvent = Event.buildCheckObject(message);
         log.debug(`eventString for signature check: ${JSON.stringify(checkEvent)}`);
 
         let calculatedSig = `sha1=${crypto
-            .createHmac('sha1', process.env.GTM_GITHUB_WEBHOOK_SECRET)
+            .createHmac('sha1', await KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET))
             .update(JSON.stringify(checkEvent), 'utf-8')
             .digest('hex')}`;
 

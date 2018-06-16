@@ -3,6 +3,7 @@ import { default as assert } from 'assert';
 import { Plugin } from '../../src/agent/Plugin';
 
 describe('Plugin', function() {
+    process.env.GTM_AWS_KMS_KEY_ID = '';
     describe('register', function() {
         it('should register new class', function() {
             class Animal extends Plugin {}

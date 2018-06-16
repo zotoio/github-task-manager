@@ -14,8 +14,8 @@ import KmsUtils from '../KmsUtils';
     "agentGroup": "K8S",
     "tasks": [
       {
-        "executor": "DockerSonar",
-        "context": "Scan PR",
+        "executor": "DockerServerless",
+        "context": "Deploy Lambda",
         "options": {
            "env": {"BUILD_TYPE": "nodejs"}
         }
@@ -27,44 +27,75 @@ import KmsUtils from '../KmsUtils';
  *
  */
 
-export class ExecutorDockerSonar extends ExecutorDocker {
+export class ExecutorDockerServerless extends ExecutorDocker {
     constructor(eventData, log) {
         super(eventData, log);
         this.eventData = eventData;
         this.log = log;
-        KmsUtils.logger = log;
+        this._packagesToDeploy = this.identifyChangedPackages();
+        this.pushBranch = this.pushBranchName();
+    }
+    get packagesToDeploy() {
+        return this._packagesToDeploy;
     }
 
     async executeTask(task) {
         task.options = await this.mergeTaskOptions(task);
         return super.executeTask(task);
     }
+    pushBranchName() {
+        let refParts = this.eventData.ref ? this.eventData.ref.split('/') : [];
+        let branchName = refParts.length > 0 ? refParts[refParts.length - 1].replace(/[^A-Za-z0-9\-+_]/g, '-') : null;
+        this.log.info(`pushBranchName: ${branchName}`);
+        return branchName;
+    }
+
+    identifyChangedPackages() {
+        let packages = [];
+        this.eventData.commits.forEach(commit => {
+            ['added', 'removed', 'modified'].forEach(changeType => {
+                commit[changeType].forEach(path => {
+                    if (path.startsWith('packages/')) {
+                        let pack = path.split('/')[1];
+                        if (!packages.includes(pack)) {
+                            packages.push(pack);
+                        }
+                    }
+                });
+            });
+        });
+        this.log.info(`serverless packages to deploy ${packages}`);
+
+        return packages;
+    }
+    slsStage() {
+        let stage = process.env.GTM_SLS_EXECUTOR_AWS_STAGE || this.eventData.pushForPullRequest ? 'test' : 'dev';
+        this.log.info(`stage: ${stage}`);
+        return stage;
+    }
 
     async mergeTaskOptions(task) {
         let options = {
             image: process.env.GTM_DOCKER_DEFAULT_WORKER_IMAGE || 'zotoio/gtm-worker:latest',
-            command: '/usr/workspace/sonar-pullrequest.sh',
+            command: '/usr/workspace/serverless-mono-deploy.sh',
             env: {
                 GIT_CLONE: '##GH_CLONE_URL##',
                 GIT_PR_ID: '##GHPRNUM##',
                 GIT_PR_BRANCHNAME: '##GH_PR_BRANCHNAME##',
-                SONAR_GITHUB_REPOSITORY: '##GH_REPOSITORY_FULLNAME##',
-                SONAR_HOST_URL: '##GTM_SONAR_HOST_URL##',
-                SONAR_LOGIN: '##GTM_CRYPT_SONAR_LOGIN##',
-                SONAR_PROJECTNAME_PREFIX: '##GTM_SONAR_PROJECTNAME_PREFIX##',
-                SONAR_ANALYSIS_MODE: '##GTM_SONAR_ANALYSIS_MODE##',
-                SONAR_GITHUB_OAUTH: '##GTM_CRYPT_SONAR_GITHUB_OAUTH##',
-                SONAR_SOURCES: '##GTM_SONAR_SOURCES##',
-                SONAR_JAVA_BINARIES: '##GTM_SONAR_JAVA_BINARIES##',
-                SONAR_MODULES: '##GTM_SONAR_MODULES##',
-                SONAR_GITHUB_ENDPOINT: '##GTM_SONAR_GITHUB_ENDPOINT##',
+                GIT_PUSH_BRANCHNAME: this.pushBranch,
+                GIT_URL: '##GIT_URL##',
+                GIT_COMMIT: '##GIT_COMMIT##',
+                SLS_AFFECTED_PACKAGES: this.packagesToDeploy.join(','),
+                IAM_ENABLED: process.env.IAM_ENABLED,
                 S3_DEPENDENCY_BUCKET: '##GTM_S3_DEPENDENCY_BUCKET##',
                 AWS_S3_PROXY: '##GTM_AWS_S3_PROXY##',
-                IAM_ENABLED: process.env.IAM_ENABLED
+                SLS_AWS_STAGE: this.slsStage(),
+                SLS_AWS_REGION: process.env.GTM_SLS_EXECUTOR_AWS_REGION || 'ap-southeast-2',
+                SLS_AWS_EXECUTION_ROLE: process.env.GTM_SLS_EXECUTOR_AWS_EXECUTION_ROLE
             },
             validator: {
                 type: 'outputRegex',
-                regex: '.*ANALYSIS SUCCESSFUL.*'
+                regex: '.*ALL DEPLOYS SUCCESSFUL.*'
             }
         };
 
@@ -80,7 +111,6 @@ export class ExecutorDockerSonar extends ExecutorDocker {
 
         // options defined above can be overidden by options in .githubTaskManager.json
         task.options = _.merge(options, task.options);
-        console.log(task.options);
 
         task.options = AgentUtils.applyTransforms(
             AgentUtils.templateReplace(
@@ -93,11 +123,11 @@ export class ExecutorDockerSonar extends ExecutorDocker {
         // add token into clone url
         task.options.env.GIT_CLONE = task.options.env.GIT_CLONE.replace(
             'https://',
-            `https://${task.options.env.SONAR_GITHUB_OAUTH}@`
+            `https://${task.options.env.GTM_CRYPT_GITHUB_TOKEN}@`
         );
 
         return task.options;
     }
 }
 
-Executor.register('DockerSonar', ExecutorDockerSonar);
+Executor.register('DockerServerless', ExecutorDockerServerless);

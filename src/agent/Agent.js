@@ -44,16 +44,16 @@ export class Agent {
         });
 
         if (!process.env.IAM_ENABLED) {
-            if (!process.env.GTM_AGENT_AWS_ACCESS_KEY_ID || !process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY) {
+            if (!process.env.GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID || !process.env.GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY) {
                 log.error(
-                    '### ERROR ### Environment Variables GTM_AGENT_AWS_ACCESS_KEY_ID, or GTM_AGENT_AWS_SECRET_ACCESS_KEY Missing!'
+                    '### ERROR ### Environment Variables GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID, or GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY Missing!'
                 );
                 process.exit(1);
             }
         }
 
-        if (!process.env.GTM_GITHUB_WEBHOOK_SECRET) {
-            log.error('### ERROR ### Environment Variable GTM_GITHUB_WEBHOOK_SECRET missing!');
+        if (!process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET) {
+            log.error('### ERROR ### Environment Variable GTM_CRYPT_GITHUB_WEBHOOK_SECRET missing!');
             process.exit(1);
         }
 
@@ -230,7 +230,8 @@ export class Agent {
 
                     let event;
                     try {
-                        event = new Event(message);
+                        let messageAttrs = await Event.validateMessage(message);
+                        event = new Event(message, messageAttrs);
                     } catch (e) {
                         log.error(e);
                         done(); //todo dead letter queue here rather than discard
@@ -326,8 +327,8 @@ export class Agent {
             log.info('GitHub Task Manager Agent Running on Port ' + process.env.GTM_AGENT_PORT);
             log.info('Runmode: ' + runmode);
             if (!process.env.IAM_ENABLED) {
-                log.info('AWS Access Key ID: ' + AgentUtils.maskString(process.env.GTM_AGENT_AWS_ACCESS_KEY_ID));
-                log.info('AWS Access Key: ' + AgentUtils.maskString(process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY));
+                log.info('AWS Access Key ID: ' + AgentUtils.maskString(process.env.GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID));
+                log.info('AWS Access Key: ' + AgentUtils.maskString(process.env.GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY));
             }
             log.info('Pending Queue URL: ' + pendingUrl);
 

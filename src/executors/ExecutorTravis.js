@@ -1,6 +1,7 @@
 import { default as Travis } from 'travis-ci';
 import { Executor } from '../agent/Executor';
 import { default as json } from 'format-json';
+import KmsUtils from '../KmsUtils';
 
 /**
  * Sample .githubTaskManager.json task config - NOT READY FOR USE
@@ -20,6 +21,7 @@ export class ExecutorTravis extends Executor {
     constructor(eventData, log) {
         super(eventData, log);
         this.log = log;
+        KmsUtils.logger = log;
         this.options = this.getOptions();
 
         this.travis = new Travis({
@@ -33,7 +35,7 @@ export class ExecutorTravis extends Executor {
 
         this.travis.authenticate(
             {
-                github_token: process.env.GTM_GITHUB_TOKEN
+                github_token: await KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_TOKEN)
             },
             function(err) {
                 if (err) {

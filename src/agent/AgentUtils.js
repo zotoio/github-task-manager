@@ -3,10 +3,14 @@
 const pullRequestData = require('./pullrequest.json');
 const { URL } = require('url');
 const crypto = require('crypto');
+
+import KmsUtils from '../KmsUtils';
+
 import { default as AgentLogger } from './AgentLogger';
 import { default as yamljs } from 'yamljs';
 import { default as https } from 'https';
 let log = AgentLogger.log();
+KmsUtils.logger = log;
 
 const AWS = require('aws-sdk');
 const proxy = require('proxy-agent');
@@ -20,9 +24,9 @@ if (process.env.IAM_ENABLED) {
         }
     });
 } else {
-    // due to serverless .env issue
-    process.env.AWS_ACCESS_KEY_ID = process.env.GTM_AGENT_AWS_ACCESS_KEY_ID;
-    process.env.AWS_SECRET_ACCESS_KEY = process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY;
+    // due to serverless .env restrictions
+    process.env.AWS_ACCESS_KEY_ID = KmsUtils.getDecrypted(process.env.GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID);
+    process.env.AWS_SECRET_ACCESS_KEY = KmsUtils.getDecrypted(process.env.GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY);
 }
 
 let sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
@@ -111,12 +115,13 @@ export class AgentUtils {
      * @param {string} url - Link to more detail
      *
      */
-    static createPullRequestStatus(eventData, state, context, description, url) {
+    static createEventStatus(eventData, state, context, description, url) {
         return {
+            eventType: eventData.ghEventType,
             owner: eventData.repository.owner.login || 'Default_Owner',
             repo: eventData.repository.name || 'Default_Repository',
-            sha: eventData.pull_request.head.sha || 'Missing SHA',
-            number: eventData.pull_request.number,
+            sha: eventData.ghEventType === 'pull_request' ? eventData.pull_request.head.sha : eventData.after,
+            number: eventData.ghEventType === 'pull_request' ? eventData.pull_request.number : '',
             state: state,
             target_url: url ? url : 'https://github.com/zotoio/github-task-manager',
             description: description,
@@ -183,6 +188,10 @@ export class AgentUtils {
     }
 
     static async postResultsAndTrigger(results, message, log) {
+        // if this is a commit, only add comments for result.
+        if (results.eventData.pusher && !message.startsWith('Result')) {
+            return Promise.resolve(true);
+        }
         return AgentUtils.getQueueUrl(process.env.GTM_SQS_RESULTS_QUEUE)
             .then(function(sqsQueueUrl) {
                 let params = {
@@ -332,7 +341,7 @@ export class AgentUtils {
      * Create a Templating Object from a Configuration Object
      * @param {Object} obj - EventData Object to Return Variables From
      */
-    static createBasicTemplate(obj, parent, log) {
+    static async createBasicTemplate(obj, parent, log) {
         if (!parent.results) {
             log.info('No Parent Build. Providing Safe Defaults');
             parent.results = {
@@ -345,19 +354,25 @@ export class AgentUtils {
         }
 
         let mapDict = {
-            '##GHPRNUM##': obj.pull_request.number,
+            '##GHPRNUM##': obj.pull_request ? obj.pull_request.number : '',
             '##GHREPONAME##': obj.repository.name,
             '##GH_REPOSITORY_FULLNAME##': obj.repository.full_name,
             '##GH_CLONE_URL##': obj.repository.clone_url,
-            '##GH_PR_BRANCHNAME##': obj.pull_request.head.ref,
+            '##GH_PR_BRANCHNAME##': obj.pull_request ? obj.pull_request.head.ref : '',
             '##PARENTBUILDNUMBER##': this.metaValue(parent, 'buildNumber'),
-            '##PARENTBUILDNAME##': this.metaValue(parent, 'buildName')
+            '##PARENTBUILDNAME##': this.metaValue(parent, 'buildName'),
+            '##GIT_URL##': obj.pull_request ? obj.pull_request.html_url : obj.compare,
+            '##GIT_COMMIT##': obj.pull_request ? obj.pull_request.head.sha : obj.head_commit.id
         };
 
         // just add all the GTM env vars to map
-        Object.keys(process.env).forEach(key => {
+        Object.keys(process.env).forEach(async key => {
             if (key.startsWith('GTM_')) {
-                mapDict[`##${key}##`] = process.env[key];
+                if (key.startsWith('GTM_CRYPT')) {
+                    mapDict[`##${key}##`] = await KmsUtils.getDecrypted(process.env[key]);
+                } else {
+                    mapDict[`##${key}##`] = process.env[key];
+                }
             }
         });
 

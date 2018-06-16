@@ -5,12 +5,14 @@ let GitHubApi = require('@octokit/rest');
 let crypto = require('crypto');
 let githubUpdaters = {
     pull_request: updateGitHubPullRequest,
-    comment: updateGitHubComment
+    comment: updateGitHubComment,
+    push: updateGitHubPush
 };
+import KmsUtils from './../KmsUtils';
 
 let ghEnforceValidSsl = process.env.NODE_TLS_REJECT_UNAUTHORIZED === 0;
 
-function connect(context) {
+async function connect(context) {
     console.log('Connecting to GitHub');
     console.log('GitHub SSL Validation: ' + String(ghEnforceValidSsl));
     let githubOptions = {
@@ -25,10 +27,12 @@ function connect(context) {
     console.log('Creating GitHub API Connection');
     let github = new GitHubApi(githubOptions);
 
-    let token = process.env.GTM_GITHUB_TOKEN;
+    let token = await KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_TOKEN);
     if (context) {
         token =
-            process.env['GTM_GITHUB_TOKEN_' + context.toUpperCase().replace('-', '_')] || process.env.GTM_GITHUB_TOKEN;
+            (await KmsUtils.getDecrypted(
+                process.env['GTM_CRYPT_GITHUB_TOKEN_' + context.toUpperCase().replace('-', '_')]
+            )) || (await KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_TOKEN));
     }
 
     console.log('Authenticating with GitHub');
@@ -36,7 +40,6 @@ function connect(context) {
         type: 'oauth',
         token: token
     });
-
     return github;
 }
 
@@ -47,10 +50,10 @@ function signRequestBody(key, body) {
         .digest('hex')}`;
 }
 
-function invalidHook(event) {
+async function invalidHook(event) {
     let err = null;
     let errMsg = null;
-    const token = process.env.GTM_GITHUB_WEBHOOK_SECRET;
+    const token = await KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET);
     const headers = event.headers;
     const sig = headers['X-Hub-Signature'] || headers['x-hub-signature'];
     const githubEvent = headers['X-GitHub-Event'] || headers['x-github-event'];
@@ -61,7 +64,7 @@ function invalidHook(event) {
         {
             name: 'github secret',
             check: typeof token !== 'string',
-            msg: `Must provide a 'GITHUB_WEBHOOK_SECRET' env variable`
+            msg: `Must provide a 'GTM_CRYPT_GITHUB_WEBHOOK_SECRET' env variable`
         },
         {
             name: 'X-Hub-Signature',
@@ -110,7 +113,7 @@ function decodeFileResponse(fileResponse) {
 }
 
 async function getFile(params) {
-    let github = connect();
+    let github = await connect();
 
     return new Promise((resolve, reject) => {
         try {
@@ -128,6 +131,10 @@ async function updateGitHubPullRequest(status, done) {
     } else {
         return await updateGitHubPullRequestStatus(status, done);
     }
+}
+
+async function updateGitHubPush(status, done) {
+    return await addGitHubPushComments(status, done);
 }
 
 /**
@@ -170,12 +177,12 @@ async function updateGitHubPullRequestStatus(status, done) {
     //console.log(status);
 
     try {
-        let github = connect(status.context);
+        let github = await connect(status.context);
         return await github.repos.createStatus(status).then(() => {
             done();
         });
     } catch (e) {
-        if (e.message == 'OAuth2 authentication requires a token or key & secret to be set') {
+        if (e.message === 'OAuth2 authentication requires a token or key & secret to be set') {
             throw e;
         }
         console.log('----- ERROR COMMUNICATING WITH GITHUB -----');
@@ -199,7 +206,7 @@ async function addGitHubPullRequestComment(status, done) {
     };
      */
     try {
-        let github = connect();
+        let github = await connect();
         return await github.pullRequests
             .createReview({
                 owner: status.owner,
@@ -211,6 +218,43 @@ async function addGitHubPullRequestComment(status, done) {
             .then(() => {
                 done();
             });
+    } catch (e) {
+        console.log('----- ERROR COMMUNICATING WITH GITHUB -----');
+        console.log(e);
+        done();
+    }
+}
+
+async function addGitHubPushComments(status, done) {
+    console.log(`add comment on push completion ${status.eventData.ghEventId}`);
+    /**
+     * declare type ReposCreateCommitCommentParams =
+     & {
+      owner: string;
+      repo: string;
+      sha: string;
+      body: string;
+      path?: string;
+      position?: number;
+    };
+     */
+    try {
+        let github = await connect();
+        let promises = [];
+        // adding the same comment to each commit in the push for now..
+        status.eventData.commits.forEach(commit => {
+            promises.push(
+                github.repos.createCommitComment({
+                    owner: status.owner,
+                    repo: status.repo,
+                    sha: commit.id,
+                    body: status.description
+                })
+            );
+        });
+        return Promise.all(promises).then(() => {
+            done();
+        });
     } catch (e) {
         console.log('----- ERROR COMMUNICATING WITH GITHUB -----');
         console.log(e);
@@ -241,6 +285,19 @@ async function handleEventTaskResult(message, done) {
     }
 }
 
+async function isCommitForPullRequest(commitSha) {
+    try {
+        let github = await connect();
+        let query = `${commitSha}+is:pr+state:open`;
+        const prResult = await github.search.issues({ q: query });
+        console.log(`isCommitForPullRequest result: ${json.plain(prResult)}`);
+        return prResult.data.items && prResult.data.items.length > 0;
+    } catch (e) {
+        console.log('----- ERROR COMMUNICATING WITH GITHUB -----');
+        console.log(e);
+    }
+}
+
 module.exports = {
     connect: connect,
     signRequestBody: signRequestBody,
@@ -249,5 +306,6 @@ module.exports = {
     getFile: getFile,
     handleEventTaskResult: handleEventTaskResult,
     updateGitHubPullRequestStatus: updateGitHubPullRequestStatus,
-    createPullRequestStatus: createPullRequestStatus
+    createPullRequestStatus: createPullRequestStatus,
+    isCommitForPullRequest: isCommitForPullRequest
 };

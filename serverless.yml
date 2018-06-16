@@ -1,7 +1,7 @@
 service: gtmGithubHook
 plugins:
-  - serverless-dotenv-plugin
   - serverless-webpack
+  - serverless-kms-secrets
   - serverless-offline
 
 provider:
@@ -10,11 +10,10 @@ provider:
   memorySize: 2048 # optional, in MB, default is 1024
   timeout: 30 # optional, in seconds, default is 6
 
-  stage: dev
+  stage: ${env:GTM_AWS_STAGE, 'dev'}
   region: ${env:GTM_AWS_REGION}
 
-  environment:
-      GTM_GITHUB_WEBHOOK_SECRET: ${env:GTM_GITHUB_WEBHOOK_SECRET}
+  environment: ${file(./serverless-aws-environment.yml):environment}
 
   iamRoleStatements:
     - Effect: Allow
@@ -156,5 +155,4 @@ resources:
 #        VpcId: ${env:GTM_AWS_VPC_ID}
 
 custom:
-  dotenv:
-    path: .env
+  kmsSecrets: ${file(kms-secrets.${opt:stage, self:provider.stage}.${opt:region, self:provider.region}.yml)}

@@ -7,6 +7,7 @@ import { Executor } from '../../src/agent/Executor';
 describe('Executor', function() {
     let executor;
     beforeEach(() => {
+        process.env.GTM_AWS_KMS_KEY_ID = '';
         let eventData = JSON.parse(fs.readFileSync(__dirname + '/../fixtures/githubEventPayload.json', 'utf-8'));
         executor = new Executor(eventData, console);
     });
