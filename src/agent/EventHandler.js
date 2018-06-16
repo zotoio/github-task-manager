@@ -163,7 +163,7 @@ export class EventHandler extends Plugin {
 
                 task.options = AgentUtils.applyTransforms(
                     AgentUtils.templateReplace(
-                        AgentUtils.createBasicTemplate(event.eventData, parent, log),
+                        await AgentUtils.createBasicTemplate(event.eventData, parent, log),
                         task.options,
                         log
                     )

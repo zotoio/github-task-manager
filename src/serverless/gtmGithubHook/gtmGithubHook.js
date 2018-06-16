@@ -5,14 +5,19 @@ let rp = require('request-promise-native');
 let json = require('format-json');
 let UUID = require('uuid/v4');
 let Producer = require('sqs-producer');
-
 let githubUtils = require('../gtmGithubUtils.js');
+
+import KmsUtils from './../../KmsUtils';
+
+process.on('unhandledRejection', (reason, p) => {
+    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+    // application specific logging, throwing an error, or other logic here
+});
 
 async function listener(event, context, callback) {
     const githubEvent = event.headers['X-GitHub-Event'] || event.headers['x-github-event'];
     const githubSignature = event.headers['X-Hub-Signature'] || event.headers['x-hub-signature'];
-
-    let err = githubUtils.invalidHook(event);
+    let err = await githubUtils.invalidHook(event);
     if (err) {
         return callback(err, {
             statusCode: 401,
@@ -78,11 +83,15 @@ async function handleEvent(type, body, signature) {
         queueUrl: process.env.SQS_PENDING_QUEUE_URL,
         region: process.env.GTM_AWS_REGION
     });
-
+    let pushForPullRequest = false;
+    // if this is a push, determine whether related to an open pull_request
+    if (type === 'push' && body.commits.length > 0) {
+        pushForPullRequest = await githubUtils.isCommitForPullRequest(body.commits[0].id);
+    }
+    body.pushForPullRequest = pushForPullRequest;
     let bodyString = JSON.stringify(body);
     let ghEventId = UUID();
     let ghAgentGroup = taskConfig[type] && taskConfig[type].agentGroup ? taskConfig[type].agentGroup : 'default';
-
     let event = [
         {
             id: ghEventId,
@@ -99,7 +108,10 @@ async function handleEvent(type, body, signature) {
         }
     ];
 
-    signature = githubUtils.signRequestBody(process.env.GTM_GITHUB_WEBHOOK_SECRET, JSON.stringify(event[0]));
+    signature = githubUtils.signRequestBody(
+        await KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET),
+        JSON.stringify(event[0])
+    );
 
     event[0].messageAttributes.ghEventSignature = {
         DataType: 'String',

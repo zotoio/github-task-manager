@@ -1,7 +1,9 @@
-import { describe, it, beforeEach } from 'mocha';
+import { describe, it, beforeEach, after, before } from 'mocha';
 import { default as assert } from 'assert';
 import { Executor } from '../../src/agent/Executor';
 import { ExecutorPing } from '../../src/executors/ExecutorPing';
+import { AgentUtils } from '../../src/agent/AgentUtils';
+import { default as sinon } from 'sinon';
 
 describe('ExecutorPing', () => {
     let executorPing;
@@ -10,7 +12,7 @@ describe('ExecutorPing', () => {
     beforeEach(() => {
         process.env.GTM_SQS_RESULTS_QUEUE = 'gtmResultsQueue';
         process.env.GTM_SNS_RESULTS_TOPIC = 'gtmResultsSNSTopic';
-        process.env.GTM_AWS_REGION = 'ap-southeast-2a';
+        process.env.GTM_AWS_REGION = 'ap-southeast-2';
         eventData = {
             executor: 'Ping',
             context: 'diagnostic',
@@ -39,6 +41,12 @@ describe('ExecutorPing', () => {
     });
 
     describe('executeTask', () => {
+        let stubCall;
+        let customResult = { on: () => {} };
+        before(() => {
+            customResult = {};
+            stubCall = sinon.stub(AgentUtils, 'postResultsAndTrigger').returns(Promise.resolve(customResult));
+        });
         it('should call ExecutorPing.executeTask with 1 event', async () => {
             try {
                 await executorPing.executeTask(eventData).then(data => {
@@ -47,6 +55,9 @@ describe('ExecutorPing', () => {
             } catch (e) {
                 return assert.equal(e.message, 'Missing region in config');
             }
+        });
+        after(() => {
+            stubCall.restore();
         });
     });
 });

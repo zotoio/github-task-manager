@@ -8,6 +8,7 @@ describe('EventHandlerPullRequest', function() {
     let eventData;
 
     beforeEach(() => {
+        process.env.GTM_AWS_KMS_KEY_ID = '';
         eventData = {
             ghEventId: 'id',
             ghEventType: 'pull_request',

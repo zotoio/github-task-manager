@@ -1,6 +1,7 @@
 import { Executor } from '../agent/Executor';
 import { LaunchDarklyUtils } from 'launchdarkly-nodeutils';
 import { default as formatJson } from 'format-json';
+import KmsUtils from '../KmsUtils';
 
 /**
  * Sample .githubTaskManager.json task config
@@ -25,6 +26,7 @@ export class ExecutorLaunchDarkly extends Executor {
     constructor(eventData, log) {
         super(eventData, log);
         this.log = log;
+        KmsUtils.logger = log;
         this.options = this.getOptions();
     }
 
@@ -32,10 +34,12 @@ export class ExecutorLaunchDarkly extends Executor {
         let log = this.log;
         if (!this.ldUtils) {
             let that = this;
-            return new LaunchDarklyUtils().create(process.env.LAUNCHDARKLY_API_TOKEN, log).then(handle => {
-                that.ldUtils = handle;
-                return Promise.resolve(handle);
-            });
+            return new LaunchDarklyUtils()
+                .create(await KmsUtils.getDecrypted(process.env.GTM_CRYPT_LAUNCHDARKLY_API_TOKEN), log)
+                .then(handle => {
+                    that.ldUtils = handle;
+                    return Promise.resolve(handle);
+                });
         } else {
             return Promise.resolve(this.ldUtils);
         }
@@ -86,6 +90,7 @@ export class ExecutorLaunchDarkly extends Executor {
         let results = [];
         let changedCount = 0;
         let details = '';
+        let resultSummary;
 
         log.info(`Starting LaunchDarkly api calls. Flags: ${formatJson.plain(flags)}`);
         try {
@@ -101,7 +106,7 @@ export class ExecutorLaunchDarkly extends Executor {
                 }
             }
         } catch (e) {
-            let resultSummary = {
+            resultSummary = {
                 passed: false,
                 url: 'https://github.com',
                 message: `failed to set flags`,
@@ -112,7 +117,7 @@ export class ExecutorLaunchDarkly extends Executor {
             return Promise.reject(task);
         }
 
-        let resultSummary = {
+        resultSummary = {
             passed: true,
             url: 'https://github.com',
             message: `Updated ${changedCount} Flags`,

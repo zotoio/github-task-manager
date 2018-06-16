@@ -1,7 +1,9 @@
-import { describe, it, beforeEach } from 'mocha';
+import { describe, it, beforeEach, before, after } from 'mocha';
 import { default as assert } from 'assert';
 import { Executor } from '../../src/agent/Executor';
 import { ExecutorHttp } from '../../src/executors/ExecutorHttp';
+import { default as fs } from 'fs';
+import { default as sinon } from 'sinon';
 
 describe('ExecutorHttp', () => {
     let executorHttp;
@@ -40,12 +42,23 @@ describe('ExecutorHttp', () => {
     });
 
     describe('executeTask', () => {
+        let stubCall;
+        let customResult;
+        before(function() {
+            customResult = fs.readFileSync(__dirname + '/../fixtures/executorHttpResponse.json', 'utf-8');
+            stubCall = sinon
+                .stub(ExecutorHttp.prototype, 'sendRequest')
+                .returns(Promise.resolve({ body: customResult }));
+        });
         it('should call ExecutorHttp.executeTask', async () => {
             let result;
             result = await executorHttp.executeTask(eventData).then(data => {
                 return data;
             });
             assert.equal(result.results.passed, true);
+        });
+        after(() => {
+            stubCall.restore();
         });
     });
 

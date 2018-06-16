@@ -7,6 +7,7 @@ import { EventHandler } from '../../src/agent/EventHandler';
 describe('EventHandler', function() {
     let handler;
     beforeEach(() => {
+        process.env.GTM_AWS_KMS_KEY_ID = '';
         let eventData = JSON.parse(fs.readFileSync(__dirname + '/../fixtures/githubEventPayload.json', 'utf-8'));
         handler = new EventHandler(eventData, console);
     });

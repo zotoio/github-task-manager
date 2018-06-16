@@ -2,6 +2,7 @@ import { Executor } from '../agent/Executor';
 import { ExecutorDocker } from './ExecutorDocker';
 import { default as _ } from 'lodash';
 import { AgentUtils } from '../agent/AgentUtils';
+import KmsUtils from '../KmsUtils';
 
 /**
  * Sample .githubTaskManager.json task config
@@ -31,14 +32,22 @@ export class ExecutorDockerServerless extends ExecutorDocker {
         super(eventData, log);
         this.eventData = eventData;
         this.log = log;
-        this.packagesToDeploy = this.identifyChangedPackages();
-        this.refParts = this.eventData.ref ? this.eventData.ref.split('/') : [];
-        this.pushBranch = this.refParts.length > 0 ? this.refParts[this.refParts.length] : null;
+        this._packagesToDeploy = this.identifyChangedPackages();
+        this.pushBranch = this.pushBranchName();
+    }
+    get packagesToDeploy() {
+        return this._packagesToDeploy;
     }
 
     async executeTask(task) {
-        task.options = this.mergeTaskOptions(task);
+        task.options = await this.mergeTaskOptions(task);
         return super.executeTask(task);
+    }
+    pushBranchName() {
+        let refParts = this.eventData.ref ? this.eventData.ref.split('/') : [];
+        let branchName = refParts.length > 0 ? refParts[refParts.length - 1].replace(/[^A-Za-z0-9\-+_]/g, '-') : null;
+        this.log.info(`pushBranchName: ${branchName}`);
+        return branchName;
     }
 
     identifyChangedPackages() {
@@ -59,8 +68,13 @@ export class ExecutorDockerServerless extends ExecutorDocker {
 
         return packages;
     }
+    slsStage() {
+        let stage = process.env.GTM_SLS_EXECUTOR_AWS_STAGE || this.eventData.pushForPullRequest ? 'test' : 'dev';
+        this.log.info(`stage: ${stage}`);
+        return stage;
+    }
 
-    mergeTaskOptions(task) {
+    async mergeTaskOptions(task) {
         let options = {
             image: process.env.GTM_DOCKER_DEFAULT_WORKER_IMAGE || 'zotoio/gtm-worker:latest',
             command: '/usr/workspace/serverless-mono-deploy.sh',
@@ -69,13 +83,15 @@ export class ExecutorDockerServerless extends ExecutorDocker {
                 GIT_PR_ID: '##GHPRNUM##',
                 GIT_PR_BRANCHNAME: '##GH_PR_BRANCHNAME##',
                 GIT_PUSH_BRANCHNAME: this.pushBranch,
+                GIT_URL: '##GIT_URL##',
+                GIT_COMMIT: '##GIT_COMMIT##',
                 SLS_AFFECTED_PACKAGES: this.packagesToDeploy.join(','),
                 IAM_ENABLED: process.env.IAM_ENABLED,
                 S3_DEPENDENCY_BUCKET: '##GTM_S3_DEPENDENCY_BUCKET##',
                 AWS_S3_PROXY: '##GTM_AWS_S3_PROXY##',
-                SLS_AWS_STAGE: process.env.SLS_AWS_STAGE,
-                SLS_AWS_REGION: process.env.SLS_AWS_REGION,
-                SLS_CUSTOM_DOMAIN: process.env.SLS_CUSTOM_DOMAIN
+                SLS_AWS_STAGE: this.slsStage(),
+                SLS_AWS_REGION: process.env.GTM_SLS_EXECUTOR_AWS_REGION || 'ap-southeast-2',
+                SLS_AWS_EXECUTION_ROLE: process.env.GTM_SLS_EXECUTOR_AWS_EXECUTION_ROLE
             },
             validator: {
                 type: 'outputRegex',
@@ -84,8 +100,12 @@ export class ExecutorDockerServerless extends ExecutorDocker {
         };
 
         if (!process.env.IAM_ENABLED) {
-            options.env['GTM_AWS_ACCESS_KEY_ID'] = process.env.GTM_AGENT_AWS_ACCESS_KEY_ID;
-            options.env['GTM_AWS_SECRET_ACCESS_KEY'] = process.env.GTM_AGENT_AWS_SECRET_ACCESS_KEY;
+            options.env['GTM_AWS_ACCESS_KEY_ID'] = await KmsUtils.getDecrypted(
+                process.env.GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID
+            );
+            options.env['GTM_AWS_SECRET_ACCESS_KEY'] = await KmsUtils.getDecrypted(
+                process.env.GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY
+            );
             options.env['GTM_AWS_REGION'] = process.env.GTM_AWS_REGION;
         }
 
@@ -94,7 +114,7 @@ export class ExecutorDockerServerless extends ExecutorDocker {
 
         task.options = AgentUtils.applyTransforms(
             AgentUtils.templateReplace(
-                AgentUtils.createBasicTemplate(this.eventData, {}, this.log),
+                await AgentUtils.createBasicTemplate(this.eventData, {}, this.log),
                 task.options,
                 this.log
             )
@@ -103,7 +123,7 @@ export class ExecutorDockerServerless extends ExecutorDocker {
         // add token into clone url
         task.options.env.GIT_CLONE = task.options.env.GIT_CLONE.replace(
             'https://',
-            `https://${task.options.env.SLS_GITHUB_OAUTH}@`
+            `https://${task.options.env.GTM_CRYPT_GITHUB_TOKEN}@`
         );
 
         return task.options;
