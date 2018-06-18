@@ -77,6 +77,7 @@ export class ExecutorDocker extends Executor {
         Object.keys(envObj).forEach(key => {
             envArray.push(`${key}=${envObj[key]}`);
         });
+        envArray.push('GTM_EVENT_ID', this.eventId);
         return envArray;
     }
 
@@ -217,7 +218,7 @@ export class ExecutorDocker extends Executor {
                     }
                     container.modem.demuxStream(stream, logStream, logStream);
                     stream.on('end', () => {
-                        let lines = logBuffer.reverse().join('');
+                        let lines = logBuffer.join('');
                         log.info(lines);
                         executor.taskOutputTail += lines;
                         logBuffer = [];
