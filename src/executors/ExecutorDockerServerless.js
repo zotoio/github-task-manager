@@ -91,7 +91,8 @@ export class ExecutorDockerServerless extends ExecutorDocker {
                 AWS_S3_PROXY: '##GTM_AWS_S3_PROXY##',
                 SLS_AWS_STAGE: this.slsStage(),
                 SLS_AWS_REGION: process.env.GTM_SLS_EXECUTOR_AWS_REGION || 'ap-southeast-2',
-                SLS_AWS_EXECUTION_ROLE: process.env.GTM_SLS_EXECUTOR_AWS_EXECUTION_ROLE
+                SLS_AWS_EXECUTION_ROLE: process.env.GTM_SLS_EXECUTOR_AWS_EXECUTION_ROLE,
+                SLS_DEPLOY_MODE: process.env.GTM_SLS_EXECUTOR_DEPLOY_MODE || 'parallel'
             },
             validator: {
                 type: 'outputRegex',
