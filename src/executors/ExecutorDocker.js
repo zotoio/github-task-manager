@@ -77,7 +77,7 @@ export class ExecutorDocker extends Executor {
         Object.keys(envObj).forEach(key => {
             envArray.push(`${key}=${envObj[key]}`);
         });
-        envArray.push('GTM_EVENT_ID', this.eventId);
+        // be careful logging here as values will be decrypted
         return envArray;
     }
 

@@ -85,6 +85,7 @@ export class ExecutorDockerServerless extends ExecutorDocker {
                 GIT_PUSH_BRANCHNAME: this.pushBranch,
                 GIT_URL: '##GIT_URL##',
                 GIT_COMMIT: '##GIT_COMMIT##',
+                GTM_EVENT_ID: this.eventData.ghEventId,
                 SLS_AFFECTED_PACKAGES: this.packagesToDeploy.join(','),
                 IAM_ENABLED: process.env.IAM_ENABLED,
                 S3_DEPENDENCY_BUCKET: '##GTM_S3_DEPENDENCY_BUCKET##',
