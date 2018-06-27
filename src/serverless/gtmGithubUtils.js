@@ -40,6 +40,12 @@ async function connect(context) {
         type: 'oauth',
         token: token
     });
+    // test connection
+    let meta = await github.misc.getMeta().catch(e => {
+        console.log(`Unable to connect to GitHub with options ${json.plain(githubOptions)}`);
+        throw e;
+    });
+    console.log(`Connected to GitHub at ${githubOptions.host}. metadata: ${json.plain(meta)}`);
     return github;
 }
 

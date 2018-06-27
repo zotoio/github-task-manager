@@ -136,6 +136,7 @@ async function getTaskConfig(type, body) {
     console.log(`file request params for ${type} = ${json.plain(fileParams)}`);
 
     let fileResponse = await githubUtils.getFile(fileParams).catch(() => {
+        console.warn(`Could not taskConfig from GitHub: ${fileParams}`);
         return rp({
             proxy: process.env.https_proxy || process.env.http_proxy || null,
             json: true,
