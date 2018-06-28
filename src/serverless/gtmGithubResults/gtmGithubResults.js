@@ -1,5 +1,6 @@
 'use strict';
 
+console.log('cold start');
 require('source-map-support').install();
 let json = require('format-json');
 let consumer = require('sqs-consumer');

@@ -1,5 +1,6 @@
 'use strict';
 
+console.log('cold start');
 const AWS = require('aws-sdk');
 const HTTPS = require('https');
 const PROXY_AGENT = require('https-proxy-agent');

@@ -1,5 +1,6 @@
 'use strict';
 
+console.log('cold start');
 require('source-map-support').install();
 let rp = require('request-promise-native');
 let json = require('format-json');

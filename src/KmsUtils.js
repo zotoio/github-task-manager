@@ -1,4 +1,12 @@
 import * as AWS from 'aws-sdk';
+const proxy = require('proxy-agent');
+if (process.env.AWS_PROXY) {
+    AWS.config.update({
+        httpOptions: {
+            agent: proxy(process.env.AWS_PROXY)
+        }
+    });
+}
 
 class KmsUtils {
     constructor() {
