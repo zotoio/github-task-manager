@@ -15,6 +15,9 @@ process.on('unhandledRejection', (reason, p) => {
 });
 
 async function listener(event, context, callback) {
+    console.log(
+        `hook call from ${event.requestContext.identity.sourceIp} forwarded for ${event.headers['X-Forwarded-For']}`
+    );
     const githubEvent = event.headers['X-GitHub-Event'] || event.headers['x-github-event'];
     const githubSignature = event.headers['X-Hub-Signature'] || event.headers['x-hub-signature'];
     let err = await githubUtils.invalidHook(event);
@@ -135,8 +138,8 @@ async function getTaskConfig(type, body) {
 
     console.log(`file request params for ${type} = ${json.plain(fileParams)}`);
 
-    let fileResponse = await githubUtils.getFile(fileParams).catch(() => {
-        console.warn(`Could not taskConfig from GitHub: ${fileParams}`);
+    let fileResponse = await githubUtils.getFile(fileParams).catch(e => {
+        console.warn(`Could not get taskConfig from GitHub: ${json.plain(fileParams)}, error is ${json.plain(e)}`);
         return rp({
             proxy: process.env.https_proxy || process.env.http_proxy || null,
             json: true,

@@ -1,6 +1,7 @@
 'use strict';
 
 let json = require('format-json');
+if (process.env.GTM_GITHUB_DEBUG) process.env.DEBUG = 'octokit:rest*';
 let GitHubApi = require('@octokit/rest');
 let crypto = require('crypto');
 let githubUpdaters = {
@@ -40,12 +41,15 @@ async function connect(context) {
         type: 'oauth',
         token: token
     });
+
     // test connection
-    let meta = await github.misc.getMeta().catch(e => {
-        console.log(`Unable to connect to GitHub with options ${json.plain(githubOptions)}`);
+    try {
+        let meta = await github.misc.getMeta();
+        console.log(`Connected to GitHub at ${githubOptions.host}. metadata: ${json.plain(meta)}`);
+    } catch (e) {
+        console.log(e);
         throw e;
-    });
-    console.log(`Connected to GitHub at ${githubOptions.host}. metadata: ${json.plain(meta)}`);
+    }
     return github;
 }
 
@@ -121,14 +125,7 @@ function decodeFileResponse(fileResponse) {
 async function getFile(params) {
     let github = await connect();
 
-    return new Promise((resolve, reject) => {
-        try {
-            let response = github.repos.getContent(params);
-            return resolve(response);
-        } catch (err) {
-            return reject(err);
-        }
-    });
+    return await github.repos.getContent(params);
 }
 
 async function updateGitHubPullRequest(status, done) {
