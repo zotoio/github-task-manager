@@ -1,5 +1,10 @@
 'use strict';
 
+process.on('unhandledRejection', (reason, p) => {
+    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+    // application specific logging, throwing an error, or other logic here
+});
+
 console.log('cold start');
 require('source-map-support').install();
 let rp = require('request-promise-native');
@@ -9,11 +14,6 @@ let Producer = require('sqs-producer');
 let githubUtils = require('../gtmGithubUtils.js');
 
 import KmsUtils from './../../KmsUtils';
-
-process.on('unhandledRejection', (reason, p) => {
-    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
-    // application specific logging, throwing an error, or other logic here
-});
 
 async function listener(event, context, callback) {
     console.log(

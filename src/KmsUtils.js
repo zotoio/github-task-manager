@@ -75,7 +75,9 @@ class KmsUtils {
             return this.store[encrypted];
         } else {
             this.logger.info(`returning newly decrypted value`);
-            return await this.decrypt(encrypted);
+            return await this.decrypt(encrypted).catch(e => {
+                console.error(`failed to decrypt ${encrypted}.  error: ${JSON.stringify(e)}`);
+            });
         }
     }
     setDecrypted(encrypted, decrypted) {

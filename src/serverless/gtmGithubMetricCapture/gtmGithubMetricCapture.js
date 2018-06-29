@@ -1,5 +1,10 @@
 'use strict';
 
+process.on('unhandledRejection', (reason, p) => {
+    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+    // application specific logging, throwing an error, or other logic here
+});
+
 console.log('cold start');
 const AWS = require('aws-sdk');
 const HTTPS = require('https');

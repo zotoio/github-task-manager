@@ -281,7 +281,7 @@ async function handleEventTaskResult(message, done) {
     let updaterFunction = githubUpdaters[status.eventData.ghEventType];
 
     if (updaterFunction) {
-        return updaterFunction(status, done);
+        return await updaterFunction(status, done);
     } else {
         console.error(`gitub updates for event type '${status.eventData.ghEventType}' are not supported yet.`);
         done();
