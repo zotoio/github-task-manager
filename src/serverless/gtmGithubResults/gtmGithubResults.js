@@ -1,5 +1,10 @@
 'use strict';
 
+process.on('unhandledRejection', (reason, p) => {
+    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+    // application specific logging, throwing an error, or other logic here
+});
+
 console.log('cold start');
 require('source-map-support').install();
 let json = require('format-json');
@@ -10,7 +15,7 @@ let AWS = require('aws-sdk');
 
 AWS.config.update({ region: process.env.GTM_AWS_REGION });
 
-async function handle(event, context, callback) {
+function handle(event, context, callback) {
     /* eslint-disable */
     console.log('---------------------------------');
     console.log(`Github-Results: `);
@@ -19,7 +24,7 @@ async function handle(event, context, callback) {
     /* eslint-enable */
 
     try {
-        let consumer = await getQueue();
+        let consumer = getQueue();
 
         consumer.on('error', err => {
             console.log(err.message);
@@ -49,7 +54,7 @@ async function handle(event, context, callback) {
     }
 }
 
-async function getQueue() {
+function getQueue() {
     let awsOptions = {
         queueUrl: process.env.SQS_RESULTS_QUEUE_URL,
         waitTimeSeconds: 10,
@@ -63,8 +68,9 @@ async function getQueue() {
             }
         });
     }
+    awsOptions.sqs = new AWS.SQS();
 
-    return await consumer.create(awsOptions);
+    return consumer.create(awsOptions);
 }
 
 module.exports = {
