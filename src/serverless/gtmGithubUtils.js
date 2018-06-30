@@ -4,6 +4,7 @@ let json = require('format-json');
 if (process.env.GTM_GITHUB_DEBUG) process.env.DEBUG = 'octokit:rest*';
 let GitHubApi = require('@octokit/rest');
 let crypto = require('crypto');
+let https = require('https');
 let githubUpdaters = {
     pull_request: updateGitHubPullRequest,
     comment: updateGitHubComment,
@@ -17,13 +18,16 @@ async function connect(context) {
     console.log('Connecting to GitHub');
     console.log('GitHub SSL Validation: ' + String(ghEnforceValidSsl));
     let githubOptions = {
-        host: process.env.GTM_GITHUB_HOST || 'api.github.com',
-        debug: process.env.GTM_GITHUB_DEBUG || false,
-        timeout: parseInt(process.env.GTM_GITHUB_TIMEOUT) || 5000,
-        pathPrefix: process.env.GTM_GITHUB_PATH_PREFIX || '',
-        proxy: process.env.GTM_GITHUB_PROXY || '',
-        rejectUnauthorized: ghEnforceValidSsl
+        baseUrl: `https://${process.env.GTM_GITHUB_HOST || 'api.github.com'}${process.env.GTM_GITHUB_PATH_PREFIX ||
+            ''}`,
+        timeout: parseInt(process.env.GTM_GITHUB_TIMEOUT) || 5000
     };
+    if (process.env.GTM_GITHUB_PROXY) {
+        githubOptions.agent = new https.Agent({
+            proxy: process.env.GTM_GITHUB_PROXY,
+            rejectUnauthorized: false
+        });
+    }
 
     console.log('Creating GitHub API Connection');
     let github = new GitHubApi(githubOptions);
@@ -44,8 +48,8 @@ async function connect(context) {
 
     // test connection
     try {
-        let meta = await github.misc.getMeta();
-        console.log(`Connected to GitHub at ${githubOptions.host}. metadata: ${json.plain(meta)}`);
+        let meta = await github.misc.getMeta({});
+        console.log(`Connected to GitHub at ${githubOptions.baseUrl}. metadata: ${json.plain(meta)}`);
     } catch (e) {
         console.log(e);
         throw e;

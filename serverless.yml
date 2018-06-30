@@ -8,7 +8,7 @@ provider:
   name: aws
   runtime: nodejs8.10
   memorySize: 2048 # optional, in MB, default is 1024
-  timeout: 30 # optional, in seconds, default is 6
+  timeout: 60 # optional, in seconds, default is 6
 
   stage: ${env:GTM_AWS_STAGE, 'dev'}
   region: ${env:GTM_AWS_REGION}
