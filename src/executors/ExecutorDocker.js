@@ -3,6 +3,7 @@ import { default as Docker } from 'dockerode';
 import { default as stream } from 'stream';
 import { default as fs } from 'fs';
 import appRoot from 'app-root-path';
+import KmsUtils from '../KmsUtils';
 
 /**
  * Sample .githubTaskManager.json task config
@@ -236,10 +237,23 @@ export class ExecutorDocker extends Executor {
 
     pullImage(docker, image) {
         let log = this.log;
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             if (process.env.GTM_DOCKER_ALLOW_PULL !== 'false') {
                 log.debug(`pulling image ${image}..`);
-                docker.pull(image, function(err, stream) {
+
+                let opts = {};
+                if (process.env.GTM_CRYPT_DOCKER_REG_PASSWORD) {
+                    let pass = await KmsUtils.decrypt(process.env.GTM_CRYPT_DOCKER_REG_PASSWORD);
+                    // https://github.com/apocas/dockerode#pull-from-private-repos
+                    opts.authconfig = {
+                        username: process.env.GTM_DOCKER_REG_USERNAME,
+                        password: pass,
+                        auth: '',
+                        email: '',
+                        serveraddress: process.env.GTM_DOCKER_REG_SERVER
+                    };
+                }
+                docker.pull(image, opts, function(err, stream) {
                     if (err) {
                         return reject(err);
                     }
