@@ -330,7 +330,7 @@ export class AgentUtils {
     }
 
     static varMask(key, val) {
-        if (new RegExp('LOGIN|OAUTH|KEY|TOKEN|SECRET|PASSW').test(key)) {
+        if (new RegExp('LOGIN|OAUTH|KEY|TOKEN|SECRET|PASS').test(key)) {
             return this.maskString(val);
         } else {
             return val;
