@@ -124,7 +124,7 @@ export class ExecutorDockerServerless extends ExecutorDocker {
 
         // add token into clone url
         if (process.env.GTM_CRYPT_GITHUB_TOKEN) {
-            let decyptedToken = await KmsUtils.decrypt(process.env.GTM_CRYPT_DOCKER_REG_PASSWORD);
+            let decyptedToken = await KmsUtils.decrypt(process.env.GTM_CRYPT_GITHUB_TOKEN);
             task.options.env.GIT_CLONE = task.options.env.GIT_CLONE.replace('https://', `https://${decyptedToken}@`);
         }
 
