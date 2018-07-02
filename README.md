@@ -55,6 +55,7 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_CRYPT_TEAMCITY_PASSCODE| encrypted teamcity executor passcode|
 |GTM_CRYPT_SONAR_LOGIN| encrypted sonar access token |
 |GTM_CRYPT_SONAR_GITHUB_OAUTH| encrypted github token for sonar to post comments and status |
+|GTM_CRYPT_DOCKER_REG_PASSWORD| encrypted docker private registry password|
 |GTM_AWS_REGION | awsregion to create resources in |
 |GTM_SQS_PENDING_QUEUE | name of SQS queue for new event |
 |GTM_SQS_RESULTS_QUEUE | name of SQS queue for results |
@@ -77,6 +78,8 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_DOCKER_COMMANDS_ALLOWED| default is false, set to true to enable docker executor|
 |GTM_DOCKER_ALLOW_PULL| allow agent to pull from registry |
 |GTM_DOCKER_DEFAULT_WORKER_IMAGE| for running ci tasks, default is `zotoio/gtm-worker:latest` |
+|GTM_DOCKER_REG_USERNAME| username for docker private registry|
+|GTM_DOCKER_REG_SERVER| hostname for docker private registry|
 |IAM_ENABLED|agent host uses IAM ?|
 |LAUNCHDARKLY_API_TOKEN|token for launchdarkly sass executor|
 |GTM_LOGSTASH_HOST|optional logstash host for elasticsearch analysis|

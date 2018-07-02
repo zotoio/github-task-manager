@@ -91,10 +91,10 @@ export class ExecutorDockerSonar extends ExecutorDocker {
         );
 
         // add token into clone url
-        task.options.env.GIT_CLONE = task.options.env.GIT_CLONE.replace(
-            'https://',
-            `https://${task.options.env.SONAR_GITHUB_OAUTH}@`
-        );
+        if (process.env.GTM_CRYPT_GITHUB_TOKEN) {
+            let decyptedToken = await KmsUtils.decrypt(process.env.GTM_CRYPT_DOCKER_REG_PASSWORD);
+            task.options.env.GIT_CLONE = task.options.env.GIT_CLONE.replace('https://', `https://${decyptedToken}@`);
+        }
 
         return task.options;
     }
