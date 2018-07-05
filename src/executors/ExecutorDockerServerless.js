@@ -96,8 +96,9 @@ export class ExecutorDockerServerless extends ExecutorDocker {
                 SLS_DEPLOY_MODE: process.env.GTM_SLS_EXECUTOR_DEPLOY_MODE || 'parallel',
                 SLS_APIGW_ENDPOINT_TYPE: process.env.GTM_SLS_EXECUTOR_APIGW_ENDPOINT_TYPE,
                 SLS_APIGW_DOMAIN_SUFFIX: process.env.GTM_SLS_EXECUTOR_APIGW_DOMAIN_SUFFIX,
-                HTTP_PROXY: process.env.GTM_SLS_EXECUTOR_HTTP_PROXY,
-                NO_PROXY: process.env.GTM_SLS_EXECUTOR_NO_PROXY
+                SLS_DEPLOYMENT_S3_BUCKET_PREFIX: process.env.GTM_SLS_EXECUTOR_DEPLOYMENT_S3_BUCKET_PREFIX,
+                SLS_HTTP_PROXY: process.env.GTM_SLS_EXECUTOR_HTTP_PROXY,
+                SLS_NO_PROXY: process.env.GTM_SLS_EXECUTOR_NO_PROXY
             },
             validator: {
                 type: 'outputRegex',
