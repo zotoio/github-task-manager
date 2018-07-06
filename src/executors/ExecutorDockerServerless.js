@@ -69,7 +69,11 @@ export class ExecutorDockerServerless extends ExecutorDocker {
         return packages;
     }
     slsStage() {
-        let stage = process.env.GTM_SLS_EXECUTOR_AWS_STAGE || this.eventData.pushForPullRequest ? 'test' : 'dev';
+        let stage = this.eventData.pushForPullRequest ? 'test' : 'dev';
+        // allow global override
+        if (process.env.GTM_SLS_EXECUTOR_AWS_STAGE) {
+            stage = process.env.GTM_SLS_EXECUTOR_AWS_STAGE;
+        }
         this.log.info(`stage: ${stage}`);
         return stage;
     }
