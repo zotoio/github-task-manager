@@ -103,6 +103,7 @@ export class ExecutorDockerServerless extends ExecutorDocker {
                 SLS_DEPLOYMENT_S3_BUCKET_PREFIX: process.env.GTM_SLS_EXECUTOR_DEPLOYMENT_S3_BUCKET_PREFIX,
                 SLS_HTTP_PROXY: process.env.GTM_SLS_EXECUTOR_HTTP_PROXY,
                 SLS_NO_PROXY: process.env.GTM_SLS_EXECUTOR_NO_PROXY,
+                SLS_VPC_ID: process.env.GTM_SLS_EXECUTOR_VPC_ID,
                 SLS_VPC_SECURITY_GROUP_ID: process.env.GTM_SLS_EXECUTOR_VPC_SECURITY_GROUP_ID,
                 SLS_VPC_SUBNET_A: process.env.GTM_SLS_EXECUTOR_VPC_SUBNET_A,
                 SLS_VPC_SUBNET_B: process.env.GTM_SLS_EXECUTOR_VPC_SUBNET_B,

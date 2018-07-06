@@ -109,6 +109,12 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_SLS_EXECUTOR_APIGW_DOMAIN_SUFFIX|reverse proxy domain name that will have apiId added as subdomain.  eg. lambda.mysuffix.com will result in [apiId].lambda.mysuffix.com|
 |GTM_SLS_EXECUTOR_HTTP_PROXY|proxy passed to serverless executor|
 |GTM_SLS_EXECUTOR_NO_PROXY|no_proxy passed to serverless executor|
+|GTM_SLS_EXECUTOR_VPC_ID|vpc id for private apigw endpoints|
+|GTM_SLS_EXECUTOR_VPC_SECURITY_GROUP_ID|vpc security group id|
+|GTM_SLS_EXECUTOR_VPC_SUBNET_A| vpc az subnet |
+|GTM_SLS_EXECUTOR_VPC_SUBNET_B| vpc az subnet |
+|GTM_SLS_EXECUTOR_VPC_SUBNET_C| vpc az subnet |
+|GTM_SLS_EXECUTOR_AWS_KMS_KEY_ID| kms key id for sls env var encryption |
 
 > important: values of env vars prefixed with `GTM_CRYPT_*` must be created via `npm run sls-encrypt [name] [value]`
 
