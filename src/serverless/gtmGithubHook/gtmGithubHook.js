@@ -15,7 +15,7 @@ let githubUtils = require('../gtmGithubUtils.js');
 
 import KmsUtils from './../../KmsUtils';
 
-async function listener(event, context, callback) {
+async function listener(event) {
     console.log(
         `hook call from ${event.requestContext.identity.sourceIp} forwarded for ${event.headers['X-Forwarded-For']}`
     );
@@ -23,10 +23,10 @@ async function listener(event, context, callback) {
     const githubSignature = event.headers['X-Hub-Signature'] || event.headers['x-hub-signature'];
     let err = await githubUtils.invalidHook(event);
     if (err) {
-        return callback(err, {
+        return Promise.reject({
             statusCode: 401,
             headers: { 'Content-Type': 'text/plain' },
-            body: err.message
+            body: JSON.stringify(err)
         });
     }
 
@@ -36,10 +36,10 @@ async function listener(event, context, callback) {
     // blacklisted repos result in null error and 200 as this is a valid result
     err = checkRepoBlacklisted(eventBody);
     if (err) {
-        return callback(null, {
+        return Promise.reject({
             statusCode: 200,
             headers: { 'Content-Type': 'text/plain' },
-            body: err.message
+            body: JSON.stringify(err)
         });
     }
 
@@ -50,25 +50,23 @@ async function listener(event, context, callback) {
     console.log('Payload', json.plain(eventBody));
     /* eslint-enable */
 
-    let response;
     try {
-        await handleEvent(githubEvent, eventBody, githubSignature);
-        response = {
+        let ghEventId = await handleEvent(githubEvent, eventBody, githubSignature);
+        return Promise.resolve({
             statusCode: 200,
+            headers: { 'X-ghEventId': ghEventId },
             body: JSON.stringify({
                 input: event
             })
-        };
+        });
     } catch (e) {
         err = e;
-        response = {
+        return Promise.reject({
             statusCode: 400,
             headers: { 'Content-Type': 'text/plain' },
             body: err.message
-        };
+        });
     }
-
-    return callback(err, response);
 }
 
 async function handleEvent(type, body, signature) {
@@ -132,6 +130,7 @@ async function handleEvent(type, body, signature) {
     if (type === 'pull_request') {
         setPullRequestEventStatus(ghEventId, body);
     }
+    return ghEventId;
 }
 
 async function getTaskConfig(type, body) {
