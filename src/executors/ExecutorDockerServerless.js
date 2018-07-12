@@ -44,10 +44,9 @@ export class ExecutorDockerServerless extends ExecutorDocker {
         return super.executeTask(task);
     }
     pushBranchName() {
-        let refParts = this.eventData.ref ? this.eventData.ref.split('/') : [];
-        let branchName = refParts.length > 0 ? refParts[refParts.length - 1].replace(/[^A-Za-z0-9\-+_]/g, '-') : null;
-        this.log.info(`pushBranchName: ${branchName}`);
-        return branchName;
+        let ref = this.eventData.ref;
+        this.log.info(`pushBranchName: ${ref}`);
+        return ref;
     }
 
     identifyChangedPackages() {
