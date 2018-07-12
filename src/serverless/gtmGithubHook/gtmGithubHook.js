@@ -15,7 +15,7 @@ let githubUtils = require('../gtmGithubUtils.js');
 
 import KmsUtils from './../../KmsUtils';
 
-async function listener(event) {
+async function listener(event, context, callback) {
     console.log(
         `hook call from ${event.requestContext.identity.sourceIp} forwarded for ${event.headers['X-Forwarded-For']}`
     );
@@ -23,7 +23,7 @@ async function listener(event) {
     const githubSignature = event.headers['X-Hub-Signature'] || event.headers['x-hub-signature'];
     let err = await githubUtils.invalidHook(event);
     if (err) {
-        return Promise.reject({
+        return callback(err, {
             statusCode: 401,
             headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify(err)
@@ -36,7 +36,7 @@ async function listener(event) {
     // blacklisted repos result in null error and 200 as this is a valid result
     err = checkRepoBlacklisted(eventBody);
     if (err) {
-        return Promise.reject({
+        return callback(err, {
             statusCode: 200,
             headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify(err)
@@ -52,7 +52,7 @@ async function listener(event) {
 
     try {
         let ghEventId = await handleEvent(githubEvent, eventBody, githubSignature);
-        return Promise.resolve({
+        return callback(null, {
             statusCode: 200,
             headers: { 'X-ghEventId': ghEventId },
             body: JSON.stringify({
@@ -61,7 +61,7 @@ async function listener(event) {
         });
     } catch (e) {
         err = e;
-        return Promise.reject({
+        return callback(err, {
             statusCode: 400,
             headers: { 'Content-Type': 'text/plain' },
             body: err.message
