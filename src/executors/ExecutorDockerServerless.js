@@ -100,6 +100,7 @@ export class ExecutorDockerServerless extends ExecutorDocker {
                 SLS_APIGW_ENDPOINT_TYPE: process.env.GTM_SLS_EXECUTOR_APIGW_ENDPOINT_TYPE,
                 SLS_APIGW_DOMAIN_SUFFIX: process.env.GTM_SLS_EXECUTOR_APIGW_DOMAIN_SUFFIX,
                 SLS_DEPLOYMENT_S3_BUCKET_PREFIX: process.env.GTM_SLS_EXECUTOR_DEPLOYMENT_S3_BUCKET_PREFIX,
+                SLS_SNS_ERROR_TOPIC_ARN: process.env.GTM_SLS_EXECUTOR_SNS_ERROR_TOPIC_ARN,
                 SLS_HTTP_PROXY: process.env.GTM_SLS_EXECUTOR_HTTP_PROXY,
                 SLS_NO_PROXY: process.env.GTM_SLS_EXECUTOR_NO_PROXY,
                 SLS_VPC_ID: process.env.GTM_SLS_EXECUTOR_VPC_ID,

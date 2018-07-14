@@ -105,6 +105,7 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_SLS_EXECUTOR_AWS_REGION| aws region for lambdas default ap-southeast-2|
 |GTM_SLS_EXECUTOR_AWS_EXECUTION_ROLE| docker serverless lambda execution role |
 |GTM_SLS_EXECUTOR_DEPLOY_MODE| deploy multiple lambdas 'parallel' (default) or 'sequential'|
+|GTM_SLS_EXECUTOR_SNS_ERROR_TOPIC_ARN| sns topic to notify on serverless error|
 |GTM_SLS_EXECUTOR_APIGW_ENDPOINT_TYPE|EDGE or REGIONAL or PRIVATE|
 |GTM_SLS_EXECUTOR_APIGW_DOMAIN_SUFFIX|reverse proxy domain name that will have apiId added as subdomain.  eg. lambda.mysuffix.com will result in [apiId].lambda.mysuffix.com|
 |GTM_SLS_EXECUTOR_HTTP_PROXY|proxy passed to serverless executor|
