@@ -109,6 +109,8 @@ export class ExecutorDockerServerless extends ExecutorDocker {
                 SLS_VPC_SUBNET_B: process.env.GTM_SLS_EXECUTOR_VPC_SUBNET_B,
                 SLS_VPC_SUBNET_C: process.env.GTM_SLS_EXECUTOR_VPC_SUBNET_C,
                 SLS_AWS_KMS_KEY_ID: process.env.GTM_SLS_EXECUTOR_AWS_KMS_KEY_ID,
+                SLS_CONFIG_TYPE: process.env.GTM_SLS_EXECUTOR_CONFIG_TYPE,
+                SLS_SPRING_CONFIG_ENDPOINT: process.env.GTM_SLS_EXECUTOR_SPRING_CONFIG_ENDPOINT,
                 GTM_WORKER_SCRIPTS_CLONE: process.env.GTM_WORKER_SCRIPTS_CLONE,
                 GTM_WORKER_SCRIPTS_PATH: process.env.GTM_WORKER_SCRIPTS_PATH
             },

@@ -116,6 +116,8 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_SLS_EXECUTOR_VPC_SUBNET_B| vpc az subnet |
 |GTM_SLS_EXECUTOR_VPC_SUBNET_C| vpc az subnet |
 |GTM_SLS_EXECUTOR_AWS_KMS_KEY_ID| kms key id for sls env var encryption |
+|GTM_SLS_EXECUTOR_CONFIG_TYPE|'ssm' (aws parameter store) or 'spring' or 'dotenv'|
+|GTM_SLS_EXECUTOR_SPRING_CONFIG_ENDPOINT|endpoint url of spring config server eg. http://spring:8888 if GTM_SLS_EXECUTOR_CONFIG_TYPE is 'spring'|
 |GTM_WORKER_SCRIPTS_CLONE| for docker executors using https://github.com/zotoio/gtm-worker based image - url of git repo to overlay on workspace eg. https://github.com/zotoio/gtm-worker-scripts.git |
 |GTM_WORKER_SCRIPTS_PATH| directory within scripts clone repo to overlay|
 
