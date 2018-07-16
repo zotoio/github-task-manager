@@ -15,6 +15,7 @@
     "sls-undeploy": "node --require ./dotenv.js ./node_modules/serverless/bin/serverless remove",
     "sls-logs-hook": "node --require ./dotenv.js ./node_modules/serverless/bin/serverless logs -f gtmGithubHook -t",
     "sls-logs-results": "node --require ./dotenv.js ./node_modules/serverless/bin/serverless logs -f gtmGithubResults -t",
+    "sls-logs-metrics": "node --require ./dotenv.js ./node_modules/serverless/bin/serverless logs -f gtmGithubMetricCapture -t",
     "sls-encrypt": "chmod 755 ./encrypt.sh && ./encrypt.sh",
     "sls-decrypt": "node --require ./dotenv.js ./node_modules/serverless/bin/serverless decrypt -n",
     "agent": "export $(cat .env | grep -v ^# | xargs) && node dist/src/agent/startAgent.js",

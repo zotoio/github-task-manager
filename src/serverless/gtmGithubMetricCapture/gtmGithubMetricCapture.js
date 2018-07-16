@@ -14,7 +14,7 @@ AWS.config.update({ region: process.env.GTM_AWS_REGION });
 
 const zlib = require('zlib');
 
-async function handler(event, context, callback) {
+function handler(event, context, callback) {
     if (process.env.IAM_ENABLED) {
         AWS.config.update({
             httpOptions: {
@@ -57,7 +57,7 @@ async function handler(event, context, callback) {
 
         let promises = [];
 
-        payload.logEvents.forEach(evt => {
+        payload.logEvents.forEach(async evt => {
             let msg;
             let isObj = true;
             try {
@@ -184,7 +184,9 @@ async function handler(event, context, callback) {
         });
 
         Promise.all(promises).then(() => {
-            callback(null, `Successfully processed ${payload.logEvents.length} log events.`);
+            let message = `Successfully processed ${payload.logEvents.length} log events.`;
+            console.log(message);
+            callback(null, message);
         });
     });
 }
