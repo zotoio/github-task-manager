@@ -312,7 +312,7 @@ export class EventHandler extends Plugin {
                                     let taskMasked = _.cloneDeep(task);
                                     if (taskMasked.options && taskMasked.options.env) {
                                         Object.keys(taskMasked.options.env).forEach(key => {
-                                            if (new RegExp('LOGIN|OAUTH|KEY|TOKEN|SECRET|PASSW').test(key)) {
+                                            if (new RegExp('LOGIN|OAUTH|KEY|TOKEN|SECRET|PASSW|CLONE').test(key)) {
                                                 taskMasked.options.env[key] = AgentUtils.maskString(
                                                     taskMasked.options.env[key]
                                                 );
