@@ -120,7 +120,7 @@
     "http": "^0.0.0",
     "https-proxy-agent": "^2.2.1",
     "jenkins": "^0.22.1",
-    "jsontoxml": "^1.0.0",
+    "jsontoxml": "^1.0.1",
     "launchdarkly-nodeutils": "^3.5.4",
     "ldclient-node": "^5.0.2",
     "lodash": "^4.17.10",
