@@ -107,9 +107,14 @@ export class ExecutorJenkins extends Executor {
     async executeTask(task) {
         this.jenkins = await this.initJenkins();
         let log = this.log;
+        
+        // Handle case where task.options is undefined
+        if (!task.options) {
+            task.options = {};
+        }
+
         let jobName = task.options.jobName || null;
         let buildParams = task.options.parameters || null;
-
         let configuration = {};
 
         if (jobName == null) {
