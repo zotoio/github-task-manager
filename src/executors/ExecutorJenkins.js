@@ -151,8 +151,8 @@ export class ExecutorJenkins extends Executor {
         log.info('Starting Jenkins Job: ' + jobName);
         // TODO: Check if Job Exists
         let buildResponse = await this.jenkins.job.build(configuration);
-        // Jenkins returns queue ID as plain text
-        let queueId = parseInt(buildResponse);
+        // Jenkins may return queue ID as plain text or number
+        let queueId = typeof buildResponse === 'string' ? parseInt(buildResponse) : buildResponse;
         if (isNaN(queueId)) {
             throw new Error('Invalid queue ID returned from Jenkins build');
         }

@@ -12,7 +12,7 @@ class JenkinsMock {
                 if (req.method === 'POST') {
                     // Return queue number for build requests
                     res.writeHead(201, { 'Content-Type': 'text/plain' });
-                    res.end('123');
+                    res.end(123);
                 } else {
                     // Return build status for GET requests
                     res.writeHead(200, { 'Content-Type': 'application/json' });
