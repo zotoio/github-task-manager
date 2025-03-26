@@ -12,6 +12,7 @@ class JenkinsMock {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(
                     JSON.stringify({
+                        queueId: 123,
                         result: 'SUCCESS',
                         url: `http://localhost:${this.port}/job/test/1`,
                         number: 1,
