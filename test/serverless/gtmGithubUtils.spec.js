@@ -87,8 +87,9 @@ describe('gtmGithubUtils', function () {
             process.env.GTM_GITHUB_HOST = 'api.github.com';
             try {
                 await githubUtils.getFile();
+                assert.fail('Should have thrown authentication error');
             } catch (e) {
-                return assert.equal(e.message.includes('authentication'), true);
+                assert.ok(e.message.includes('authentication'), `Expected authentication error but got: ${e.message}`);
             }
         });
     });
