@@ -57,9 +57,13 @@ describe('ExecutorJenkins', function () {
                     },
                 },
             };
-            let result = await executorJenkins.executeTask(task);
-            assert.equal(result.results.passed, true);
-            assert.equal(result.results.url, 'http://localhost:8211/job/test/1');
+            try {
+                let result = await executorJenkins.executeTask(task);
+                assert.equal(result.results.passed, true);
+                assert.equal(result.results.url, 'http://localhost:8211/job/test/1');
+            } catch (e) {
+                assert.fail(`Should not have thrown error: ${e.message}`);
+            }
         });
     });
 
