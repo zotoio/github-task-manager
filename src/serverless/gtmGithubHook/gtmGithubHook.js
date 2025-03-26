@@ -16,9 +16,9 @@ let githubUtils = require('../gtmGithubUtils.js');
 import KmsUtils from './../../KmsUtils';
 
 async function listener(event, context, callback) {
-    console.log(
-        `hook call from ${event.requestContext.identity.sourceIp} forwarded for ${event.headers['X-Forwarded-For']}`,
-    );
+    let sourceIp = event.requestContext && event.requestContext.identity ? event.requestContext.identity.sourceIp : 'unknown';
+    let forwardedFor = event.headers['X-Forwarded-For'] || event.headers['x-forwarded-for'] || 'unknown';
+    console.log(`hook call from ${sourceIp} forwarded for ${forwardedFor}`);
     const githubEvent = event.headers['X-GitHub-Event'] || event.headers['x-github-event'];
     const githubSignature = event.headers['X-Hub-Signature'] || event.headers['x-hub-signature'];
     let err = await githubUtils.invalidHook(event);
