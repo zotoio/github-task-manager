@@ -13,9 +13,10 @@ describe('ExecutorJenkins', function () {
     process.env.GTM_JENKINS_USER = 'ciuser';
     process.env.GTM_JENKINS_URL = 'http://localhost:8211';
 
-    beforeEach(() => {
+    beforeEach(async () => {
         eventData = JSON.parse(fs.readFileSync(__dirname + '/../fixtures/executorJenkinsTaskPayload.json', 'utf-8'));
         executorJenkins = new ExecutorJenkins(eventData, console);
+        await executorJenkins.initJenkins();
         jenkinsMock = new JenkinsMock();
         jenkinsMock.start();
     });
@@ -48,7 +49,15 @@ describe('ExecutorJenkins', function () {
         });
 
         it('executeTask to return result object', async () => {
-            let result = await executorJenkins.executeTask(eventData.ghTaskConfig.task);
+            const task = {
+                options: {
+                    jobName: 'test-job',
+                    parameters: {
+                        param1: 'value1'
+                    }
+                }
+            };
+            let result = await executorJenkins.executeTask(task);
             assert.equal(result.results.passed, true);
             assert.equal(result.results.url, 'http://localhost:8211/job/test/1');
         });
@@ -74,6 +83,7 @@ describe('ExecutorJenkins', function () {
         });
 
         it('should wait for build to complete', async () => {
+            await executorJenkins.initJenkins();
             let result = await executorJenkins.waitForBuild('test', 1);
             assert.equal(result.result, 'SUCCESS');
             assert.equal(result.url, 'http://localhost:8211/job/test/1');
@@ -103,10 +113,10 @@ describe('ExecutorJenkins', function () {
     describe('buildNumberfromQueue', () => {
         it('should return build number from queue', async () => {
             try {
-                let result = await executorJenkins.buildNumberfromQueue(12);
-                console.log(result);
+                await executorJenkins.buildNumberfromQueue(12);
+                assert.fail('Should have thrown an error');
             } catch (e) {
-                return assert.equal(e.message, 'connect ECONNREFUSED 127.0.0.1:8111');
+                assert.equal(e.message, 'connect ECONNREFUSED 127.0.0.1:8111');
             }
         });
     });
