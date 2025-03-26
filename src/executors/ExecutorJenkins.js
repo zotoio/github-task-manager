@@ -87,21 +87,34 @@ export class ExecutorJenkins extends Executor {
 
     async buildNumberfromQueue(queueId) {
         let log = this.log;
-        let queueData = await this.jenkins.queue.item(queueId).then(function (data) {
-            return data;
-        });
-        while (!queueData.executable) {
-            try {
-                log.info(`Build Not Ready: ${queueData.why}`);
-            } catch (error) {
-                log.warn(`Build Not Ready: No Reason Provided. Retrying in 3 seconds...`);
+        try {
+            if (!this.jenkins || !this.jenkins.queue) {
+                throw new Error('Jenkins client not properly initialized');
             }
-            await AgentUtils.timeout(3000);
-            queueData = await this.jenkins.queue.item(queueId).then(function (data) {
-                return data;
+
+            let queueData = await this.jenkins.queue.item(queueId).catch(err => {
+                log.error(`Failed to get queue item: ${err.message}`);
+                throw err;
             });
+
+            while (!queueData.executable) {
+                try {
+                    log.info(`Build Not Ready: ${queueData.why || 'No status available'}`);
+                } catch (error) {
+                    log.warn(`Build Not Ready: No Reason Provided. Retrying in 3 seconds...`);
+                }
+                await AgentUtils.timeout(3000);
+                queueData = await this.jenkins.queue.item(queueId).catch(err => {
+                    log.error(`Failed to get queue item: ${err.message}`);
+                    throw err;
+                });
+            }
+            
+            return queueData.executable.number;
+        } catch (error) {
+            log.error(`Error in buildNumberfromQueue: ${error.message}`);
+            throw error;
         }
-        return queueData.executable.number;
     }
 
     async executeTask(task) {
