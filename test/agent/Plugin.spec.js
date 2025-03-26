@@ -2,10 +2,10 @@ import { describe, it } from 'mocha';
 import { default as assert } from 'assert';
 import { Plugin } from '../../src/agent/Plugin';
 
-describe('Plugin', function() {
+describe('Plugin', function () {
     process.env.GTM_AWS_KMS_KEY_ID = '';
-    describe('register', function() {
-        it('should register new class', function() {
+    describe('register', function () {
+        it('should register new class', function () {
             class Animal extends Plugin {}
             class Dog extends Animal {}
 
@@ -15,8 +15,8 @@ describe('Plugin', function() {
         });
     });
 
-    describe('create', function() {
-        it('should create new instance of class', function() {
+    describe('create', function () {
+        it('should create new instance of class', function () {
             class Animal extends Plugin {}
             class Dog extends Animal {
                 constructor(options) {

@@ -1,6 +1,5 @@
 'use strict';
 
-import 'babel-polyfill';
 import { default as AgentLogger } from './AgentLogger';
 import { AgentMetrics } from './AgentMetrics';
 import { default as express } from 'express';
@@ -46,7 +45,7 @@ export class Agent {
         if (!process.env.IAM_ENABLED) {
             if (!process.env.GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID || !process.env.GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY) {
                 log.error(
-                    '### ERROR ### Environment Variables GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID, or GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY Missing!'
+                    '### ERROR ### Environment Variables GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID, or GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY Missing!',
                 );
                 process.exit(1);
             }
@@ -92,7 +91,7 @@ export class Agent {
         // Init Nunjucks
         expressNunjucks(app, {
             watch: isDev,
-            noCache: isDev
+            noCache: isDev,
         });
 
         app.get('/', (req, res) => {
@@ -113,7 +112,7 @@ export class Agent {
             let virtualLambdaEvent = {
                 body: JSON.stringify(req.body),
                 headers: req.headers,
-                httpMethod: req.method
+                httpMethod: req.method,
             };
 
             log.warn('Non-Lambda WebHook Received');
@@ -137,7 +136,7 @@ export class Agent {
             else updatedEventData = null;
             res.render('event.html', {
                 globalProperties: systemConfig,
-                eventData: updatedEventData
+                eventData: updatedEventData,
             });
         });
 
@@ -212,7 +211,7 @@ export class Agent {
 
         let that = this;
 
-        AgentUtils.getQueueUrl(process.env.GTM_SQS_PENDING_QUEUE).then(function(data) {
+        AgentUtils.getQueueUrl(process.env.GTM_SQS_PENDING_QUEUE).then(function (data) {
             pendingUrl = data;
             systemConfig.pendingQueue = {};
             systemConfig.pendingQueue.url = pendingUrl;
@@ -242,13 +241,13 @@ export class Agent {
                         event.log.info(
                             `agentGroup mismatch - event: '${
                                 event.attrs.ghAgentGroup
-                            }' agent: '${AGENT_GROUP}' skipping..`
+                            }' agent: '${AGENT_GROUP}' skipping..`,
                         );
                         AgentUtils.setSqsMessageTimeout(
                             process.env.GTM_SQS_PENDING_QUEUE,
                             message.ReceiptHandle,
                             5,
-                            log
+                            log,
                         );
                         done(new Error()); // Re-Queue Messages that don't match our Agent Group
                         return;
@@ -258,16 +257,16 @@ export class Agent {
                         log.error(
                             `No Event Handler for Type: '${event.attrs.ghEventType}' (Event ID: ${
                                 event.attrs.ghEventId
-                            })`
+                            })`,
                         );
                         done();
                     } else {
-                        let loopTimer = setInterval(function() {
+                        let loopTimer = setInterval(function () {
                             AgentUtils.setSqsMessageTimeout(
                                 process.env.GTM_SQS_PENDING_QUEUE,
                                 message.ReceiptHandle,
                                 30,
-                                log
+                                log,
                             );
                         }, 5000);
 
@@ -284,8 +283,8 @@ export class Agent {
                                         event.log.info(
                                             `### Event handled: type=${event.attrs.ghEventType} id=${
                                                 event.attrs.ghEventId
-                                            } duration=${duration}ms`
-                                        )
+                                            } duration=${duration}ms`,
+                                        ),
                                     );
                                 });
                         } catch (e) {
@@ -294,7 +293,7 @@ export class Agent {
                             done(e);
                         }
                     }
-                }
+                },
             });
 
             that.listen(pendingQueueHandler);
@@ -306,18 +305,18 @@ export class Agent {
      * @param pendingQueueHandler
      */
     listen(pendingQueueHandler) {
-        pendingQueueHandler.on('error', err => {
+        pendingQueueHandler.on('error', (err) => {
             log.error('ERROR In SQS Queue Handler');
             log.error(err.message);
         });
 
-        app.listen(process.env.GTM_AGENT_PORT, async function() {
+        app.listen(process.env.GTM_AGENT_PORT, async function () {
             log.info({
                 resultType: 'AGENT_START',
                 agentId: AgentUtils.agentId(),
                 agentGroup: AGENT_GROUP,
                 version: GTMVersion,
-                details: await AgentMetrics.getHealth(AgentUtils.getDynamoDB(), true)
+                details: await AgentMetrics.getHealth(AgentUtils.getDynamoDB(), true),
             });
 
             AgentUtils.printBanner();

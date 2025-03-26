@@ -25,7 +25,7 @@ export class ExecutorTravis extends Executor {
         this.options = this.getOptions();
 
         this.travis = new Travis({
-            version: '2.0.0'
+            version: '2.0.0',
         });
     }
 
@@ -35,16 +35,16 @@ export class ExecutorTravis extends Executor {
 
         this.travis.authenticate(
             {
-                github_token: await KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_TOKEN)
+                github_token: await KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_TOKEN),
             },
-            function(err) {
+            function (err) {
                 if (err) {
                     log.error(err);
                     return;
                 }
 
                 log.info('logged in to travis');
-            }
+            },
         );
 
         let result = true;

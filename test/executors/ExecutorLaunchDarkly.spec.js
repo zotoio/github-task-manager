@@ -17,9 +17,9 @@ describe('ExecutorLaunchDarkly', () => {
                 environment: 'dev',
                 flags: {
                     'test-one': true,
-                    'test-two': false
-                }
-            }
+                    'test-two': false,
+                },
+            },
         };
         executorLaunchDarkly = new ExecutorLaunchDarkly(eventData, console);
     });
@@ -33,13 +33,13 @@ describe('ExecutorLaunchDarkly', () => {
     describe('getFlagValue', () => {
         let stubCall;
         let customResult;
-        before(function() {
+        before(function () {
             customResult = {
                 flags: {
                     getFeatureFlagState: () => {
                         return true;
-                    }
-                }
+                    },
+                },
             };
             stubCall = sinon.stub(ExecutorLaunchDarkly.prototype, 'getLDUtils').returns(Promise.resolve(customResult));
         });
@@ -55,7 +55,7 @@ describe('ExecutorLaunchDarkly', () => {
     describe('setFlagValue', () => {
         let stubCall;
         let customResult;
-        before(function() {
+        before(function () {
             customResult = {
                 flags: {
                     getFeatureFlagState: () => {
@@ -63,8 +63,8 @@ describe('ExecutorLaunchDarkly', () => {
                     },
                     toggleFeatureFlag: () => {
                         return true;
-                    }
-                }
+                    },
+                },
             };
             stubCall = sinon.stub(ExecutorLaunchDarkly.prototype, 'getLDUtils').returns(Promise.resolve(customResult));
         });
@@ -87,16 +87,16 @@ describe('ExecutorLaunchDarkly', () => {
     describe('executeTask', () => {
         let stubCall;
         let customResult;
-        before(function() {
+        before(function () {
             customResult = {
                 passed: true,
-                url: 'https://launchdarkly.com'
+                url: 'https://launchdarkly.com',
             };
             stubCall = sinon.stub(executorLaunchDarkly, 'executeTask').returns(Promise.resolve(customResult));
         });
 
         it('should invoke mocked ExecuteLaunchDarkly.executeTask', async () => {
-            let result = await stubCall(eventData).then(data => {
+            let result = await stubCall(eventData).then((data) => {
                 return data;
             });
             assert.equal(result, customResult);

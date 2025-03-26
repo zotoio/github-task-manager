@@ -20,16 +20,16 @@ describe('ExecutorHttp', () => {
                     headers: [
                         {
                             name: 'accept',
-                            value: 'application/json'
-                        }
-                    ]
+                            value: 'application/json',
+                        },
+                    ],
                 },
                 validator: {
                     type: 'bodyJson',
                     objectCheckRef: 'headers.Host',
-                    objectCheckVal: 'httpbin.org'
-                }
-            }
+                    objectCheckVal: 'httpbin.org',
+                },
+            },
         };
 
         executorHttp = new ExecutorHttp(eventData, console);
@@ -44,7 +44,7 @@ describe('ExecutorHttp', () => {
     describe('executeTask', () => {
         let stubCall;
         let customResult;
-        before(function() {
+        before(function () {
             customResult = fs.readFileSync(__dirname + '/../fixtures/executorHttpResponse.json', 'utf-8');
             stubCall = sinon
                 .stub(ExecutorHttp.prototype, 'sendRequest')
@@ -52,7 +52,7 @@ describe('ExecutorHttp', () => {
         });
         it('should call ExecutorHttp.executeTask', async () => {
             let result;
-            result = await executorHttp.executeTask(eventData).then(data => {
+            result = await executorHttp.executeTask(eventData).then((data) => {
                 return data;
             });
             assert.equal(result.results.passed, true);

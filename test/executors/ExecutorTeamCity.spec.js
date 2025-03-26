@@ -6,7 +6,7 @@ import { default as assert } from 'assert';
 import { Executor } from '../../src/agent/Executor';
 import { ExecutorTeamCity } from '../../src/executors/ExecutorTeamCity';
 
-describe('ExecutorTeamCity', function() {
+describe('ExecutorTeamCity', function () {
     let executorTeamcity;
     let eventData;
     process.env.GTM_TEAMCITY_USER = 'admin';
@@ -44,7 +44,7 @@ describe('ExecutorTeamCity', function() {
         it('should return build request xml payload', () => {
             assert.equal(
                 executorTeamcity.createTeamCityBuildNode(eventData.ghTaskConfig.task, jobName),
-                buildNodeObject
+                buildNodeObject,
             );
         });
     });
@@ -77,7 +77,7 @@ describe('ExecutorTeamCity', function() {
 
         it('executeTask to return result object', async () => {
             eventData = JSON.parse(
-                fs.readFileSync(__dirname + '/../fixtures/executorTeamCityTaskPayLoad.json', 'utf-8')
+                fs.readFileSync(__dirname + '/../fixtures/executorTeamCityTaskPayLoad.json', 'utf-8'),
             );
             try {
                 await executorTeamcity.executeTask(eventData.ghTaskConfig.task);
@@ -94,8 +94,8 @@ describe('ExecutorTeamCity', function() {
         expectedResult.FailedTestCount = 1;
         expectedResult.testResultsUrl = undefined;
 
-        it('converts xml response of TC build to json', done => {
-            fs.readFileSync(__dirname + '/../fixtures/teamCityStatisticsXMLPayload.xml', data => {
+        it('converts xml response of TC build to json', (done) => {
+            fs.readFileSync(__dirname + '/../fixtures/teamCityStatisticsXMLPayload.xml', (data) => {
                 assert.equal(executorTeamcity.createResultObject(data), expectedResult);
             });
             done();
@@ -107,7 +107,7 @@ describe('ExecutorTeamCity', function() {
         let returnXMLContext;
         before(() => {
             let file = new ns.Server(__dirname + '/../fixtures/teamCityStatisticsXMLPayload.xml');
-            returnXMLContext = fs.readFileSync(__dirname + '/../fixtures/teamCityStatisticsXMLPayload.xml', data => {
+            returnXMLContext = fs.readFileSync(__dirname + '/../fixtures/teamCityStatisticsXMLPayload.xml', (data) => {
                 return data;
             });
 

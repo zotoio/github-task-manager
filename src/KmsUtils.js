@@ -3,8 +3,8 @@ const proxy = require('proxy-agent');
 if (process.env.AWS_PROXY) {
     AWS.config.update({
         httpOptions: {
-            agent: proxy(process.env.AWS_PROXY)
-        }
+            agent: proxy(process.env.AWS_PROXY),
+        },
     });
 }
 
@@ -43,7 +43,7 @@ class KmsUtils {
                 try {
                     return this.KMS.decrypt({ CiphertextBlob: new Buffer(encrypted, 'base64') })
                         .promise()
-                        .then(data => {
+                        .then((data) => {
                             this.logger.info(`storing decrypted result.`);
                             let decrypted = data.Plaintext.toString();
                             this.setDecrypted(encrypted, decrypted);
@@ -59,7 +59,7 @@ class KmsUtils {
     async primeStore() {
         this.logger.info(`priming decrypted var store`);
         let promises = [];
-        Object.keys(process.env).forEach(key => {
+        Object.keys(process.env).forEach((key) => {
             if (key.startsWith('GTM_CRYPT_')) {
                 promises.push(this.decrypt(process.env[key]));
                 this.logger.info(`decrypting value of ${key}`);
@@ -75,7 +75,7 @@ class KmsUtils {
             return this.store[encrypted];
         } else {
             this.logger.info(`returning newly decrypted value`);
-            return await this.decrypt(encrypted).catch(e => {
+            return await this.decrypt(encrypted).catch((e) => {
                 console.error(`failed to decrypt ${encrypted}.  error: ${JSON.stringify(e)}`);
             });
         }

@@ -26,7 +26,7 @@ function handle(event, context, callback) {
     try {
         let consumer = getQueue();
 
-        consumer.on('error', err => {
+        consumer.on('error', (err) => {
             console.log(err.message);
             throw err;
         });
@@ -37,8 +37,8 @@ function handle(event, context, callback) {
             const response = {
                 statusCode: 200,
                 body: JSON.stringify({
-                    input: event
-                })
+                    input: event,
+                }),
             };
             return callback(null, response);
         });
@@ -49,7 +49,7 @@ function handle(event, context, callback) {
         return callback(null, {
             statusCode: 401,
             headers: { 'Content-Type': 'text/plain' },
-            body: e.message
+            body: e.message,
         });
     }
 }
@@ -58,14 +58,14 @@ function getQueue() {
     let awsOptions = {
         queueUrl: process.env.SQS_RESULTS_QUEUE_URL,
         waitTimeSeconds: 10,
-        handleMessage: githubUtils.handleEventTaskResult
+        handleMessage: githubUtils.handleEventTaskResult,
     };
 
     if (process.env.AWS_PROXY) {
         AWS.config.update({
             httpOptions: {
-                agent: proxy(process.env.AWS_PROXY)
-            }
+                agent: proxy(process.env.AWS_PROXY),
+            },
         });
     }
     awsOptions.sqs = new AWS.SQS();
@@ -75,5 +75,5 @@ function getQueue() {
 
 module.exports = {
     handle: handle,
-    getQueue: getQueue
+    getQueue: getQueue,
 };

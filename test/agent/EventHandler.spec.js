@@ -4,7 +4,7 @@ import { default as assert } from 'assert';
 import { Plugin } from '../../src/agent/Plugin';
 import { EventHandler } from '../../src/agent/EventHandler';
 
-describe('EventHandler', function() {
+describe('EventHandler', function () {
     let handler;
     beforeEach(() => {
         process.env.GTM_AWS_KMS_KEY_ID = '';
@@ -12,8 +12,8 @@ describe('EventHandler', function() {
         handler = new EventHandler(eventData, console);
     });
 
-    describe('constructor', function() {
-        it('should instantiate as Plugin', function() {
+    describe('constructor', function () {
+        it('should instantiate as Plugin', function () {
             assert.equal(handler instanceof Plugin, true);
         });
     });

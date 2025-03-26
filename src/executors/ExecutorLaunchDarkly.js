@@ -36,7 +36,7 @@ export class ExecutorLaunchDarkly extends Executor {
             let that = this;
             return new LaunchDarklyUtils()
                 .create(await KmsUtils.getDecrypted(process.env.GTM_CRYPT_LAUNCHDARKLY_API_TOKEN), log)
-                .then(handle => {
+                .then((handle) => {
                     that.ldUtils = handle;
                     return Promise.resolve(handle);
                 });
@@ -48,7 +48,7 @@ export class ExecutorLaunchDarkly extends Executor {
     async getFlagValue(task, flagName) {
         let log = this.log;
         log.info(`Getting Flag Value for Flag '${flagName}'`);
-        return this.getLDUtils().then(ldUtils => {
+        return this.getLDUtils().then((ldUtils) => {
             return ldUtils.flags.getFeatureFlagState(task.options.project, flagName, task.options.environment);
         });
     }
@@ -62,12 +62,12 @@ export class ExecutorLaunchDarkly extends Executor {
         if (oldFlagValue !== flagValue) {
             // Values are Different, Update Flag Value Using API
             log.info(`Updating Flag Value for '${flagName}'`);
-            await this.getLDUtils().then(async ldUtils => {
+            await this.getLDUtils().then(async (ldUtils) => {
                 await ldUtils.flags.toggleFeatureFlag(
                     task.options.project,
                     flagName,
                     task.options.environment,
-                    flagValue
+                    flagValue,
                 );
             });
             changed = true;
@@ -80,7 +80,7 @@ export class ExecutorLaunchDarkly extends Executor {
             flagName: flagName,
             newValue: flagValue,
             oldValue: oldFlagValue,
-            changed: changed
+            changed: changed,
         };
     }
 
@@ -110,7 +110,7 @@ export class ExecutorLaunchDarkly extends Executor {
                 passed: false,
                 url: 'https://github.com',
                 message: `failed to set flags`,
-                details: e.message
+                details: e.message,
             };
 
             task.results = resultSummary;
@@ -121,7 +121,7 @@ export class ExecutorLaunchDarkly extends Executor {
             passed: true,
             url: 'https://github.com',
             message: `Updated ${changedCount} Flags`,
-            details: details
+            details: details,
         };
 
         task.results = resultSummary;

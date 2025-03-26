@@ -20,8 +20,8 @@ let DDB;
 if (process.env.IAM_ENABLED) {
     AWS.config.update({
         httpOptions: {
-            agent: proxy(process.env.HTTP_PROXY)
-        }
+            agent: proxy(process.env.HTTP_PROXY),
+        },
     });
 } else {
     // due to serverless .env restrictions
@@ -31,7 +31,7 @@ if (process.env.IAM_ENABLED) {
 
 let sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 let sns = new AWS.SNS({ apiVersion: '2010-03-31' });
-require('babel-polyfill');
+
 const safeJsonStringify = require('safe-json-stringify');
 
 export class AgentUtils {
@@ -126,7 +126,7 @@ export class AgentUtils {
             target_url: url ? url : 'https://github.com/zotoio/github-task-manager',
             description: description,
             context: context,
-            eventData: eventData
+            eventData: eventData,
         };
     }
 
@@ -136,8 +136,8 @@ export class AgentUtils {
 
         // if exact key not found try splitting comma delimited and check each subkey
         if (!result) {
-            Object.keys(cases).forEach(k => {
-                let subKeys = k.split(',').map(i => {
+            Object.keys(cases).forEach((k) => {
+                let subKeys = k.split(',').map((i) => {
                     return i.trim();
                 });
                 if (subKeys.includes(key)) {
@@ -158,7 +158,7 @@ export class AgentUtils {
         return sqs
             .getQueueUrl({ QueueName: queueName })
             .promise()
-            .then(data => {
+            .then((data) => {
                 return Promise.resolve(data.QueueUrl);
             });
     }
@@ -172,17 +172,17 @@ export class AgentUtils {
     static async setSqsMessageTimeout(queueName, messageHandle, timeoutValue, log) {
         log.debug(`Setting SQS Message Timeout to ${timeoutValue} Seconds`);
         return AgentUtils.getQueueUrl(queueName)
-            .then(function(queueUrl) {
+            .then(function (queueUrl) {
                 log.debug(`Queue URL: ${queueUrl}, Message Handle: ${messageHandle}, Timeout: ${timeoutValue}`);
                 return sqs
                     .changeMessageVisibility({
                         QueueUrl: queueUrl,
                         ReceiptHandle: messageHandle,
-                        VisibilityTimeout: timeoutValue
+                        VisibilityTimeout: timeoutValue,
                     })
                     .promise();
             })
-            .then(function(data) {
+            .then(function (data) {
                 log.debug(`SQS Heartbeat Sent. (${timeoutValue}s) ${JSON.stringify(data)}`);
             });
     }
@@ -193,41 +193,41 @@ export class AgentUtils {
             return Promise.resolve(true);
         }
         return AgentUtils.getQueueUrl(process.env.GTM_SQS_RESULTS_QUEUE)
-            .then(function(sqsQueueUrl) {
+            .then(function (sqsQueueUrl) {
                 let params = {
                     MessageBody: safeJsonStringify(results),
                     QueueUrl: sqsQueueUrl,
-                    DelaySeconds: 0
+                    DelaySeconds: 0,
                 };
                 return Promise.resolve(params);
             })
-            .then(params => {
+            .then((params) => {
                 return sqs.sendMessage(params).promise();
             })
             .then(() => {
                 let params = {
-                    Name: process.env.GTM_SNS_RESULTS_TOPIC
+                    Name: process.env.GTM_SNS_RESULTS_TOPIC,
                 };
 
                 return sns.createTopic(params).promise();
             })
-            .then(data => {
+            .then((data) => {
                 let topicArn = data.TopicArn;
                 let params = {
                     Message: message,
-                    TopicArn: topicArn
+                    TopicArn: topicArn,
                 };
                 return Promise.resolve(params);
             })
-            .then(params => {
+            .then((params) => {
                 return sns.publish(params).promise();
             })
-            .then(data => {
+            .then((data) => {
                 log && log.info(`Published Message '${message}' to Queue`);
                 log && log.debug(data);
                 return Promise.resolve(true);
             })
-            .catch(e => {
+            .catch((e) => {
                 log && log.error(e);
                 throw e;
             });
@@ -238,7 +238,7 @@ export class AgentUtils {
      * @param {Integer} ms - Milliseconds to Pause
      */
     static timeout(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     static todayDate() {
@@ -270,7 +270,7 @@ export class AgentUtils {
             '                                    /____/                    '
         ];
         /* eslint-enable */
-        bannerData.forEach(function(line) {
+        bannerData.forEach(function (line) {
             console.log(line);
         });
     }
@@ -301,7 +301,7 @@ export class AgentUtils {
      */
     static applyTransforms(dictionary) {
         let transforms = {
-            toYaml: this.toYaml
+            toYaml: this.toYaml,
         };
         for (let transform in transforms) {
             dictionary = transforms[transform](dictionary);
@@ -348,8 +348,8 @@ export class AgentUtils {
                 passed: true,
                 meta: {
                     buildNumber: 0,
-                    buildName: 'NO_PARENT_TASK'
-                }
+                    buildName: 'NO_PARENT_TASK',
+                },
             };
         }
 
@@ -362,11 +362,11 @@ export class AgentUtils {
             '##PARENTBUILDNUMBER##': this.metaValue(parent, 'buildNumber'),
             '##PARENTBUILDNAME##': this.metaValue(parent, 'buildName'),
             '##GIT_URL##': obj.pull_request ? obj.pull_request.html_url : obj.compare,
-            '##GIT_COMMIT##': obj.pull_request ? obj.pull_request.head.sha : obj.head_commit.id
+            '##GIT_COMMIT##': obj.pull_request ? obj.pull_request.head.sha : obj.head_commit.id,
         };
 
         // just add all the GTM env vars to map
-        Object.keys(process.env).forEach(async key => {
+        Object.keys(process.env).forEach(async (key) => {
             if (key.startsWith('GTM_')) {
                 if (key.startsWith('GTM_CRYPT')) {
                     mapDict[`##${key}##`] = await KmsUtils.getDecrypted(process.env[key]);
@@ -384,7 +384,7 @@ export class AgentUtils {
     }
 
     static findMatchingElementInArray(inArray, elementToFind) {
-        let foundItem = inArray.find(function(item, i) {
+        let foundItem = inArray.find(function (item, i) {
             if (item.$.name === elementToFind) {
                 return i;
             }
@@ -398,8 +398,8 @@ export class AgentUtils {
                 log.info('Configuring DynamoDB to use VPC Endpoint');
                 DDB = new AWS.DynamoDB({
                     httpOptions: {
-                        agent: new https.Agent()
-                    }
+                        agent: new https.Agent(),
+                    },
                 });
             } else {
                 log.info('Configuring DynamoDB to use Global AWS Config');

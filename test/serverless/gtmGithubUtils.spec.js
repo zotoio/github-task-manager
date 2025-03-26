@@ -22,7 +22,7 @@ describe('gtmGithubUtils', function () {
                 const isModuleError = e.message.includes('ES Module');
                 assert.ok(
                     isAuthError || isModuleError,
-                    `Expected authentication or module error but got: ${e.message}`
+                    `Expected authentication or module error but got: ${e.message}`,
                 );
             }
         });

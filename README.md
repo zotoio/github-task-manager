@@ -36,8 +36,8 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 [![flow](https://storage.googleapis.com/github-bin/github-task-manager.png)]()
 
 ## Install
-- clone this repo or `npm install --save github-task-manager`
-- npm install
+- clone this repo or `yarn add github-task-manager`
+- yarn
 - setup serverless aws creds per https://github.com/serverless/serverless/blob/master/docs/providers/aws/guide/credentials.md
 - setup a .env file in the repo root (copy from .envExample and modify)
 - create and AWS KMS key, and capture the id for var `GTM_AWS_KMS_KEY_ID`
@@ -121,31 +121,31 @@ Create an asynchronous CI agnostic mechanism for running custom test stage gates
 |GTM_WORKER_SCRIPTS_CLONE| for docker executors using https://github.com/zotoio/gtm-worker based image - url of git repo to overlay on workspace eg. https://github.com/zotoio/gtm-worker-scripts.git |
 |GTM_WORKER_SCRIPTS_PATH| directory within scripts clone repo to overlay|
 
-> important: values of env vars prefixed with `GTM_CRYPT_*` must be created via `npm run sls-encrypt [name] [value]`
+> important: values of env vars prefixed with `GTM_CRYPT_*` must be created via `yarn run sls-encrypt [name] [value]`
 
 ## Configure and deploy
-- run: `npm run sls-deploy` - note that this will create aws re$ources..
+- run: `yarn sls-deploy` - note that this will create aws re$ources..
 - capture the hook url output in console and add to github repo pull request conf
-- run: `npm run sls-logs-hook` or `npm run sls-logs-results` to tail the logs
+- run: `yarn sls-logs-hook` or `yarn sls-logs-results` to tail the logs
 - create a .githubTaskManager.json in your repo per https://github.com/zotoio/github-task-manager/wiki/Creating-a-Task-Configuration
-- start an agent locally using `npm run build && npm start agent` (or use docker/k8s)
+- start an agent locally using `yarn build && yarn start agent` (or use docker/k8s)
 - create a pull request and confirm the hook is being hit and agent processes event
 
 ## Docker and Kubernetes agents
 You can run the latest image from docker hub: https://hub.docker.com/r/zotoio/github-task-manager
 ```
-npm run docker-hub-run
+yarn docker-hub-run
 ```
 ..or run using the local checkout and tail logs:
 ```
-npm run docker-local-bounce
+yarn docker-local-bounce
 ```
 ..or if you have a k8s cluster and kubectl configured:
 ```
-npm run k8s-apply
-npm run k8s-delete
+yarn k8s-apply
+yarn k8s-delete
 ```
-note that these k8s npm script inject vars from .env into the manifest
+note that these k8s yarn script inject vars from .env into the manifest
 
 [![k8s](https://storage.googleapis.com/github-bin/agent-k8s.png)]()
 
@@ -176,8 +176,8 @@ Fork this repository and work on your enhancements, then send a pull request.  I
 Use commitizen for conventional commit messages via `git cz` instead of `git commit`.  
 To setup if not already installed:
 ```
-npm install -g commitizen
-npm install -g cz-conventional-changelog
+yarn global add commitizen
+yarn global add cz-conventional-changelog
 echo '{ "path": "cz-conventional-changelog" }' > ~/.czrc
 ```
-...or you can just use `npm run commit` which will use local commitizen install.
+...or you can just use `yarn commit` which will use local commitizen install.

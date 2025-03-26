@@ -59,7 +59,7 @@ export class EventHandler extends Plugin {
             pullNumber: this.eventData.pull_request ? this.eventData.pull_request.number : 'n/a',
             sha: this.getEventHeadSha(),
             eventUser: this.getEventUser(),
-            agentId: AgentUtils.agentId()
+            agentId: AgentUtils.agentId(),
         });
 
         console.log(this.eventData.pull_request);
@@ -73,7 +73,7 @@ export class EventHandler extends Plugin {
         log.info('---------------------------------');
 
         return this.handleTasks(this, this).then(() => {
-            return this.addEventSummaryComment(this).then(event => {
+            return this.addEventSummaryComment(this).then((event) => {
                 let url;
                 if (process.env.GTM_ELASTIC_HOST && process.env.GTM_ELASTIC_PORT) {
                     let baseUrl = process.env.GTM_BASE_URL || 'http://localhost:9091';
@@ -85,7 +85,7 @@ export class EventHandler extends Plugin {
                     status,
                     'GitHub Task Manager',
                     `Completed ${event.eventId}`,
-                    url
+                    url,
                 );
 
                 AgentUtils.postResultsAndTrigger(eventStatus, `Executing event: ${event.eventId}`);
@@ -97,7 +97,7 @@ export class EventHandler extends Plugin {
                     repo: event.eventData.repository.full_name,
                     url: this.getEventUrl(),
                     duration: duration,
-                    failed: event.failed || false
+                    failed: event.failed || false,
                 });
             });
         });
@@ -135,7 +135,7 @@ export class EventHandler extends Plugin {
             'pending',
             'GitHub Task Manager',
             `Executing ${event.eventId}`,
-            url
+            url,
         );
 
         promises.push(AgentUtils.postResultsAndTrigger(eventStatus, `Executing event: ${event.eventId}`, log));
@@ -155,7 +155,7 @@ export class EventHandler extends Plugin {
         }
 
         if (parent.tasks) {
-            parent.tasks.forEach(async task => {
+            parent.tasks.forEach(async (task) => {
                 if (task.disabled) {
                     log.warn(`skipping disabled task ${event.eventType} => ${task.executor}:${task.context}`);
                     return;
@@ -165,8 +165,8 @@ export class EventHandler extends Plugin {
                     AgentUtils.templateReplace(
                         await AgentUtils.createBasicTemplate(event.eventData, parent, log),
                         task.options,
-                        log
-                    )
+                        log,
+                    ),
                 );
 
                 let initialState = 'pending';
@@ -192,7 +192,7 @@ export class EventHandler extends Plugin {
                     initialState,
                     eventContext,
                     initialDesc,
-                    'https://github.com' // fails if not an https url
+                    'https://github.com', // fails if not an https url
                 );
 
                 promises.push(
@@ -201,11 +201,11 @@ export class EventHandler extends Plugin {
                         `Pending for ${event.eventType} => ${task.executor}:${task.context} - Event ID: ${
                             event.eventId
                         }`,
-                        log
-                    ).then(function() {
+                        log,
+                    ).then(function () {
                         log.info(task);
                         log.info('-----------------------------');
-                    })
+                    }),
                 );
             });
         }
@@ -218,7 +218,7 @@ export class EventHandler extends Plugin {
         let log = this.log;
 
         if (parent.tasks) {
-            parent.tasks.forEach(async task => {
+            parent.tasks.forEach(async (task) => {
                 if (task.disabled) {
                     log.warn(`task disabled: ${task.executor}: ${task.context}`);
                     return;
@@ -242,14 +242,14 @@ export class EventHandler extends Plugin {
                 try {
                     taskPromise = executor
                         .executeTask(task)
-                        .then(task => {
+                        .then((task) => {
                             if (task.results === 'NO_MATCHING_TASK') {
                                 status = AgentUtils.createEventStatus(
                                     event.eventData,
                                     'error',
                                     eventContext,
                                     'Unknown Task Type: ' + task.context,
-                                    'https://kuro.neko.ac'
+                                    'https://kuro.neko.ac',
                                 );
                             } else {
                                 let defaultResultMessage = task.results.passed
@@ -261,12 +261,12 @@ export class EventHandler extends Plugin {
                                     task.results.passed ? 'success' : 'error',
                                     eventContext,
                                     taskResultMessage,
-                                    task.results.url
+                                    task.results.url,
                                 );
                             }
                             return status;
                         })
-                        .then(status => {
+                        .then((status) => {
                             this.handleTaskResult(event, task, log, startTime);
 
                             return AgentUtils.postResultsAndTrigger(
@@ -274,20 +274,20 @@ export class EventHandler extends Plugin {
                                 `Task result '${status.state}' for ${event.eventType} => ${task.executor}:${
                                     task.context
                                 } - Event ID: ${event.eventId}`,
-                                log
+                                log,
                             );
                         })
                         .then(() => {
                             return task;
                         })
-                        .catch(e => {
+                        .catch((e) => {
                             log.error(e);
 
                             if (!task.results) {
                                 task.results = {
                                     passed: false,
                                     url: 'https://github.com/zotoio/github-task-manager',
-                                    message: e.message
+                                    message: e.message,
                                 };
                             }
 
@@ -296,7 +296,7 @@ export class EventHandler extends Plugin {
                                 'error',
                                 eventContext,
                                 'Task execution failure',
-                                task.results.url
+                                task.results.url,
                             );
 
                             this.handleTaskResult(event, task, log, startTime);
@@ -306,15 +306,15 @@ export class EventHandler extends Plugin {
                                 `Result 'error' for ${event.eventType} => ${task.executor}:${
                                     task.context
                                 } - Event ID: ${event.eventId}`,
-                                log
+                                log,
                             )
                                 .then(() => {
                                     let taskMasked = _.cloneDeep(task);
                                     if (taskMasked.options && taskMasked.options.env) {
-                                        Object.keys(taskMasked.options.env).forEach(key => {
+                                        Object.keys(taskMasked.options.env).forEach((key) => {
                                             if (new RegExp('LOGIN|OAUTH|KEY|TOKEN|SECRET|PASSW|CLONE').test(key)) {
                                                 taskMasked.options.env[key] = AgentUtils.maskString(
-                                                    taskMasked.options.env[key]
+                                                    taskMasked.options.env[key],
                                                 );
                                             }
                                         });
@@ -326,7 +326,7 @@ export class EventHandler extends Plugin {
                                     }: ${
                                         task.context
                                     }', any subtasks have been skipped. Config: \n\`\`\`json\n${formatJson.plain(
-                                        taskMasked
+                                        taskMasked,
                                     )}\n\`\`\``;
                                     return this.addEventComment(event, commentBody, task);
                                 })
@@ -360,18 +360,18 @@ export class EventHandler extends Plugin {
         let subtaskPromises = [];
         let log = this.log;
 
-        promises.forEach(async promise => {
+        promises.forEach(async (promise) => {
             // for each sibling task
             subtaskPromises.push(
                 //..wait for task to complete
-                promise.then(async task => {
+                promise.then(async (task) => {
                     //.. if there are subtasks
                     if (!task.disabled && task.tasks) {
                         //..and the task failed, skip subtasks
                         log.info(`${task.executor}: ${task.context} #${task.hash} passed? ${task.results.passed}`);
                         if (!task.results.passed) {
                             log.error(
-                                `A parent task failed: '${task.executor}: ${task.context}', so subtasks were skipped.`
+                                `A parent task failed: '${task.executor}: ${task.context}', so subtasks were skipped.`,
                             );
                             return;
                         }
@@ -383,7 +383,7 @@ export class EventHandler extends Plugin {
                             log.info(`Sub-Tasks for ${task.executor}:${task.context} Completed.`);
                         });
                     }
-                })
+                }),
             );
         });
         return Promise.all(subtaskPromises);
@@ -401,7 +401,7 @@ export class EventHandler extends Plugin {
             executor: task.executor,
             context: task.context,
             duration: duration,
-            failed: !task.results.passed
+            failed: !task.results.passed,
         });
     }
 
@@ -417,8 +417,8 @@ export class EventHandler extends Plugin {
             return AgentUtils.postResultsAndTrigger(
                 status,
                 `Result for ${event.eventType} => Event ID: ${event.eventId}<br/>`,
-                log
-            ).then(function() {
+                log,
+            ).then(function () {
                 log.info('event comment queued.');
                 log.info('-----------------------------');
                 return event;
@@ -430,7 +430,7 @@ export class EventHandler extends Plugin {
 
     async addEventSummaryComment(event) {
         let commentBody = `### Results for event id: ${event.eventId}\n`;
-        event.tasks.forEach(task => {
+        event.tasks.forEach((task) => {
             commentBody += `<details>${this.buildEventSummary(task, 0, '')}</details>`;
         });
 
@@ -462,7 +462,7 @@ export class EventHandler extends Plugin {
             commentBody += `<p>${task.results.details || ''}\n${task.results.url || ''}`;
             if (task.tasks) {
                 commentBody += `<details>`;
-                task.tasks.forEach(subtask => {
+                task.tasks.forEach((subtask) => {
                     commentBody = this.buildEventSummary(subtask, depth++, commentBody);
                 });
                 commentBody += `</details>`;

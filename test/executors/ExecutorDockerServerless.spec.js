@@ -30,7 +30,7 @@ describe('ExecutorDockerServerless', () => {
                 'lambdaOne',
                 'lambdaTwo',
                 'lambdaFour',
-                'lambdaThree'
+                'lambdaThree',
             ];
 
             let packages = executorDockerServerless.packagesToDeploy;

@@ -32,13 +32,13 @@ export class ExecutorPing extends Executor {
                 this.eventData,
                 'pending',
                 `${task.executor}: ${task.context}`,
-                `got ping ${i}`
+                `got ping ${i}`,
             );
 
             promises.push(
-                AgentUtils.postResultsAndTrigger(status, 'Ping', log).then(function() {
+                AgentUtils.postResultsAndTrigger(status, 'Ping', log).then(function () {
                     log.info(`sent ping ${i}`);
-                })
+                }),
             );
 
             await AgentUtils.timeout(3000);
@@ -47,7 +47,7 @@ export class ExecutorPing extends Executor {
         return Promise.all(promises).then(() => {
             task.results = {
                 passed: true,
-                url: `https://ping.io/ping/${task.options.count}`
+                url: `https://ping.io/ping/${task.options.count}`,
             };
             return Promise.resolve(task);
         });

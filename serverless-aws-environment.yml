@@ -1,5 +1,5 @@
 environment:
-  # encrypted env vars - use npm run sls-encrypt to populate json store for stage
+  # encrypted env vars - use yarn run sls-encrypt to populate json store for stage
   GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID: ${self:custom.kmsSecrets.secrets.GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID, env:GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID}
   GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY: ${self:custom.kmsSecrets.secrets.GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY, env:GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY}
   GTM_CRYPT_GITHUB_WEBHOOK_SECRET: ${self:custom.kmsSecrets.secrets.GTM_CRYPT_GITHUB_WEBHOOK_SECRET, env:GTM_CRYPT_GITHUB_WEBHOOK_SECRET}

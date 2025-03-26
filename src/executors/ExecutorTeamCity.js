@@ -42,7 +42,7 @@ export class ExecutorTeamCity extends Executor {
             this.teamCity = await TeamCity.create({
                 url: this.options.GTM_TEAMCITY_URL,
                 username: this.options.GTM_TEAMCITY_USER,
-                password: await KmsUtils.getDecrypted(this.options.GTM_CRYPT_TEAMCITY_PASSCODE)
+                password: await KmsUtils.getDecrypted(this.options.GTM_CRYPT_TEAMCITY_PASSCODE),
             });
         }
         return this.teamCity;
@@ -53,7 +53,10 @@ export class ExecutorTeamCity extends Executor {
         let xmlNode = {
             name: 'build',
             attrs: {},
-            children: [{ name: 'buildType', attrs: { id: jobName } }, { name: 'properties', children: [] }]
+            children: [
+                { name: 'buildType', attrs: { id: jobName } },
+                { name: 'properties', children: [] },
+            ],
         };
 
         if (task.options.hasOwnProperty('branchName')) {
@@ -65,8 +68,8 @@ export class ExecutorTeamCity extends Executor {
                 name: 'property',
                 attrs: {
                     name: buildProperty,
-                    value: task.options.parameters[buildProperty]
-                }
+                    value: task.options.parameters[buildProperty],
+                },
             };
             xmlNode.children[1].children.push(property);
         }
@@ -94,7 +97,7 @@ export class ExecutorTeamCity extends Executor {
         log.info(
             `TeamCity Project[${jobName}] with buildNumber : #${teamCityBuildId.id} finished with status : ${
                 completedBuild.status
-            }`
+            }`,
         );
 
         let result = completedBuild.status === 'SUCCESS';
@@ -104,14 +107,14 @@ export class ExecutorTeamCity extends Executor {
             let statisticsUrl = AgentUtils.formatBasicAuth(
                 this.options.GTM_TEAMCITY_USER,
                 await KmsUtils.getDecrypted(this.options.GTM_CRYPT_TEAMCITY_PASSCODE),
-                URL.resolve(this.options.GTM_TEAMCITY_URL, `/app/rest/builds/id:${teamCityBuildId.id}/statistics`)
+                URL.resolve(this.options.GTM_TEAMCITY_URL, `/app/rest/builds/id:${teamCityBuildId.id}/statistics`),
             );
 
             let statistics = await this.getBuildStatistics(statisticsUrl);
             let parsedResult = this.createResultObject(statistics);
             parsedResult.testResultsUrl = URL.resolve(
                 this.options.GTM_TEAMCITY_URL,
-                `/viewLog.html?buildId=${teamCityBuildId.id}&tab=buildResultsDiv&buildTypeId=${teamCityBuildId.id}`
+                `/viewLog.html?buildId=${teamCityBuildId.id}&tab=buildResultsDiv&buildTypeId=${teamCityBuildId.id}`,
             );
 
             overAllResult.message = parsedResult;
@@ -129,7 +132,7 @@ export class ExecutorTeamCity extends Executor {
         let tries = 1;
         while (buildDict.state !== 'finished' && tries++ < maxRetries) {
             await AgentUtils.timeout(5000);
-            buildDict = await this.teamCity.builds.get(buildNumber).then(function(data) {
+            buildDict = await this.teamCity.builds.get(buildNumber).then(function (data) {
                 log.debug(`Waiting for Build '${buildName}' to Finish: ${tries}`);
                 return data;
             });
@@ -149,7 +152,7 @@ export class ExecutorTeamCity extends Executor {
 
         while (!resultData.includes('SuccessRate') && tries++ < maxRetries) {
             await AgentUtils.timeout(3000);
-            resultData = await rp(statisticsUrl).then(function(data) {
+            resultData = await rp(statisticsUrl).then(function (data) {
                 return data;
             });
         }

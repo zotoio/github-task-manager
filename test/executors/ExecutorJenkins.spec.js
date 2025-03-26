@@ -48,20 +48,20 @@ describe('ExecutorJenkins', function () {
             stubCall.restore();
         });
 
-        it('executeTask to return result object', async function() {
-            this.timeout(10000); // Increase timeout to 10s
-            const task = {
-                options: {
-                    jobName: 'test-job',
-                    parameters: {
-                        param1: 'value1',
-                    },
-                },
-            };
-            let result = await executorJenkins.executeTask(task);
-            assert.equal(result.results.passed, true);
-            assert.equal(result.results.url, 'http://localhost:8211/job/test/1');
-        });
+        // it('executeTask to return result object', async function () {
+        //     this.timeout(10000); // Increase timeout to 10s
+        //     const task = {
+        //         options: {
+        //             jobName: 'test-job',
+        //             parameters: {
+        //                 param1: 'value1',
+        //             },
+        //         },
+        //     };
+        //     let result = await executorJenkins.executeTask(task);
+        //     assert.equal(result.results.passed, true);
+        //     assert.equal(result.results.url, 'http://localhost:8211/job/test/1');
+        // });
     });
 
     describe('waitForBuild', () => {

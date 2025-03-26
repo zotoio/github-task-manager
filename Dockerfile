@@ -11,6 +11,6 @@ ADD ./.babelrc /home/node/app/.babelrc
 ADD ./index.js /home/node/app/index.js
 ADD ./patches /home/node/app/patches
 
-RUN cd /home/node/app && npm install && npm run build
+RUN cd /home/node/app && yarn install && yarn run build
 
-ENTRYPOINT ["npm", "run", "agent"]
+ENTRYPOINT ["yarn", "run", "agent"]

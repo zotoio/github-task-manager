@@ -2,11 +2,11 @@ import { before } from 'mocha';
 
 let integrationUrlPrefix = 'https://localhost';
 let integrationConfig = {
-    testRepoName: 'gtm-test'
+    testRepoName: 'gtm-test',
 };
 
 // trigger config build before describe blocks
-before(done => {
+before((done) => {
     // placeholder
 
     done();

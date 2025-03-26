@@ -18,8 +18,8 @@ function handler(event, context, callback) {
     if (process.env.IAM_ENABLED) {
         AWS.config.update({
             httpOptions: {
-                agent: PROXY_AGENT(process.env.AWS_PROXY)
-            }
+                agent: PROXY_AGENT(process.env.AWS_PROXY),
+            },
         });
     }
 
@@ -28,8 +28,8 @@ function handler(event, context, callback) {
         console.log('Configuring DynamoDB to use VPC Endpoint');
         dynamo = new AWS.DynamoDB({
             httpOptions: {
-                agent: new HTTPS.Agent()
-            }
+                agent: new HTTPS.Agent(),
+            },
         });
     } else {
         console.log('Configuring DynamoDB to use Global AWS Config');
@@ -38,7 +38,7 @@ function handler(event, context, callback) {
 
     let ddb = new AWS.DynamoDB.DocumentClient({
         convertEmptyValues: true,
-        service: dynamo
+        service: dynamo,
     });
 
     console.log('Recording Metrics...');
@@ -57,7 +57,7 @@ function handler(event, context, callback) {
 
         let promises = [];
 
-        payload.logEvents.forEach(async evt => {
+        payload.logEvents.forEach(async (evt) => {
             let msg;
             let isObj = true;
             try {
@@ -81,7 +81,7 @@ function handler(event, context, callback) {
                     updateParams = {
                         TableName: EVENTS_TABLE,
                         Key: {
-                            ghEventId: msg.ghEventId
+                            ghEventId: msg.ghEventId,
                         },
                         UpdateExpression:
                             'set startTime = :startTime, repo = :repo, eventUrl = :eventUrl, tasks = :tasks, ' +
@@ -103,9 +103,9 @@ function handler(event, context, callback) {
                             ':sha': msg.sha,
                             ':eventUser': msg.eventUser,
                             ':agentId': msg.agentId,
-                            ':eventType': msg.eventType
+                            ':eventType': msg.eventType,
                         },
-                        ReturnValues: 'UPDATED_NEW'
+                        ReturnValues: 'UPDATED_NEW',
                     };
                 }
 
@@ -114,7 +114,7 @@ function handler(event, context, callback) {
                     updateParams = {
                         TableName: AGENTS_TABLE,
                         Key: {
-                            agentId: msg.agentId
+                            agentId: msg.agentId,
                         },
                         UpdateExpression:
                             'set agentGroup = :agentGroup, startTime = :startTime, ' +
@@ -125,9 +125,9 @@ function handler(event, context, callback) {
                             ':startTime': msg.time,
                             ':agentGroup': msg.agentGroup,
                             ':version': msg.version,
-                            ':details': msg.details
+                            ':details': msg.details,
                         },
-                        ReturnValues: 'UPDATED_NEW'
+                        ReturnValues: 'UPDATED_NEW',
                     };
                 }
 
@@ -139,21 +139,21 @@ function handler(event, context, callback) {
                         context: msg.context,
                         duration: msg.duration,
                         failed: msg.failed,
-                        time: msg.time
+                        time: msg.time,
                     };
 
                     updateParams = {
                         TableName: EVENTS_TABLE,
                         Key: {
-                            ghEventId: msg.ghEventId
+                            ghEventId: msg.ghEventId,
                         },
                         UpdateExpression: 'set tasks = list_append(tasks, :task)',
                         ConditionExpression: 'attribute_not_exists(ghEventId) OR ghEventId = :ghEventId',
                         ExpressionAttributeValues: {
                             ':ghEventId': msg.ghEventId,
-                            ':task': [task]
+                            ':task': [task],
                         },
-                        ReturnValues: 'UPDATED_NEW'
+                        ReturnValues: 'UPDATED_NEW',
                     };
                 }
 
@@ -163,7 +163,7 @@ function handler(event, context, callback) {
                     updateParams = {
                         TableName: EVENTS_TABLE,
                         Key: {
-                            ghEventId: msg.ghEventId
+                            ghEventId: msg.ghEventId,
                         },
                         UpdateExpression: 'set endTime = :endTime, eventDuration = :eventDuration, failed = :failed',
                         ConditionExpression: 'attribute_not_exists(ghEventId) OR ghEventId = :ghEventId',
@@ -171,9 +171,9 @@ function handler(event, context, callback) {
                             ':ghEventId': msg.ghEventId,
                             ':endTime': msg.time,
                             ':eventDuration': msg.duration,
-                            ':failed': msg.failed
+                            ':failed': msg.failed,
                         },
-                        ReturnValues: 'UPDATED_NEW'
+                        ReturnValues: 'UPDATED_NEW',
                     };
                 }
 
@@ -192,5 +192,5 @@ function handler(event, context, callback) {
 }
 
 module.exports = {
-    handler: handler
+    handler: handler,
 };

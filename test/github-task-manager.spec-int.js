@@ -35,23 +35,23 @@ describe('GitHub Task Manager', () => {
                 repos: {
                     fork: util.promisify(github.repos.fork),
                     createHook: util.promisify(github.repos.createHook),
-                    createFile: util.promisify(github.repos.createFile)
+                    createFile: util.promisify(github.repos.createFile),
                 },
                 gitdata: {
                     getReference: util.promisify(github.gitdata.getReference),
-                    createReference: util.promisify(github.gitdata.createReference)
+                    createReference: util.promisify(github.gitdata.createReference),
                 },
                 pullRequests: {
-                    create: util.promisify(github.pullRequests.create)
-                }
+                    create: util.promisify(github.pullRequests.create),
+                },
             };
 
             return gh.repos
                 .fork({
                     owner: 'zotoio',
-                    repo: integration.config.testRepoName
+                    repo: integration.config.testRepoName,
                 })
-                .then(function(res) {
+                .then(function (res) {
                     console.log(`fork: ${json.plain(res)}`);
 
                     return gh.repos.createHook({
@@ -62,20 +62,20 @@ describe('GitHub Task Manager', () => {
                         active: true,
                         config: {
                             url: hookUrl,
-                            secret: process.env.GTM_GITHUB_WEBHOOK_SECRET
-                        }
+                            secret: process.env.GTM_GITHUB_WEBHOOK_SECRET,
+                        },
                     });
                 })
-                .then(function(res) {
+                .then(function (res) {
                     console.log(`hook: ${json.plain(res)}`);
 
                     return gh.gitdata.getReference({
                         owner: process.env.GTM_GITHUB_OWNER,
                         repo: integration.config.testRepoName,
-                        ref: 'heads/master'
+                        ref: 'heads/master',
                     });
                 })
-                .then(function(res) {
+                .then(function (res) {
                     console.log(`master: ${json.plain(res)}`);
 
                     let sha = res.data.object.sha;
@@ -84,10 +84,10 @@ describe('GitHub Task Manager', () => {
                         owner: process.env.GTM_GITHUB_OWNER,
                         repo: integration.config.testRepoName,
                         ref: `refs/heads/${testName}`,
-                        sha: sha
+                        sha: sha,
                     });
                 })
-                .then(function(res) {
+                .then(function (res) {
                     console.log(`branch: ${json.plain(res)}`);
 
                     return gh.repos.createFile({
@@ -96,10 +96,10 @@ describe('GitHub Task Manager', () => {
                         path: `${testName}.txt`,
                         content: Buffer.from(testName.toString()).toString('base64'),
                         message: `updated/${testName}.txt`,
-                        branch: `refs/heads/${testName}`
+                        branch: `refs/heads/${testName}`,
                     });
                 })
-                .then(function(res) {
+                .then(function (res) {
                     console.log(`file: ${json.plain(res)}`);
 
                     return gh.pullRequests.create({
@@ -107,10 +107,10 @@ describe('GitHub Task Manager', () => {
                         repo: integration.config.testRepoName,
                         title: `new file: ${testName}.txt`,
                         head: `refs/heads/${testName}`,
-                        base: 'refs/heads/master'
+                        base: 'refs/heads/master',
                     });
                 })
-                .then(function(res) {
+                .then(function (res) {
                     console.log(`pull_request: ${json.plain(res)}`);
                 });
         });

@@ -75,3 +75,4 @@ dist/
 *.out
 
 .dockerImageWhitelist
+.aider*

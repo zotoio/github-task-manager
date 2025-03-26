@@ -60,20 +60,20 @@ export class ExecutorDockerSonar extends ExecutorDocker {
                 SONAR_GITHUB_ENDPOINT: '##GTM_SONAR_GITHUB_ENDPOINT##',
                 S3_DEPENDENCY_BUCKET: '##GTM_S3_DEPENDENCY_BUCKET##',
                 AWS_S3_PROXY: '##GTM_AWS_S3_PROXY##',
-                IAM_ENABLED: process.env.IAM_ENABLED
+                IAM_ENABLED: process.env.IAM_ENABLED,
             },
             validator: {
                 type: 'outputRegex',
-                regex: '.*ANALYSIS SUCCESSFUL.*'
-            }
+                regex: '.*ANALYSIS SUCCESSFUL.*',
+            },
         };
 
         if (!process.env.IAM_ENABLED) {
             options.env['GTM_AWS_ACCESS_KEY_ID'] = await KmsUtils.getDecrypted(
-                process.env.GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID
+                process.env.GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID,
             );
             options.env['GTM_AWS_SECRET_ACCESS_KEY'] = await KmsUtils.getDecrypted(
-                process.env.GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY
+                process.env.GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY,
             );
             options.env['GTM_AWS_REGION'] = process.env.GTM_AWS_REGION;
         }
@@ -86,8 +86,8 @@ export class ExecutorDockerSonar extends ExecutorDocker {
             AgentUtils.templateReplace(
                 await AgentUtils.createBasicTemplate(this.eventData, {}, this.log),
                 task.options,
-                this.log
-            )
+                this.log,
+            ),
         );
 
         // add token into clone url

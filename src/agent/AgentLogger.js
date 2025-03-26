@@ -1,7 +1,7 @@
 import { default as bunyan } from 'bunyan';
 import { default as bformat } from 'bunyan-format';
 import { default as CWLogsWritable } from 'cwlogs-writable';
-import { default as UUID } from 'uuid/v4';
+import { v4 as UUID } from 'uuid';
 import { default as ExpressSSE } from 'express-sse';
 import { default as proxy } from 'proxy-agent';
 import { default as bunyanTcp } from 'bunyan-logstash-tcp';
@@ -27,7 +27,7 @@ function create(agentId) {
     if (!agentId) console.warn('agentId is not set.');
 
     let CWLogOptions = {
-        region: process.env.GTM_AWS_REGION
+        region: process.env.GTM_AWS_REGION,
     };
 
     if (process.env.IAM_ENABLED) {
@@ -37,15 +37,15 @@ function create(agentId) {
             //secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
             //sessionToken: process.env.AWS_SECURITY_TOKEN,
             httpOptions: {
-                agent: proxy(process.env.HTTP_PROXY)
-            }
+                agent: proxy(process.env.HTTP_PROXY),
+            },
         };
     }
 
     let cloudWatchStream = new CWLogsWritable({
         logGroupName: getLogGroupMap()['gtmAgent'],
         logStreamName: 'AGENT_ID=' + agentId,
-        cloudWatchLogsOptions: CWLogOptions
+        cloudWatchLogsOptions: CWLogOptions,
     }).on('error', console.error);
 
     janitorInterval = setInterval(streamJanitor, 60000);
@@ -55,12 +55,12 @@ function create(agentId) {
         streams: [
             {
                 stream: cloudWatchStream,
-                type: 'raw'
+                type: 'raw',
             },
             {
-                stream: bformat({ outputMode: 'short' })
-            }
-        ]
+                stream: bformat({ outputMode: 'short' }),
+            },
+        ],
     };
 
     if (process.env.GTM_LOGSTASH_HOST) {
@@ -71,9 +71,9 @@ function create(agentId) {
             stream: bunyanTcp
                 .createStream({
                     host: process.env.GTM_LOGSTASH_HOST,
-                    port: logstashPort
+                    port: logstashPort,
                 })
-                .on('error', console.error)
+                .on('error', console.error),
         });
     }
 
@@ -97,11 +97,11 @@ function stream(groupName, streamName) {
         logStreamNames: streamName && streamName !== 'ALL' ? [streamName] : undefined,
         startTime: Date.now(),
         follow: true,
-        followInterval: 5000
+        followInterval: 5000,
     };
 
     let awsOpts = {
-        region: process.env.GTM_AWS_REGION
+        region: process.env.GTM_AWS_REGION,
     };
 
     if (STREAM[groupName]) {
@@ -110,7 +110,7 @@ function stream(groupName, streamName) {
 
     STREAM[groupName] = new CWLogFilterEventStream(filterOpts, awsOpts);
 
-    STREAM[groupName].on('error', err => {
+    STREAM[groupName].on('error', (err) => {
         console.log(err);
     });
 
@@ -118,7 +118,7 @@ function stream(groupName, streamName) {
         console.log(`${groupName} stream closed`);
     });
 
-    STREAM[groupName].on('data', eventObject => {
+    STREAM[groupName].on('data', (eventObject) => {
         /*console.debug( // noisy!
             'Timestamp: ', new Date(eventObject.timestamp),
             'Message: ', eventObject.message
@@ -131,7 +131,7 @@ function stream(groupName, streamName) {
 }
 
 function stopAllStreams() {
-    Object.keys(STREAM).forEach(group => {
+    Object.keys(STREAM).forEach((group) => {
         stopStream(group);
     });
 }
@@ -166,5 +166,5 @@ module.exports = {
     stopAllStreams: stopAllStreams,
     registerActivity: registerActivity,
     AGENT_ID: AGENT_ID,
-    SSE: SSE
+    SSE: SSE,
 };

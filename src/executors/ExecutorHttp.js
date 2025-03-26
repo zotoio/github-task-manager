@@ -44,7 +44,7 @@ export class ExecutorHttp extends Executor {
         log.info(`Starting http request..`);
 
         return this.sendRequest(task, har)
-            .then(response => {
+            .then((response) => {
                 let res = json.plain(response);
                 log.info(res);
                 if (this.validate(task, response)) {
@@ -52,7 +52,7 @@ export class ExecutorHttp extends Executor {
                         passed: true,
                         message: 'Request completed',
                         url: 'http://www.softwareishard.com/blog/har-12-spec/#request',
-                        details: `\n\n**response:**\n\n\`\`\`\n\n${res}\n\`\`\`\n\n`
+                        details: `\n\n**response:**\n\n\`\`\`\n\n${res}\n\`\`\`\n\n`,
                     };
                     return Promise.resolve(task);
                 } else {
@@ -60,19 +60,19 @@ export class ExecutorHttp extends Executor {
                         passed: false,
                         message: 'Response validation failed',
                         url: 'http://www.softwareishard.com/blog/har-12-spec/#request',
-                        details: `\n\n**response:**\n\n\`\`\`\n\n${res}\n\`\`\`\n\n`
+                        details: `\n\n**response:**\n\n\`\`\`\n\n${res}\n\`\`\`\n\n`,
                     };
                     return Promise.reject(task);
                 }
             })
 
-            .catch(e => {
+            .catch((e) => {
                 log.error(e.message);
                 task.results = {
                     passed: false,
                     message: 'an unhandled http error occurred',
                     details: e.message,
-                    url: 'http://www.softwareishard.com/blog/har-12-spec/#request'
+                    url: 'http://www.softwareishard.com/blog/har-12-spec/#request',
                 };
                 return Promise.reject(task);
             });
@@ -81,7 +81,7 @@ export class ExecutorHttp extends Executor {
         return rp({
             proxy: task.options.proxy || this.options.proxy || null,
             resolveWithFullResponse: true,
-            har: har
+            har: har,
         });
     }
 

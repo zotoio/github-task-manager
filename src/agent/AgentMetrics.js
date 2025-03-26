@@ -26,15 +26,15 @@ let elastic;
 if (process.env.GTM_ELASTIC_HOST && process.env.GTM_ELASTIC_PORT) {
     elastic = new elasticsearch.Client({
         host: `${process.env.GTM_ELASTIC_HOST}:${process.env.GTM_ELASTIC_PORT}`,
-        log: 'info'
+        log: 'info',
     });
 }
 
 if (process.env.IAM_ENABLED) {
     AWS.config.update({
         httpOptions: {
-            agent: proxy(process.env.HTTP_PROXY)
-        }
+            agent: proxy(process.env.HTTP_PROXY),
+        },
     });
 }
 
@@ -61,7 +61,7 @@ export class AgentMetrics {
             let ghEventId = req.params.ghEventId;
             let logs = await this.getEventLogs(ghEventId);
 
-            logs.forEach(log => {
+            logs.forEach((log) => {
                 res.write(`${log._source['@timestamp']} ${log._source.message} \n`);
             });
 
@@ -115,7 +115,7 @@ export class AgentMetrics {
         let ddbStream = await this.getDDBStream(ddb, tableName);
 
         // fetch stream state initially
-        ddbStream.fetchStreamState(async err => {
+        ddbStream.fetchStreamState(async (err) => {
             if (err) {
                 log.error(err);
                 return;
@@ -123,7 +123,7 @@ export class AgentMetrics {
 
             let ddbDocClient = new AWS.DynamoDB.DocumentClient({
                 convertEmptyValues: true,
-                service: ddb
+                service: ddb,
             });
 
             // fetch initial data
@@ -132,21 +132,21 @@ export class AgentMetrics {
             log.debug(`Initial data for ${tableName}: ${json.plain(INITIAL_DATA[tableName])}`);
 
             // poll
-            schedule({ second: 10 }, function(job) {
+            schedule({ second: 10 }, function (job) {
                 ddbStream.fetchStreamState(job.callback());
             });
 
             let sseStream = new ExpressSSE(INITIAL_DATA[tableName]);
             app.get(uri, sseStream.init);
 
-            ddbStream.on('insert record', object => {
+            ddbStream.on('insert record', (object) => {
                 log.debug(`inserted ${json.plain(object)}`);
                 INITIAL_DATA[tableName].push(object);
                 sseStream.updateInit(INITIAL_DATA[tableName]);
                 sseStream.send(object);
             });
 
-            ddbStream.on('modify record', object => {
+            ddbStream.on('modify record', (object) => {
                 log.debug(`updated ${json.plain(object)}`);
                 INITIAL_DATA[tableName].push(object);
                 sseStream.updateInit(INITIAL_DATA[tableName]);
@@ -160,7 +160,7 @@ export class AgentMetrics {
         log.debug(json.plain(tableDetails));
         let tableStreamArn = tableDetails.Table.LatestStreamArn;
         let ddbStream = new DynamoDBStream(new AWS.DynamoDBStreams(), tableStreamArn);
-        ddbStream.on('error', err => {
+        ddbStream.on('error', (err) => {
             log.error(err);
         });
 
@@ -177,11 +177,11 @@ export class AgentMetrics {
             body: {
                 query: {
                     match: {
-                        ghEventId: ghEventId
-                    }
-                }
+                        ghEventId: ghEventId,
+                    },
+                },
             },
-            sort: '@timestamp:asc'
+            sort: '@timestamp:asc',
         });
 
         return results.hits.hits;
@@ -194,14 +194,14 @@ export class AgentMetrics {
             elastic: await this.getElasticInfo(includeDetails),
             dynamodb: await this.getDynamoInfo(ddb, includeDetails),
             sqs: await this.getSQSInfo(includeDetails),
-            os: await this.getOSInfo(includeDetails)
+            os: await this.getOSInfo(includeDetails),
         };
     }
 
     static async getOSInfo(includeDetails) {
         if (!includeDetails) {
             return {
-                hostname: os.hostname()
+                hostname: os.hostname(),
             };
         } else {
             return {
@@ -215,7 +215,7 @@ export class AgentMetrics {
                 totalmem: os.totalmem(),
                 freemem: os.freemem(),
                 cpus: os.cpus(),
-                networkInterfaces: os.networkInterfaces()
+                networkInterfaces: os.networkInterfaces(),
             };
         }
     }
@@ -224,7 +224,7 @@ export class AgentMetrics {
         let result = {
             id: AgentUtils.agentId(),
             version: agentVersion,
-            group: agentGroup
+            group: agentGroup,
         };
         if (includeDetails) {
             result.env = this.getEnvParams();
@@ -237,7 +237,7 @@ export class AgentMetrics {
         if (process.env.GTM_ELASTIC_HOST && process.env.GTM_ELASTIC_PORT) {
             result = await rp({
                 json: true,
-                uri: `http://${process.env.GTM_ELASTIC_HOST}:${process.env.GTM_ELASTIC_PORT}`
+                uri: `http://${process.env.GTM_ELASTIC_HOST}:${process.env.GTM_ELASTIC_PORT}`,
             });
             if (!includeDetails) {
                 result = 'found';
@@ -255,7 +255,7 @@ export class AgentMetrics {
         }
         return {
             pending: sqsPendingStats,
-            results: sqsResultsStats
+            results: sqsResultsStats,
         };
     }
 
@@ -270,7 +270,7 @@ export class AgentMetrics {
 
         return {
             events: eventsTableStatus,
-            agents: agentsTableStatus
+            agents: agentsTableStatus,
         };
     }
 
@@ -280,7 +280,7 @@ export class AgentMetrics {
             pid: process.pid,
             uptime: process.uptime(),
             cpuUsage: process.cpuUsage(),
-            memoryUsage: process.memoryUsage()
+            memoryUsage: process.memoryUsage(),
         };
     }
 
@@ -288,7 +288,7 @@ export class AgentMetrics {
         let env = {};
         Object.keys(process.env)
             .sort()
-            .forEach(key => {
+            .forEach((key) => {
                 if (key.startsWith('GTM')) {
                     env[key] = AgentUtils.varMask(key, process.env[key]);
                 }
@@ -306,7 +306,7 @@ export class AgentMetrics {
         if (!attributeNameArray) attributeNameArray = ['All'];
         let sqsQueueParams = {
             QueueUrl: queueUrl.QueueUrl,
-            AttributeNames: attributeNameArray
+            AttributeNames: attributeNameArray,
         };
         let queueDetails = await sqs.getQueueAttributes(sqsQueueParams).promise();
 
@@ -321,18 +321,18 @@ export class AgentMetrics {
     static async broadcast(message) {
         return sns
             .createTopic({
-                Name: process.env.GTM_SNS_AGENTS_TOPIC
+                Name: process.env.GTM_SNS_AGENTS_TOPIC,
             })
             .promise()
-            .then(data => {
+            .then((data) => {
                 let topicArn = data.TopicArn;
                 let params = {
                     Message: JSON.stringify(message),
-                    TopicArn: topicArn
+                    TopicArn: topicArn,
                 };
                 return Promise.resolve(params);
             })
-            .then(params => {
+            .then((params) => {
                 return sns.publish(params).promise();
             });
     }
@@ -340,7 +340,7 @@ export class AgentMetrics {
     static async broadcastKill(agentId) {
         let msg = {
             action: 'KILL',
-            agentId: agentId
+            agentId: agentId,
         };
         return await this.broadcast(msg);
     }
@@ -348,7 +348,7 @@ export class AgentMetrics {
     static async broadcastInfoRequest(agentId) {
         let msg = {
             action: 'INFO',
-            agentId: agentId
+            agentId: agentId,
         };
         return await this.broadcast(msg);
     }

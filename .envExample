@@ -72,11 +72,11 @@ GTM_CRYPT_SONAR_LOGIN=<redacted>
 GTM_CRYPT_JENKINS_TOKEN=<redacted>
 
 # use the following to encrypt values, collect from kms-secrets-* file created, and add above
-#npm run sls-encrypt GTM_CRYPT_GITHUB_TOKEN <redacted>
-#npm run sls-encrypt GTM_CRYPT_GITHUB_WEBHOOK_SECRET <redacted>
-#npm run sls-encrypt GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID <redacted>
-#npm run sls-encrypt GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY <redacted>
-#npm run sls-encrypt GTM_CRYPT_LAUNCHDARKLY_API_TOKEN <redacted>
-#npm run sls-encrypt GTM_CRYPT_SONAR_GITHUB_OAUTH <redacted>
-#npm run sls-encrypt GTM_CRYPT_SONAR_LOGIN <redacted>
-#npm run sls-encrypt GTM_CRYPT_JENKINS_TOKEN <redacted>
+#yarn run sls-encrypt GTM_CRYPT_GITHUB_TOKEN <redacted>
+#yarn run sls-encrypt GTM_CRYPT_GITHUB_WEBHOOK_SECRET <redacted>
+#yarn run sls-encrypt GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID <redacted>
+#yarn run sls-encrypt GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY <redacted>
+#yarn run sls-encrypt GTM_CRYPT_LAUNCHDARKLY_API_TOKEN <redacted>
+#yarn run sls-encrypt GTM_CRYPT_SONAR_GITHUB_OAUTH <redacted>
+#yarn run sls-encrypt GTM_CRYPT_SONAR_LOGIN <redacted>
+#yarn run sls-encrypt GTM_CRYPT_JENKINS_TOKEN <redacted>

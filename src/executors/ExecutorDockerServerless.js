@@ -51,9 +51,9 @@ export class ExecutorDockerServerless extends ExecutorDocker {
 
     identifyChangedPackages() {
         let packages = [];
-        this.eventData.commits.forEach(commit => {
-            ['added', 'removed', 'modified'].forEach(changeType => {
-                commit[changeType].forEach(path => {
+        this.eventData.commits.forEach((commit) => {
+            ['added', 'removed', 'modified'].forEach((changeType) => {
+                commit[changeType].forEach((path) => {
                     if (path.startsWith('packages/')) {
                         let pack = path.split('/')[1];
                         if (!packages.includes(pack)) {
@@ -112,20 +112,20 @@ export class ExecutorDockerServerless extends ExecutorDocker {
                 SLS_CONFIG_TYPE: process.env.GTM_SLS_EXECUTOR_CONFIG_TYPE,
                 SLS_SPRING_CONFIG_ENDPOINT: process.env.GTM_SLS_EXECUTOR_SPRING_CONFIG_ENDPOINT,
                 GTM_WORKER_SCRIPTS_CLONE: process.env.GTM_WORKER_SCRIPTS_CLONE,
-                GTM_WORKER_SCRIPTS_PATH: process.env.GTM_WORKER_SCRIPTS_PATH
+                GTM_WORKER_SCRIPTS_PATH: process.env.GTM_WORKER_SCRIPTS_PATH,
             },
             validator: {
                 type: 'outputRegex',
-                regex: '.*ALL DEPLOYS SUCCESSFUL.*'
-            }
+                regex: '.*ALL DEPLOYS SUCCESSFUL.*',
+            },
         };
 
         if (!process.env.IAM_ENABLED) {
             options.env['GTM_AWS_ACCESS_KEY_ID'] = await KmsUtils.getDecrypted(
-                process.env.GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID
+                process.env.GTM_CRYPT_AGENT_AWS_ACCESS_KEY_ID,
             );
             options.env['GTM_AWS_SECRET_ACCESS_KEY'] = await KmsUtils.getDecrypted(
-                process.env.GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY
+                process.env.GTM_CRYPT_AGENT_AWS_SECRET_ACCESS_KEY,
             );
             options.env['GTM_AWS_REGION'] = process.env.GTM_AWS_REGION;
         }
@@ -137,8 +137,8 @@ export class ExecutorDockerServerless extends ExecutorDocker {
             AgentUtils.templateReplace(
                 await AgentUtils.createBasicTemplate(this.eventData, {}, this.log),
                 task.options,
-                this.log
-            )
+                this.log,
+            ),
         );
 
         // add token into clone url
@@ -147,7 +147,7 @@ export class ExecutorDockerServerless extends ExecutorDocker {
             task.options.env.GIT_CLONE = task.options.env.GIT_CLONE.replace('https://', `https://${decyptedToken}@`);
             task.options.env.GTM_WORKER_SCRIPTS_CLONE = task.options.env.GTM_WORKER_SCRIPTS_CLONE.replace(
                 'https://',
-                `https://${decyptedToken}@`
+                `https://${decyptedToken}@`,
             );
         }
 

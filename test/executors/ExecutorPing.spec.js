@@ -17,19 +17,19 @@ describe('ExecutorPing', () => {
             executor: 'Ping',
             context: 'diagnostic',
             options: {
-                count: 1
+                count: 1,
             },
             repository: {
                 name: 'pingTest',
                 owner: {
-                    login: 'shell_cli'
-                }
+                    login: 'shell_cli',
+                },
             },
             pull_request: {
                 head: {
-                    sha: 'cee03d54dc35650b903b0cdc38ebd49208b1efa4'
-                }
-            }
+                    sha: 'cee03d54dc35650b903b0cdc38ebd49208b1efa4',
+                },
+            },
         };
         executorPing = new ExecutorPing(eventData, console);
     });
@@ -49,7 +49,7 @@ describe('ExecutorPing', () => {
         });
         it('should call ExecutorPing.executeTask with 1 event', async () => {
             try {
-                await executorPing.executeTask(eventData).then(data => {
+                await executorPing.executeTask(eventData).then((data) => {
                     return data;
                 });
             } catch (e) {

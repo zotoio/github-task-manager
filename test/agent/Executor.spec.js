@@ -4,7 +4,7 @@ import { default as assert } from 'assert';
 import { Plugin } from '../../src/agent/Plugin';
 import { Executor } from '../../src/agent/Executor';
 
-describe('Executor', function() {
+describe('Executor', function () {
     let executor;
     beforeEach(() => {
         process.env.GTM_AWS_KMS_KEY_ID = '';
@@ -12,14 +12,14 @@ describe('Executor', function() {
         executor = new Executor(eventData, console);
     });
 
-    describe('constructor', function() {
-        it('should instantiate as Plugin', function() {
+    describe('constructor', function () {
+        it('should instantiate as Plugin', function () {
             assert.equal(executor instanceof Plugin, true);
         });
     });
 
-    describe('getOptions', function() {
-        it('should return environment', function() {
+    describe('getOptions', function () {
+        it('should return environment', function () {
             assert.equal(executor.getOptions(), process.env);
         });
     });

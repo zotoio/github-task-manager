@@ -35,5 +35,5 @@ services:
       - ./:/home/node/app
     ports:
       - "${GTM_AGENT_PORT}:${GTM_AGENT_PORT}"
-    command: "npm run agent"
+    command: "yarn run agent"
 

@@ -1,6 +1,5 @@
 'use strict';
 
-import 'babel-polyfill';
 import { default as crypto } from 'crypto';
 import { default as AgentLogger } from './AgentLogger';
 import { Agent } from './Agent';
@@ -35,7 +34,7 @@ export class Event {
     static async validateMessage(message) {
         let result = {};
 
-        Event.requiredAttributes.forEach(attr => {
+        Event.requiredAttributes.forEach((attr) => {
             try {
                 result[attr] = message.MessageAttributes[attr].StringValue;
             } catch (TypeError) {
@@ -81,21 +80,21 @@ export class Event {
             messageAttributes: {
                 ghEventId: {
                     DataType: 'String',
-                    StringValue: message.MessageAttributes.ghEventId.StringValue
+                    StringValue: message.MessageAttributes.ghEventId.StringValue,
                 },
                 ghEventType: {
                     DataType: 'String',
-                    StringValue: message.MessageAttributes.ghEventType.StringValue
+                    StringValue: message.MessageAttributes.ghEventType.StringValue,
                 },
                 ghTaskConfig: {
                     DataType: 'String',
-                    StringValue: message.MessageAttributes.ghTaskConfig.StringValue
+                    StringValue: message.MessageAttributes.ghTaskConfig.StringValue,
                 },
                 ghAgentGroup: {
                     DataType: 'String',
-                    StringValue: message.MessageAttributes.ghAgentGroup.StringValue
-                }
-            }
+                    StringValue: message.MessageAttributes.ghAgentGroup.StringValue,
+                },
+            },
         };
     }
 

@@ -60,7 +60,7 @@ export class ExecutorDocker extends Executor {
             : imageList;
 
         if (imageList && imageList.length > 0) {
-            imageList.forEach(imagePattern => {
+            imageList.forEach((imagePattern) => {
                 if (!valid) {
                     let pattern = new RegExp(imagePattern.trim());
                     if (pattern.test(image)) {
@@ -75,7 +75,7 @@ export class ExecutorDocker extends Executor {
 
     formatEnv(envObj) {
         let envArray = [];
-        Object.keys(envObj).forEach(key => {
+        Object.keys(envObj).forEach((key) => {
             envArray.push(`${key}=${envObj[key]}`);
         });
         // be careful logging here as values will be decrypted
@@ -97,7 +97,7 @@ export class ExecutorDocker extends Executor {
             let resultSummary = {
                 passed: false,
                 url: 'https://github.com/apocas/dockerode',
-                message: message
+                message: message,
             };
 
             task.results = resultSummary;
@@ -111,7 +111,7 @@ export class ExecutorDocker extends Executor {
             let resultSummary = {
                 passed: false,
                 url: 'https://github.com/apocas/dockerode',
-                message: message
+                message: message,
             };
 
             task.results = resultSummary;
@@ -129,19 +129,19 @@ export class ExecutorDocker extends Executor {
                 return docker.createContainer({
                     Image: image,
                     Cmd: command,
-                    Env: this.formatEnv(env)
+                    Env: this.formatEnv(env),
                 });
             })
 
-            .then(container => {
+            .then((container) => {
                 return container.start();
             })
 
-            .then(container => {
+            .then((container) => {
                 return this.containerLogs(that, container);
             })
 
-            .then(taskOutput => {
+            .then((taskOutput) => {
                 let resultSummary;
                 let lines = taskOutput.split('\n');
                 let lineCount = lines.length - 1;
@@ -151,14 +151,14 @@ export class ExecutorDocker extends Executor {
                         passed: false,
                         url: 'https://github.com/apocas/dockerode',
                         message: `Docker output validation failed for ${task.options.validator.type}`,
-                        details: `\n\n**output tail (${lineCount} lines total):**\n\n\`\`\`\n...\n${tail}\n\`\`\`\n\n`
+                        details: `\n\n**output tail (${lineCount} lines total):**\n\n\`\`\`\n...\n${tail}\n\`\`\`\n\n`,
                     };
                 } else {
                     resultSummary = {
                         passed: true,
                         url: 'https://github.com/apocas/dockerode',
                         message: `Execution completed.`,
-                        details: `\n\n**output tail (${lineCount} lines total):**\n\n\`\`\`\n...\n${tail}\n\`\`\`\n\n`
+                        details: `\n\n**output tail (${lineCount} lines total):**\n\n\`\`\`\n...\n${tail}\n\`\`\`\n\n`,
                     };
                 }
 
@@ -167,13 +167,13 @@ export class ExecutorDocker extends Executor {
                 return Promise.resolve(task);
             })
 
-            .catch(e => {
+            .catch((e) => {
                 log.error(e.message);
                 let resultSummary = {
                     passed: false,
                     url: 'https://github.com/apocas/dockerode',
                     message: 'docker execution error',
-                    details: e.message
+                    details: e.message,
                 };
 
                 task.results = resultSummary;
@@ -186,17 +186,17 @@ export class ExecutorDocker extends Executor {
      */
     async containerLogs(executor, container) {
         let log = this.log;
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
             let logBuffer = [];
 
             // create a single stream for stdin and stdout
             let logStream = new stream.PassThrough();
-            logStream.on('data', function(chunk) {
+            logStream.on('data', function (chunk) {
                 logBuffer.push(chunk.toString('utf8'));
                 if (logBuffer.length % 50 === 0) {
                     let lines = logBuffer.join('');
                     if (lines.length * 4 > 250000) {
-                        lines.match(/.{1,50000}/g).forEach(line => {
+                        lines.match(/.{1,50000}/g).forEach((line) => {
                             log.info(line);
                         });
                     } else {
@@ -211,9 +211,9 @@ export class ExecutorDocker extends Executor {
                 {
                     follow: true,
                     stdout: true,
-                    stderr: true
+                    stderr: true,
                 },
-                function(err, stream) {
+                function (err, stream) {
                     if (err) {
                         reject(log.error(err.message));
                     }
@@ -230,7 +230,7 @@ export class ExecutorDocker extends Executor {
 
                         resolve(executor.taskOutputTail);
                     });
-                }
+                },
             );
         });
     }
@@ -250,10 +250,10 @@ export class ExecutorDocker extends Executor {
                         password: pass,
                         auth: '',
                         email: '',
-                        serveraddress: process.env.GTM_DOCKER_REG_SERVER
+                        serveraddress: process.env.GTM_DOCKER_REG_SERVER,
                     };
                 }
-                docker.pull(image, opts, function(err, stream) {
+                docker.pull(image, opts, function (err, stream) {
                     if (err) {
                         return reject(err);
                     }

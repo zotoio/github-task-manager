@@ -1,0 +1,21 @@
+{
+  "require": [
+    "@babel/register",
+    "babel-plugin-module-resolver"
+  ],
+  "node-option": [
+    "experimental-specifier-resolution=node",
+    "loader=@babel/register"
+  ],
+  "extension": [
+    "js",
+    "jsx",
+    "ts",
+    "tsx"
+  ],
+  "recursive": true,
+  "timeout": 5000,
+  "plugin": [
+    "mocha-babel"
+  ]
+}

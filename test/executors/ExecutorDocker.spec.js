@@ -18,9 +18,9 @@ describe('ExecutorDocker', () => {
                 command: ['/bin/ls', '-ltr', '/bin'],
                 validator: {
                     type: 'outputRegex',
-                    regex: '.*HOSTNAME.*'
-                }
-            }
+                    regex: '.*HOSTNAME.*',
+                },
+            },
         };
         executorDocker = new ExecutorDocker(eventData, console);
     });
@@ -58,16 +58,16 @@ describe('ExecutorDocker', () => {
     describe('executeTask', () => {
         let stubCall;
         let customResult;
-        before(function() {
+        before(function () {
             customResult = {
                 passed: true,
-                url: 'https://docker.com'
+                url: 'https://docker.com',
             };
             stubCall = sinon.stub(executorDocker, 'executeTask').returns(Promise.resolve(customResult));
         });
 
         it('should invoke mocked ExecuteDocker.executeTask', async () => {
-            let result = await stubCall(eventData).then(data => {
+            let result = await stubCall(eventData).then((data) => {
                 return data;
             });
             assert.equal(result, customResult);

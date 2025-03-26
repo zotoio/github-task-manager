@@ -4,9 +4,11 @@ plugins:
   - serverless-kms-secrets
   - serverless-offline
 
+useDotenv: true
+
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs22.x
   memorySize: 2048 # optional, in MB, default is 1024
   timeout: 60 # optional, in seconds, default is 6
 
