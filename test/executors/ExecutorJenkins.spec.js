@@ -1,6 +1,6 @@
 import { default as fs } from 'fs';
 import { default as sinon } from 'sinon';
-import { before, after, describe, it, beforeEach } from 'mocha';
+import { before, after, describe, it, beforeEach, afterEach } from 'mocha';
 import { default as assert } from 'assert';
 import { Executor } from '../../src/agent/Executor';
 import { ExecutorJenkins } from '../../src/executors/ExecutorJenkins';
