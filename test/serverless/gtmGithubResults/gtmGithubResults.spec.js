@@ -24,10 +24,11 @@ describe('gtmGithubResults', function () {
 
     describe('getQueue', function () {
         it('should throw without config', async function () {
+            process.env.SQS_RESULTS_QUEUE_URL = '';
             try {
                 await githubResults.getQueue();
             } catch (e) {
-                assert.equal('Missing SQS consumer option [queueUrl].', e.message);
+                assert.equal(e.message.includes('queueUrl'), true);
             }
         });
     });

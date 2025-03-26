@@ -4,7 +4,7 @@ import { before, after, describe, it, beforeEach } from 'mocha';
 import { default as crypto } from 'crypto';
 import { default as gtmGithubHook } from '../../../src/serverless/gtmGithubHook/gtmGithubHook.js';
 import { default as githubUtils } from '../../../src/serverless/gtmGithubUtils.js';
-import { default as Producer } from 'sqs-producer';
+import { Producer } from 'sqs-producer';
 
 describe('gtmGithubHook', function () {
     beforeEach(() => {

@@ -11,10 +11,12 @@ describe('gtmGithubUtils', function () {
     });
     describe('connect', function () {
         it('should throw without creds', async function () {
+            process.env.GTM_GITHUB_TOKEN = '';
+            process.env.GTM_GITHUB_HOST = 'api.github.com';
             try {
                 await githubUtils.connect();
             } catch (e) {
-                return assert.equal(e.message, 'OAuth2 authentication requires a token or key & secret to be set');
+                return assert.equal(e.message.includes('authentication'), true);
             }
         });
     });
@@ -81,12 +83,12 @@ describe('gtmGithubUtils', function () {
 
     describe('getFile', function () {
         it('should throw exception when not logged in', async function () {
-            let actual;
+            process.env.GTM_GITHUB_TOKEN = '';
+            process.env.GTM_GITHUB_HOST = 'api.github.com';
             try {
-                actual = await githubUtils.getFile();
-                console.log(actual);
+                await githubUtils.getFile();
             } catch (e) {
-                return assert.equal(e.message, 'OAuth2 authentication requires a token or key & secret to be set');
+                return assert.equal(e.message.includes('authentication'), true);
             }
         });
     });

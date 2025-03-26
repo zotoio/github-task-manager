@@ -3,7 +3,7 @@ import { describe, it, beforeEach, before, after } from 'mocha';
 import { default as assert } from 'assert';
 import { Agent } from '../../src/agent/Agent';
 import { AgentMetrics } from '../../src/agent/AgentMetrics';
-import { default as Consumer } from 'sqs-consumer';
+import { Consumer } from 'sqs-consumer';
 import { default as sinon } from 'sinon';
 import { AgentUtils } from '../../src/agent/AgentUtils';
 
