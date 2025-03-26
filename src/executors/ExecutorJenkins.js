@@ -32,14 +32,14 @@ export class ExecutorJenkins extends Executor {
             // If set, this will return bool:true, else bool:false
             let useCsrf = this.options.GTM_JENKINS_CSRF === 'true';
 
-            this.jenkins = JenkinsLib({
+            this.jenkins = new JenkinsLib({
                 baseUrl: AgentUtils.formatBasicAuth(
                     this.options.GTM_JENKINS_USER,
                     await KmsUtils.getDecrypted(this.options.GTM_CRYPT_JENKINS_TOKEN),
-                    this.options.GTM_JENKINS_URL
+                    this.options.GTM_JENKINS_URL,
                 ),
                 crumbIssuer: useCsrf,
-                promisify: true
+                promisify: true,
             });
         }
         return this.jenkins;
@@ -53,15 +53,15 @@ export class ExecutorJenkins extends Executor {
             let tries = 0;
             while (!exists && tries++ < maxRetries) {
                 exists = await this.jenkins.build.get(buildName, buildNumber).then(
-                    function() {
+                    function () {
                         log.info(`Build ${buildName} #${buildNumber} Started!`);
                         return true;
                     },
-                    async function() {
+                    async function () {
                         log.debug(`Build ${buildName} #${buildNumber} Hasn't Started: ${tries}`);
                         await AgentUtils.timeout(10000);
                         return false;
-                    }
+                    },
                 );
             }
             exists ? resolve(true) : reject();
@@ -70,13 +70,13 @@ export class ExecutorJenkins extends Executor {
 
     async waitForBuild(buildName, buildNumber) {
         let log = this.log;
-        let buildDict = await this.jenkins.build.get(buildName, buildNumber).then(function(data) {
+        let buildDict = await this.jenkins.build.get(buildName, buildNumber).then(function (data) {
             return data;
         });
         let tries = 1;
         while (buildDict.result === null) {
             await AgentUtils.timeout(5000);
-            buildDict = await this.jenkins.build.get(buildName, buildNumber).then(function(data) {
+            buildDict = await this.jenkins.build.get(buildName, buildNumber).then(function (data) {
                 log.debug(`Waiting for Build '${buildName}' to Finish: ${tries++}`);
                 return data;
             });
@@ -87,7 +87,7 @@ export class ExecutorJenkins extends Executor {
 
     async buildNumberfromQueue(queueId) {
         let log = this.log;
-        let queueData = await this.jenkins.queue.item(queueId).then(function(data) {
+        let queueData = await this.jenkins.queue.item(queueId).then(function (data) {
             return data;
         });
         while (!queueData.executable) {
@@ -97,7 +97,7 @@ export class ExecutorJenkins extends Executor {
                 log.warn(`Build Not Ready: No Reason Provided. Retrying in 3 seconds...`);
             }
             await AgentUtils.timeout(3000);
-            queueData = await this.jenkins.queue.item(queueId).then(function(data) {
+            queueData = await this.jenkins.queue.item(queueId).then(function (data) {
                 return data;
             });
         }
@@ -117,7 +117,7 @@ export class ExecutorJenkins extends Executor {
             task.results = {
                 passed: false,
                 url: this.options.GTM_JENKINS_URL,
-                message: `Required Parameter 'Job Name' not Specified`
+                message: `Required Parameter 'Job Name' not Specified`,
             };
             return Promise.reject(task);
         } else {
@@ -143,8 +143,8 @@ export class ExecutorJenkins extends Executor {
             details: `Job '${jobName} #${buildNumber}' Finished: ${result.result}`,
             meta: {
                 jobName: jobName,
-                buildNumber: buildNumber
-            }
+                buildNumber: buildNumber,
+            },
         };
 
         return resultBool ? Promise.resolve(task) : Promise.reject(task);
