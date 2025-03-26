@@ -53,9 +53,9 @@ describe('ExecutorJenkins', function () {
                 options: {
                     jobName: 'test-job',
                     parameters: {
-                        param1: 'value1'
-                    }
-                }
+                        param1: 'value1',
+                    },
+                },
             };
             let result = await executorJenkins.executeTask(task);
             assert.equal(result.results.passed, true);

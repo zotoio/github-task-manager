@@ -92,7 +92,7 @@ export class ExecutorJenkins extends Executor {
                 throw new Error('Jenkins client not properly initialized');
             }
 
-            let queueData = await this.jenkins.queue.item(queueId).catch(err => {
+            let queueData = await this.jenkins.queue.item(queueId).catch((err) => {
                 log.error(`Failed to get queue item: ${err.message}`);
                 throw err;
             });
@@ -104,12 +104,12 @@ export class ExecutorJenkins extends Executor {
                     log.warn(`Build Not Ready: No Reason Provided. Retrying in 3 seconds...`);
                 }
                 await AgentUtils.timeout(3000);
-                queueData = await this.jenkins.queue.item(queueId).catch(err => {
+                queueData = await this.jenkins.queue.item(queueId).catch((err) => {
                     log.error(`Failed to get queue item: ${err.message}`);
                     throw err;
                 });
             }
-            
+
             return queueData.executable.number;
         } catch (error) {
             log.error(`Error in buildNumberfromQueue: ${error.message}`);
