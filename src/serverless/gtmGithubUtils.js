@@ -1,16 +1,21 @@
 'use strict';
 
+async function getOctokit() {
+    const { Octokit } = await import('@octokit/rest');
+    return new Octokit();
+}
+
 let json = require('format-json');
 if (process.env.GTM_GITHUB_DEBUG) process.env.DEBUG = 'octokit:rest*';
-let GitHubApi = require('@octokit/rest');
+
 let crypto = require('crypto');
 let https = require('https');
 let githubUpdaters = {
     pull_request: updateGitHubPullRequest,
     comment: updateGitHubComment,
-    push: updateGitHubPush
+    push: updateGitHubPush,
 };
-import KmsUtils from './../KmsUtils';
+import KmsUtils from '../KmsUtils';
 
 let ghEnforceValidSsl = process.env.NODE_TLS_REJECT_UNAUTHORIZED === 0;
 
@@ -18,32 +23,34 @@ async function connect(context) {
     console.log('Connecting to GitHub');
     console.log('GitHub SSL Validation: ' + String(ghEnforceValidSsl));
     let githubOptions = {
-        baseUrl: `https://${process.env.GTM_GITHUB_HOST || 'api.github.com'}${process.env.GTM_GITHUB_PATH_PREFIX ||
-            ''}`,
-        timeout: parseInt(process.env.GTM_GITHUB_TIMEOUT) || 5000
+        baseUrl: `https://${process.env.GTM_GITHUB_HOST || 'api.github.com'}${
+            process.env.GTM_GITHUB_PATH_PREFIX || ''
+        }`,
+        timeout: parseInt(process.env.GTM_GITHUB_TIMEOUT) || 5000,
     };
     if (process.env.GTM_GITHUB_PROXY) {
         githubOptions.agent = new https.Agent({
             proxy: process.env.GTM_GITHUB_PROXY,
-            rejectUnauthorized: false
+            rejectUnauthorized: false,
         });
     }
 
     console.log('Creating GitHub API Connection');
-    let github = new GitHubApi(githubOptions);
+    let { Octokit } = await getOctokit();
+    let github = new Octokit(githubOptions);
 
     let token = await KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_TOKEN);
     if (context) {
         token =
             (await KmsUtils.getDecrypted(
-                process.env['GTM_CRYPT_GITHUB_TOKEN_' + context.toUpperCase().replace('-', '_')]
+                process.env['GTM_CRYPT_GITHUB_TOKEN_' + context.toUpperCase().replace('-', '_')],
             )) || (await KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_TOKEN));
     }
 
     console.log('Authenticating with GitHub');
     github.authenticate({
         type: 'oauth',
-        token: token
+        token: token,
     });
 
     // test connection
@@ -58,10 +65,7 @@ async function connect(context) {
 }
 
 function signRequestBody(key, body) {
-    return `sha1=${crypto
-        .createHmac('sha1', key)
-        .update(body, 'utf-8')
-        .digest('hex')}`;
+    return `sha1=${crypto.createHmac('sha1', key).update(body, 'utf-8').digest('hex')}`;
 }
 
 async function invalidHook(event) {
@@ -78,32 +82,32 @@ async function invalidHook(event) {
         {
             name: 'github secret',
             check: typeof token !== 'string',
-            msg: `Must provide a 'GTM_CRYPT_GITHUB_WEBHOOK_SECRET' env variable`
+            msg: `Must provide a 'GTM_CRYPT_GITHUB_WEBHOOK_SECRET' env variable`,
         },
         {
             name: 'X-Hub-Signature',
             check: !sig,
-            msg: 'No X-Hub-Signature found on request'
+            msg: 'No X-Hub-Signature found on request',
         },
         {
             name: 'X-Github-Event',
             check: !githubEvent,
-            msg: 'No X-Github-Event found on request'
+            msg: 'No X-Github-Event found on request',
         },
         {
             name: 'X-Github-Delivery',
             check: !id,
-            msg: 'No X-Github-Delivery found on request'
+            msg: 'No X-Github-Delivery found on request',
         },
         {
             name: 'X-Hub-Signature signing',
             check: sig !== calculatedSig,
-            msg: `X-Hub-Signature incorrect. Github webhook token doesn't match`
-        }
+            msg: `X-Hub-Signature incorrect. Github webhook token doesn't match`,
+        },
     ];
 
     try {
-        validators.forEach(v => {
+        validators.forEach((v) => {
             if (v.check) {
                 errMsg = v.msg;
                 throw new Error(errMsg);
@@ -163,7 +167,7 @@ function createPullRequestStatus(eventData, state, context, description, url) {
         target_url: url ? url : 'https://github.com/zotoio/github-task-manager',
         description: description,
         context: context,
-        eventData: eventData
+        eventData: eventData,
     };
 }
 
@@ -220,7 +224,7 @@ async function addGitHubPullRequestComment(status, done) {
                 repo: status.repo,
                 number: parseInt(status.number),
                 body: status.description,
-                event: 'COMMENT'
+                event: 'COMMENT',
             })
             .then(() => {
                 done();
@@ -249,14 +253,14 @@ async function addGitHubPushComments(status, done) {
         let github = await connect();
         let promises = [];
         // adding the same comment to each commit in the push for now..
-        status.eventData.commits.forEach(commit => {
+        status.eventData.commits.forEach((commit) => {
             promises.push(
                 github.repos.createCommitComment({
                     owner: status.owner,
                     repo: status.repo,
                     sha: commit.id,
-                    body: status.description
-                })
+                    body: status.description,
+                }),
             );
         });
         return Promise.all(promises).then(() => {
@@ -314,5 +318,5 @@ module.exports = {
     handleEventTaskResult: handleEventTaskResult,
     updateGitHubPullRequestStatus: updateGitHubPullRequestStatus,
     createPullRequestStatus: createPullRequestStatus,
-    isCommitForPullRequest: isCommitForPullRequest
+    isCommitForPullRequest: isCommitForPullRequest,
 };
