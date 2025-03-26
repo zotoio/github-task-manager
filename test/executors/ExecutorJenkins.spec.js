@@ -4,17 +4,24 @@ import { before, after, describe, it, beforeEach } from 'mocha';
 import { default as assert } from 'assert';
 import { Executor } from '../../src/agent/Executor';
 import { ExecutorJenkins } from '../../src/executors/ExecutorJenkins';
+import JenkinsMock from '../mocks/jenkins-mock';
 
 describe('ExecutorJenkins', function () {
     let executorJenkins;
     let eventData;
+    let jenkinsMock;
     process.env.GTM_JENKINS_USER = 'ciuser';
     process.env.GTM_JENKINS_URL = 'http://localhost:8211';
-    let NON_EXISTING_JENKINS_SERVER = ': connect ECONNREFUSED 127.0.0.1:8211';
 
     beforeEach(() => {
         eventData = JSON.parse(fs.readFileSync(__dirname + '/../fixtures/executorJenkinsTaskPayload.json', 'utf-8'));
         executorJenkins = new ExecutorJenkins(eventData, console);
+        jenkinsMock = new JenkinsMock();
+        jenkinsMock.start();
+    });
+
+    afterEach(() => {
+        jenkinsMock.stop();
     });
 
     describe('constructor', function () {
@@ -41,16 +48,9 @@ describe('ExecutorJenkins', function () {
         });
 
         it('executeTask to return result object', async () => {
-            eventData = JSON.parse(
-                fs.readFileSync(__dirname + '/../fixtures/executorJenkinsTaskPayload.json', 'utf-8'),
-            );
-            try {
-                await executorJenkins.executeTask(eventData.ghTaskConfig.tasks).then((data) => {
-                    return data;
-                });
-            } catch (e) {
-                return assert.equal(e.message, `jenkins: job.build${NON_EXISTING_JENKINS_SERVER}`);
-            }
+            let result = await executorJenkins.executeTask(eventData.ghTaskConfig.task);
+            assert.equal(result.results.passed, true);
+            assert.equal(result.results.url, 'http://localhost:8211/job/test/1');
         });
     });
 
@@ -73,14 +73,10 @@ describe('ExecutorJenkins', function () {
             stubCall.restore();
         });
 
-        it('should throw error while waiting for non-existing build', async () => {
-            try {
-                await executorJenkins.waitForBuild(buildName, buildNumber).then((data) => {
-                    return data;
-                });
-            } catch (e) {
-                return assert.equal(e.message, `jenkins: build.get${NON_EXISTING_JENKINS_SERVER}`);
-            }
+        it('should wait for build to complete', async () => {
+            let result = await executorJenkins.waitForBuild('test', 1);
+            assert.equal(result.result, 'SUCCESS');
+            assert.equal(result.url, 'http://localhost:8211/job/test/1');
         });
     });
 
