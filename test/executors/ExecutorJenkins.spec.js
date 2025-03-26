@@ -113,10 +113,11 @@ describe('ExecutorJenkins', function () {
     describe('buildNumberfromQueue', () => {
         it('should return build number from queue', async () => {
             try {
-                await executorJenkins.buildNumberfromQueue(12);
-                assert.fail('Should have thrown an error');
+                // Pass queue ID as number
+                let result = await executorJenkins.buildNumberfromQueue(12);
+                assert.equal(result, 1); // Mock returns build number 1
             } catch (e) {
-                assert.equal(e.message, 'connect ECONNREFUSED 127.0.0.1:8111');
+                assert.fail('Should not have thrown an error with mock server');
             }
         });
     });

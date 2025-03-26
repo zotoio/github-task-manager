@@ -147,7 +147,8 @@ export class ExecutorJenkins extends Executor {
         log.info('Starting Jenkins Job: ' + jobName);
         // TODO: Check if Job Exists
         let queueNumber = await this.jenkins.job.build(configuration);
-        let buildNumber = await this.buildNumberfromQueue(queueNumber);
+        // Ensure queueNumber is passed as a number
+        let buildNumber = await this.buildNumberfromQueue(parseInt(queueNumber));
         let buildExists = await this.waitForBuildToExist(jobName, buildNumber);
         console.debug(buildExists);
         let result = await this.waitForBuild(jobName, buildNumber);
