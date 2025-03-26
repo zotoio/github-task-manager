@@ -1,5 +1,5 @@
 import { default as fs } from 'fs';
-import { describe, it, beforeEach } from 'mocha';
+import { before, after, describe, it, beforeEach, afterEach } from 'mocha';
 import { default as assert } from 'assert';
 import { Executor } from '../../src/agent/Executor';
 import { ExecutorTravis } from '../../src/executors/ExecutorTravis';

@@ -106,7 +106,7 @@ describe('ExecutorJenkins', function () {
                 let result = await executorJenkins.buildNumberfromQueue(12);
                 console.log(result);
             } catch (e) {
-                return assert.equal(e.message, `jenkins: queue.item${NON_EXISTING_JENKINS_SERVER}`);
+                return assert.equal(e.message, 'connect ECONNREFUSED 127.0.0.1:8111');
             }
         });
     });
