@@ -5,12 +5,18 @@ async function getOctokit() {
     return new Octokit();
 }
 
-let json = require('format-json');
+import json from 'format-json';
 if (process.env.GTM_GITHUB_DEBUG) process.env.DEBUG = 'octokit:rest*';
 
-let crypto = require('crypto');
-let https = require('https');
-let githubUpdaters = {
+import crypto from 'crypto';
+import https from 'https';
+
+async function getOctokit() {
+    const { Octokit } = await import('@octokit/rest');
+    return Octokit;
+}
+
+const githubUpdaters = {
     pull_request: updateGitHubPullRequest,
     comment: updateGitHubComment,
     push: updateGitHubPush,
@@ -36,8 +42,8 @@ async function connect(context) {
     }
 
     console.log('Creating GitHub API Connection');
-    let { Octokit } = await getOctokit();
-    let github = new Octokit(githubOptions);
+    const OctokitClass = await getOctokit();
+    let github = new OctokitClass(githubOptions);
 
     let token = await KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_TOKEN);
     if (context) {
@@ -309,14 +315,14 @@ async function isCommitForPullRequest(commitSha) {
     }
 }
 
-module.exports = {
-    connect: connect,
-    signRequestBody: signRequestBody,
-    invalidHook: invalidHook,
-    decodeFileResponse: decodeFileResponse,
-    getFile: getFile,
-    handleEventTaskResult: handleEventTaskResult,
-    updateGitHubPullRequestStatus: updateGitHubPullRequestStatus,
-    createPullRequestStatus: createPullRequestStatus,
-    isCommitForPullRequest: isCommitForPullRequest,
+export default {
+    connect,
+    signRequestBody,
+    invalidHook,
+    decodeFileResponse,
+    getFile,
+    handleEventTaskResult,
+    updateGitHubPullRequestStatus,
+    createPullRequestStatus,
+    isCommitForPullRequest,
 };
