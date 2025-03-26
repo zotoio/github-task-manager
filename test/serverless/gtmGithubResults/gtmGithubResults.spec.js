@@ -27,8 +27,9 @@ describe('gtmGithubResults', function () {
             process.env.SQS_RESULTS_QUEUE_URL = '';
             try {
                 await githubResults.getQueue();
+                assert.fail('Should have thrown error about missing queue URL');
             } catch (e) {
-                assert.equal(e.message.includes('queueUrl'), true);
+                assert.ok(e.message.includes('queueUrl'), `Expected queueUrl error but got: ${e.message}`);
             }
         });
     });
