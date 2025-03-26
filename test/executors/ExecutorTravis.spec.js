@@ -4,7 +4,7 @@ import { default as assert } from 'assert';
 import { Executor } from '../../src/agent/Executor';
 import { ExecutorTravis } from '../../src/executors/ExecutorTravis';
 
-describe('ExecutorTravis', function() {
+describe('ExecutorTravis', function () {
     let executorTravis;
     let eventData;
 
@@ -13,8 +13,8 @@ describe('ExecutorTravis', function() {
         executorTravis = new ExecutorTravis(eventData, console);
     });
 
-    describe('constructor', function() {
-        it('should instantiate as Executor', function() {
+    describe('constructor', function () {
+        it('should instantiate as Executor', function () {
             assert.equal(executorTravis instanceof Executor, true);
         });
     });
