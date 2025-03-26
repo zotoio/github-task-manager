@@ -16,8 +16,8 @@ class JenkinsMock {
                         url: `http://localhost:${this.port}/job/test/1`,
                         number: 1,
                         executable: {
-                            number: 1
-                        }
+                            number: 1,
+                        },
                     }),
                 );
             } else if (req.url.includes('/queue/')) {
