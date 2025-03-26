@@ -9,7 +9,7 @@ console.log('cold start');
 require('source-map-support').install();
 let rp = require('request-promise-native');
 let json = require('format-json');
-let UUID = require('uuid/v4');
+import { v4 as UUID } from 'uuid';
 let Producer = require('sqs-producer');
 let githubUtils = require('../gtmGithubUtils.js');
 
@@ -17,7 +17,7 @@ import KmsUtils from './../../KmsUtils';
 
 async function listener(event, context, callback) {
     console.log(
-        `hook call from ${event.requestContext.identity.sourceIp} forwarded for ${event.headers['X-Forwarded-For']}`
+        `hook call from ${event.requestContext.identity.sourceIp} forwarded for ${event.headers['X-Forwarded-For']}`,
     );
     const githubEvent = event.headers['X-GitHub-Event'] || event.headers['x-github-event'];
     const githubSignature = event.headers['X-Hub-Signature'] || event.headers['x-hub-signature'];
@@ -26,7 +26,7 @@ async function listener(event, context, callback) {
         return callback(err, {
             statusCode: 401,
             headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify(err)
+            body: JSON.stringify(err),
         });
     }
 
@@ -39,7 +39,7 @@ async function listener(event, context, callback) {
         return callback(err, {
             statusCode: 200,
             headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify(err)
+            body: JSON.stringify(err),
         });
     }
 
@@ -56,15 +56,15 @@ async function listener(event, context, callback) {
             statusCode: 200,
             headers: { 'X-ghEventId': ghEventId },
             body: JSON.stringify({
-                input: event
-            })
+                input: event,
+            }),
         });
     } catch (e) {
         err = e;
         return callback(err, {
             statusCode: 400,
             headers: { 'Content-Type': 'text/plain' },
-            body: err.message
+            body: err.message,
         });
     }
 }
@@ -83,7 +83,7 @@ async function handleEvent(type, body, signature) {
     // create simple producer
     let producer = Producer.create({
         queueUrl: process.env.SQS_PENDING_QUEUE_URL,
-        region: process.env.GTM_AWS_REGION
+        region: process.env.GTM_AWS_REGION,
     });
     let pushForPullRequest = false;
     // if this is a push, determine whether related to an open pull_request
@@ -103,26 +103,26 @@ async function handleEvent(type, body, signature) {
                 ghEventType: { DataType: 'String', StringValue: type },
                 ghTaskConfig: {
                     DataType: 'String',
-                    StringValue: json.plain(taskConfig)
+                    StringValue: json.plain(taskConfig),
                 },
-                ghAgentGroup: { DataType: 'String', StringValue: ghAgentGroup }
-            }
-        }
+                ghAgentGroup: { DataType: 'String', StringValue: ghAgentGroup },
+            },
+        },
     ];
 
     signature = githubUtils.signRequestBody(
         await KmsUtils.getDecrypted(process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET),
-        JSON.stringify(event[0])
+        JSON.stringify(event[0]),
     );
 
     event[0].messageAttributes.ghEventSignature = {
         DataType: 'String',
-        StringValue: signature
+        StringValue: signature,
     };
 
     console.log(`Outgoing event payload: ${json.plain(event)}`);
 
-    producer.send(event, function(err) {
+    producer.send(event, function (err) {
         if (err) console.log(err);
     });
 
@@ -138,20 +138,20 @@ async function getTaskConfig(type, body) {
 
     console.log(`file request params for ${type} = ${json.plain(fileParams)}`);
 
-    let fileResponse = await githubUtils.getFile(fileParams).catch(e => {
+    let fileResponse = await githubUtils.getFile(fileParams).catch((e) => {
         console.warn(`Could not get taskConfig from GitHub: ${json.plain(fileParams)}, error is ${json.plain(e)}`);
         return rp({
             proxy: process.env.https_proxy || process.env.http_proxy || null,
             json: true,
             uri:
                 process.env.GTM_TASK_CONFIG_DEFAULT_URL ||
-                'https://raw.githubusercontent.com/zotoio/github-task-manager/master/.githubTaskManager.json'
-        }).then(config => {
+                'https://raw.githubusercontent.com/zotoio/github-task-manager/master/.githubTaskManager.json',
+        }).then((config) => {
             config.pull_request.isDefaultConfig = true;
             return {
                 data: {
-                    content: Buffer.from(JSON.stringify(config)).toString('base64')
-                }
+                    content: Buffer.from(JSON.stringify(config)).toString('base64'),
+                },
             };
         });
     });
@@ -175,21 +175,21 @@ function getFileParams(type, body) {
                 owner: body.pull_request.head.repo.owner.login,
                 repo: body.pull_request.head.repo.name,
                 path: process.env.GTM_TASK_CONFIG_FILENAME || '.githubTaskManager.json',
-                ref: body.pull_request.head.ref
+                ref: body.pull_request.head.ref,
             };
         case 'push':
             return {
                 owner: body.repository.owner.login,
                 repo: body.repository.name,
                 path: process.env.GTM_TASK_CONFIG_FILENAME || '.githubTaskManager.json',
-                ref: body.ref
+                ref: body.ref,
             };
         default:
             return {
                 owner: body.repository.owner.login,
                 repo: body.repository.name,
                 path: process.env.GTM_TASK_CONFIG_FILENAME || '.githubTaskManager.json',
-                ref: 'master'
+                ref: 'master',
             };
     }
 }
@@ -210,7 +210,7 @@ function setPullRequestEventStatus(ghEventId, eventBody) {
         'pending',
         'GitHub Task Manager',
         `Queued ${ghEventId}`,
-        url
+        url,
     );
     githubUtils.updateGitHubPullRequestStatus(status, () => {});
 }
@@ -222,7 +222,7 @@ function checkRepoBlacklisted(body) {
 
     let blacklisted = false;
     if (blacklist && blacklist.length > 0) {
-        blacklist.forEach(blacklistPattern => {
+        blacklist.forEach((blacklistPattern) => {
             if (!blacklisted) {
                 let pattern = new RegExp(blacklistPattern.trim());
                 if (pattern.test(repoName)) {
@@ -240,5 +240,5 @@ module.exports = {
     listener: listener,
     getTaskConfig: getTaskConfig,
     decodeEventBody: decodeEventBody,
-    handleEvent: handleEvent
+    handleEvent: handleEvent,
 };
