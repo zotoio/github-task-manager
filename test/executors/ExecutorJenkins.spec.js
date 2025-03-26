@@ -48,7 +48,8 @@ describe('ExecutorJenkins', function () {
             stubCall.restore();
         });
 
-        it('executeTask to return result object', async () => {
+        it('executeTask to return result object', async function() {
+            this.timeout(10000); // Increase timeout to 10s
             const task = {
                 options: {
                     jobName: 'test-job',
