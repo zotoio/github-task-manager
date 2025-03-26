@@ -160,7 +160,10 @@ export class ExecutorJenkins extends Executor {
         } else if (typeof buildResponse === 'number') {
             queueId = buildResponse;
         } else {
-            throw new Error('Invalid queue ID returned from Jenkins build: ' + (buildResponse ? buildResponse.toString() : 'undefined'));
+            throw new Error(
+                'Invalid queue ID returned from Jenkins build: ' +
+                    (buildResponse ? buildResponse.toString() : 'undefined'),
+            );
         }
         let buildNumber = await this.buildNumberfromQueue(queueId);
         let buildExists = await this.waitForBuildToExist(jobName, buildNumber);
