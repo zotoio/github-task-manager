@@ -5,12 +5,12 @@ import { default as githubUtils } from '../../src/serverless/gtmGithubUtils.js';
 
 process.env.GTM_CRYPT_GITHUB_TOKEN = '';
 
-describe('gtmGithubUtils', function() {
+describe('gtmGithubUtils', function () {
     beforeEach(() => {
         process.env.GTM_AWS_KMS_KEY_ID = '';
     });
-    describe('connect', function() {
-        it('should throw without creds', async function() {
+    describe('connect', function () {
+        it('should throw without creds', async function () {
             try {
                 await githubUtils.connect();
             } catch (e) {
@@ -19,31 +19,28 @@ describe('gtmGithubUtils', function() {
         });
     });
 
-    describe('signRequestBody', function() {
-        it('should encrypt correctly', function() {
+    describe('signRequestBody', function () {
+        it('should encrypt correctly', function () {
             let key = 'abc';
             let body = 'def';
 
-            let expected = `sha1=${crypto
-                .createHmac('sha1', key)
-                .update(body, 'utf-8')
-                .digest('hex')}`;
+            let expected = `sha1=${crypto.createHmac('sha1', key).update(body, 'utf-8').digest('hex')}`;
 
             let actual = githubUtils.signRequestBody(key, body);
             assert.equal(actual, expected);
         });
     });
 
-    describe('invalidHook', function() {
-        it('should return error if event header missing', async function() {
+    describe('invalidHook', function () {
+        it('should return error if event header missing', async function () {
             process.env.GTM_AWS_KMS_KEY_ID = '';
             process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET = 'abc';
 
             let event = {
                 body: 'testing',
                 headers: {
-                    'X-Hub-Signature': 'test'
-                }
+                    'X-Hub-Signature': 'test',
+                },
             };
 
             let expected = 'Error: No X-Github-Event found on request';
@@ -52,12 +49,12 @@ describe('gtmGithubUtils', function() {
         });
     });
 
-    describe('decodeFileResponse', function() {
-        it('should base64 decode', function(done) {
+    describe('decodeFileResponse', function () {
+        it('should base64 decode', function (done) {
             let fileResponse = {
                 data: {
-                    content: 'eyJhYmMiOiAidGhpcyBpcyBhIHRlc3QifQo=' //base64 { abc: 'this is a test' }
-                }
+                    content: 'eyJhYmMiOiAidGhpcyBpcyBhIHRlc3QifQo=', //base64 { abc: 'this is a test' }
+                },
             };
 
             let actual = githubUtils.decodeFileResponse(fileResponse);
@@ -66,10 +63,10 @@ describe('gtmGithubUtils', function() {
         });
     });
 
-    describe('updateGitHubPullRequest', function() {
-        it('should throw exception when not logged in', async function() {
+    describe('updateGitHubPullRequest', function () {
+        it('should throw exception when not logged in', async function () {
             let message = {
-                Body: '{"context": "test", "eventData": { "ghEventId": "abc", "ghEventType": "pull_request"}}'
+                Body: '{"context": "test", "eventData": { "ghEventId": "abc", "ghEventType": "pull_request"}}',
             };
 
             let actual;
@@ -82,8 +79,8 @@ describe('gtmGithubUtils', function() {
         });
     });
 
-    describe('getFile', function() {
-        it('should throw exception when not logged in', async function() {
+    describe('getFile', function () {
+        it('should throw exception when not logged in', async function () {
             let actual;
             try {
                 actual = await githubUtils.getFile();

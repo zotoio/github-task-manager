@@ -6,12 +6,12 @@ import { default as gtmGithubHook } from '../../../src/serverless/gtmGithubHook/
 import { default as githubUtils } from '../../../src/serverless/gtmGithubUtils.js';
 import { default as Producer } from 'sqs-producer';
 
-describe('gtmGithubHook', function() {
+describe('gtmGithubHook', function () {
     beforeEach(() => {
         process.env.GTM_AWS_KMS_KEY_ID = '';
     });
-    describe('decodeEventBody', function() {
-        it('should remove prefix and parse body', function(done) {
+    describe('decodeEventBody', function () {
+        it('should remove prefix and parse body', function (done) {
             let expected = { action: 'test' };
             let event = {};
             event.body = 'payload=%7B%22action%22%3A%20%22test%22%7D';
@@ -21,7 +21,7 @@ describe('gtmGithubHook', function() {
             done();
         });
     });
-    describe('listener', function() {
+    describe('listener', function () {
         let stubCall;
         let customResult;
         before(() => {
@@ -32,7 +32,7 @@ describe('gtmGithubHook', function() {
             customResult = {};
             stubCall = sinon.stub(Producer, 'create').returns(Promise.resolve(customResult));
         });
-        it('should run', function(done) {
+        it('should run', function (done) {
             let event = {};
             event.type = 'pull_request';
             event.body =
@@ -40,15 +40,12 @@ describe('gtmGithubHook', function() {
 
             let key = 'abc';
             process.env.GTM_CRYPT_GITHUB_WEBHOOK_SECRET = key;
-            let sig = `sha1=${crypto
-                .createHmac('sha1', key)
-                .update(event.body, 'utf-8')
-                .digest('hex')}`;
+            let sig = `sha1=${crypto.createHmac('sha1', key).update(event.body, 'utf-8').digest('hex')}`;
 
             event.headers = {
                 'X-Hub-Signature': sig,
                 'X-GitHub-Event': 'test',
-                'X-GitHub-Delivery': 'test'
+                'X-GitHub-Delivery': 'test',
             };
 
             gtmGithubHook.listener(event, null, () => {});
@@ -60,7 +57,7 @@ describe('gtmGithubHook', function() {
         });
     });
 
-    describe('getTaskConfig', function() {
+    describe('getTaskConfig', function () {
         let config = {
             pull_request: {
                 tasks: [
@@ -69,28 +66,28 @@ describe('gtmGithubHook', function() {
                         context: 'functional',
                         options: {
                             tags: ['@smoke'],
-                            browsers: ['chrome']
-                        }
-                    }
-                ]
-            }
+                            browsers: ['chrome'],
+                        },
+                    },
+                ],
+            },
         };
 
-        before(function() {
+        before(function () {
             sinon.stub(githubUtils, 'getFile').callsFake(() => {
                 return Promise.resolve({
                     data: {
-                        content: Buffer.from(JSON.stringify(config)).toString('base64')
-                    }
+                        content: Buffer.from(JSON.stringify(config)).toString('base64'),
+                    },
                 });
             });
         });
 
-        after(function() {
+        after(function () {
             githubUtils.getFile.restore();
         });
 
-        it('should extract json from github file response', async function() {
+        it('should extract json from github file response', async function () {
             let body = {
                 pull_request: {
                     ref: 'sha123',
@@ -98,11 +95,11 @@ describe('gtmGithubHook', function() {
                         repo: {
                             name: 'code',
                             owner: {
-                                login: 'bob'
-                            }
-                        }
-                    }
-                }
+                                login: 'bob',
+                            },
+                        },
+                    },
+                },
             };
 
             //gtmGithubHook.setUtils(githubUtils);

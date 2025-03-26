@@ -7,7 +7,7 @@ import { default as Consumer } from 'sqs-consumer';
 import { default as sinon } from 'sinon';
 import { AgentUtils } from '../../src/agent/AgentUtils';
 
-describe('Agent', function() {
+describe('Agent', function () {
     let AGENT_GROUP;
 
     let systemConfig = {};
@@ -22,8 +22,8 @@ describe('Agent', function() {
         systemConfig.agentGroup = AGENT_GROUP;
     });
 
-    describe('systemConfig', function() {
-        it('should return systemConfig values', function() {
+    describe('systemConfig', function () {
+        it('should return systemConfig values', function () {
             let actual = Agent.systemConfig;
             for (let i = 1; i < 5; i++) {
                 assert.equal(actual[i], systemConfig[i]);

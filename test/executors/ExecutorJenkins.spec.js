@@ -5,7 +5,7 @@ import { default as assert } from 'assert';
 import { Executor } from '../../src/agent/Executor';
 import { ExecutorJenkins } from '../../src/executors/ExecutorJenkins';
 
-describe('ExecutorJenkins', function() {
+describe('ExecutorJenkins', function () {
     let executorJenkins;
     let eventData;
     process.env.GTM_JENKINS_USER = 'ciuser';
@@ -18,8 +18,8 @@ describe('ExecutorJenkins', function() {
         await executorJenkins.initJenkins();
     });
 
-    describe('constructor', function() {
-        it('should instantiate as Executor', function() {
+    describe('constructor', function () {
+        it('should instantiate as Executor', function () {
             assert.equal(executorJenkins instanceof Executor, true);
         });
     });
@@ -27,7 +27,7 @@ describe('ExecutorJenkins', function() {
     describe('executeTask', () => {
         let stubCall;
         let customResult;
-        before(function() {
+        before(function () {
             customResult = { content: 'counterfeit task executed' };
             stubCall = sinon.stub(executorJenkins, 'executeTask').returns(Promise.resolve(customResult));
         });
@@ -37,16 +37,16 @@ describe('ExecutorJenkins', function() {
             assert.equal(result, customResult);
         });
 
-        after(function() {
+        after(function () {
             stubCall.restore();
         });
 
         it('executeTask to return result object', async () => {
             eventData = JSON.parse(
-                fs.readFileSync(__dirname + '/../fixtures/executorJenkinsTaskPayload.json', 'utf-8')
+                fs.readFileSync(__dirname + '/../fixtures/executorJenkinsTaskPayload.json', 'utf-8'),
             );
             try {
-                await executorJenkins.executeTask(eventData.ghTaskConfig.tasks).then(data => {
+                await executorJenkins.executeTask(eventData.ghTaskConfig.tasks).then((data) => {
                     return data;
                 });
             } catch (e) {
@@ -76,7 +76,7 @@ describe('ExecutorJenkins', function() {
 
         it('should throw error while waiting for non-existing build', async () => {
             try {
-                await executorJenkins.waitForBuild(buildName, buildNumber).then(data => {
+                await executorJenkins.waitForBuild(buildName, buildNumber).then((data) => {
                     return data;
                 });
             } catch (e) {
