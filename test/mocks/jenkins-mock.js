@@ -9,18 +9,24 @@ class JenkinsMock {
     start() {
         this.server = http.createServer((req, res) => {
             if (req.url.includes('/job/')) {
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(
-                    JSON.stringify({
-                        queueId: 123,
-                        result: 'SUCCESS',
-                        url: `http://localhost:${this.port}/job/test/1`,
-                        number: 1,
-                        executable: {
+                if (req.method === 'POST') {
+                    // Return queue number for build requests
+                    res.writeHead(200, { 'Content-Type': 'text/plain' });
+                    res.end('123');
+                } else {
+                    // Return build status for GET requests
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(
+                        JSON.stringify({
+                            result: 'SUCCESS',
+                            url: `http://localhost:${this.port}/job/test/1`,
                             number: 1,
-                        },
-                    }),
-                );
+                            executable: {
+                                number: 1,
+                            },
+                        }),
+                    );
+                }
             } else if (req.url.includes('/queue/')) {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(
