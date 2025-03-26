@@ -1,10 +1,5 @@
 'use strict';
 
-async function getOctokit() {
-    const { Octokit } = await import('@octokit/rest');
-    return new Octokit();
-}
-
 import json from 'format-json';
 if (process.env.GTM_GITHUB_DEBUG) process.env.DEBUG = 'octokit:rest*';
 
