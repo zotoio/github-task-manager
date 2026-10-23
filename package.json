@@ -155,5 +155,11 @@
     "xml2js": "^0.6.2",
     "yamljs": "^0.3.0",
     "zlib": "^1.0.5"
+  },
+  "resolutions": {
+    "handlebars": "^4.7.10",
+    "source-map-js": "^1.2.2",
+    "basic-ftp": "^6.2.1",
+    "@grpc/grpc-js": "^1.13.6"
   }
 }
